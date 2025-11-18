@@ -1,0 +1,26 @@
+{
+  "name": "brws_list_table_pagination_wait_element_4",
+  "description": "Wait for element for Scrape paginated table",
+  "pattern": "scrape paginated table|wait for element",
+  "parameters": [
+    "selector"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "page.waitForSelector"
+      },
+      "expected_output": "Result of Wait for element"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

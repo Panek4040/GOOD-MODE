@@ -1,0 +1,24 @@
+{
+  "name": "lnx_sec_suid_enum_firewall_list_4",
+  "description": "List firewall rules for Enumerate SUID/SGID binaries",
+  "pattern": "enumerate suid/sgid binaries|list firewall rules",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "iptables -L"
+      },
+      "expected_output": "Result of List firewall rules"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

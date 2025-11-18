@@ -1,0 +1,24 @@
+{
+  "name": "pent_cloud_s3_audit_enum_sudo_2",
+  "description": "Check sudo rights for S3 bucket exposure audit",
+  "pattern": "s3 bucket exposure audit|check sudo rights",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "sudo -l"
+      },
+      "expected_output": "Result of Check sudo rights"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

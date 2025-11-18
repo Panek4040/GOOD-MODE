@@ -1,0 +1,27 @@
+{
+  "name": "lnx_fs_tar_archive_recursive_scan_3",
+  "description": "Recursive scan for Create compressed archive",
+  "pattern": "create compressed archive|recursive scan",
+  "parameters": [
+    "path",
+    "depth"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "find -type f"
+      },
+      "expected_output": "Result of Recursive scan"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

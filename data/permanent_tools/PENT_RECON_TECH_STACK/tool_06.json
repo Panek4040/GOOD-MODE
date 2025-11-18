@@ -1,0 +1,27 @@
+{
+  "name": "pent_recon_tech_stack_zone_transfer_6",
+  "description": "Zone transfer attempt for Web tech stack fingerprinting",
+  "pattern": "web tech stack fingerprinting|zone transfer attempt",
+  "parameters": [
+    "domain",
+    "nameserver"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "dig axfr"
+      },
+      "expected_output": "Result of Zone transfer attempt"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

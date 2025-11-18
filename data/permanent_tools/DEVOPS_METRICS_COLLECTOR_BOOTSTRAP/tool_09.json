@@ -1,0 +1,26 @@
+{
+  "name": "devops_metrics_collector_bootstrap_git_log_search_9",
+  "description": "Search git history for Bootstrap metrics collector",
+  "pattern": "bootstrap metrics collector|search git history",
+  "parameters": [
+    "pattern"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "git log -S"
+      },
+      "expected_output": "Result of Search git history"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

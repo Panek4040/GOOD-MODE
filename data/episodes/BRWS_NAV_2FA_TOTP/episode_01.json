@@ -1,0 +1,56 @@
+{
+  "id": "episode_BRWS_NAV_2FA_TOTP_001",
+  "goal": "Complete Handle TOTP-based 2FA workflow variant 1",
+  "thoughts": [
+    {
+      "type": "plan",
+      "content": "Planning to execute Handle TOTP-based 2FA",
+      "timestamp": 1763489734.3283043
+    },
+    {
+      "type": "analyze",
+      "content": "Analyzing requirements for auth task",
+      "timestamp": 1763489739.3283043
+    }
+  ],
+  "actions": [
+    {
+      "step": "Initialize Handle TOTP-based 2FA",
+      "action": {
+        "type": "browser_action",
+        "command": "Execute step 1 of BRWS_NAV_2FA_TOTP"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Step 1 completed for Handle TOTP-based 2FA"
+      }
+    },
+    {
+      "step": "Process auth data",
+      "action": {
+        "type": "data_processing",
+        "command": "Process data for BRWS_NAV_2FA_TOTP"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Data processed successfully"
+      }
+    },
+    {
+      "step": "Finalize Handle TOTP-based 2FA",
+      "action": {
+        "type": "validation",
+        "command": "Validate results"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Validation passed"
+      }
+    }
+  ],
+  "outcome": {
+    "success": true,
+    "steps_executed": 3
+  },
+  "duration": 8.5
+}

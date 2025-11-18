@@ -1,0 +1,27 @@
+{
+  "name": "brws_performance_timings_fill_form_2",
+  "description": "Fill form field for Collect browser performance timings",
+  "pattern": "collect browser performance timings|fill form field",
+  "parameters": [
+    "selector",
+    "value"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "page.fill"
+      },
+      "expected_output": "Result of Fill form field"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

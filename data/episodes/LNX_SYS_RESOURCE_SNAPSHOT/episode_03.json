@@ -1,0 +1,56 @@
+{
+  "id": "episode_LNX_SYS_RESOURCE_SNAPSHOT_003",
+  "goal": "Complete System resource snapshot workflow variant 3",
+  "thoughts": [
+    {
+      "type": "plan",
+      "content": "Planning to execute System resource snapshot",
+      "timestamp": 1763491734.2362583
+    },
+    {
+      "type": "analyze",
+      "content": "Analyzing requirements for system task",
+      "timestamp": 1763491739.2362583
+    }
+  ],
+  "actions": [
+    {
+      "step": "Initialize System resource snapshot",
+      "action": {
+        "type": "system_command",
+        "command": "Execute step 1 of LNX_SYS_RESOURCE_SNAPSHOT"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Step 1 completed for System resource snapshot"
+      }
+    },
+    {
+      "step": "Process system data",
+      "action": {
+        "type": "data_processing",
+        "command": "Process data for LNX_SYS_RESOURCE_SNAPSHOT"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Data processed successfully"
+      }
+    },
+    {
+      "step": "Finalize System resource snapshot",
+      "action": {
+        "type": "validation",
+        "command": "Validate results"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Validation passed"
+      }
+    }
+  ],
+  "outcome": {
+    "success": true,
+    "steps_executed": 3
+  },
+  "duration": 13.1
+}

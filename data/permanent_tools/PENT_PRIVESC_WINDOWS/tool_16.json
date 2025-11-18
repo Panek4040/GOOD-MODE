@@ -1,0 +1,24 @@
+{
+  "name": "pent_privesc_windows_enum_processes_16",
+  "description": "Process enumeration for Windows privilege escalation checks",
+  "pattern": "windows privilege escalation checks|process enumeration",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "ps aux"
+      },
+      "expected_output": "Result of Process enumeration"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

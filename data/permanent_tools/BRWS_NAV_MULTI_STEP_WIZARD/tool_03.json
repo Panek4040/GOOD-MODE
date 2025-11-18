@@ -1,0 +1,26 @@
+{
+  "name": "brws_nav_multi_step_wizard_click_element_3",
+  "description": "Click element for Handle multi-step wizard",
+  "pattern": "handle multi-step wizard|click element",
+  "parameters": [
+    "selector"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "page.click"
+      },
+      "expected_output": "Result of Click element"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

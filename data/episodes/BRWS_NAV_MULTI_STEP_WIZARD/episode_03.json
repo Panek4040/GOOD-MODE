@@ -1,0 +1,56 @@
+{
+  "id": "episode_BRWS_NAV_MULTI_STEP_WIZARD_003",
+  "goal": "Complete Handle multi-step wizard workflow variant 3",
+  "thoughts": [
+    {
+      "type": "plan",
+      "content": "Planning to execute Handle multi-step wizard",
+      "timestamp": 1763491734.3238466
+    },
+    {
+      "type": "analyze",
+      "content": "Analyzing requirements for navigation task",
+      "timestamp": 1763491739.3238466
+    }
+  ],
+  "actions": [
+    {
+      "step": "Initialize Handle multi-step wizard",
+      "action": {
+        "type": "browser_action",
+        "command": "Execute step 1 of BRWS_NAV_MULTI_STEP_WIZARD"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Step 1 completed for Handle multi-step wizard"
+      }
+    },
+    {
+      "step": "Process navigation data",
+      "action": {
+        "type": "data_processing",
+        "command": "Process data for BRWS_NAV_MULTI_STEP_WIZARD"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Data processed successfully"
+      }
+    },
+    {
+      "step": "Finalize Handle multi-step wizard",
+      "action": {
+        "type": "validation",
+        "command": "Validate results"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Validation passed"
+      }
+    }
+  ],
+  "outcome": {
+    "success": true,
+    "steps_executed": 3
+  },
+  "duration": 13.1
+}

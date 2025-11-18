@@ -1,0 +1,24 @@
+{
+  "name": "pent_privesc_windows_enum_cron_3",
+  "description": "Check cron jobs for Windows privilege escalation checks",
+  "pattern": "windows privilege escalation checks|check cron jobs",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "cat /etc/crontab"
+      },
+      "expected_output": "Result of Check cron jobs"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

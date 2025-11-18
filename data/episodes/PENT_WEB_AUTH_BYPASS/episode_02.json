@@ -1,0 +1,56 @@
+{
+  "id": "episode_PENT_WEB_AUTH_BYPASS_002",
+  "goal": "Complete Auth bypass patterns workflow variant 2",
+  "thoughts": [
+    {
+      "type": "plan",
+      "content": "Planning to execute Auth bypass patterns",
+      "timestamp": 1763490734.4119542
+    },
+    {
+      "type": "analyze",
+      "content": "Analyzing requirements for web task",
+      "timestamp": 1763490739.4119542
+    }
+  ],
+  "actions": [
+    {
+      "step": "Initialize Auth bypass patterns",
+      "action": {
+        "type": "browser_action",
+        "command": "Execute step 1 of PENT_WEB_AUTH_BYPASS"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Step 1 completed for Auth bypass patterns"
+      }
+    },
+    {
+      "step": "Process web data",
+      "action": {
+        "type": "data_processing",
+        "command": "Process data for PENT_WEB_AUTH_BYPASS"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Data processed successfully"
+      }
+    },
+    {
+      "step": "Finalize Auth bypass patterns",
+      "action": {
+        "type": "validation",
+        "command": "Validate results"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Validation passed"
+      }
+    }
+  ],
+  "outcome": {
+    "success": true,
+    "steps_executed": 3
+  },
+  "duration": 10.8
+}

@@ -1,0 +1,26 @@
+{
+  "name": "code_static_analysis_py_git_clone_1",
+  "description": "Clone repository for Run static analysis on Python project",
+  "pattern": "run static analysis on python project|clone repository",
+  "parameters": [
+    "url"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "git clone"
+      },
+      "expected_output": "Result of Clone repository"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

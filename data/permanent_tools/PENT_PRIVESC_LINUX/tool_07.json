@@ -1,0 +1,24 @@
+{
+  "name": "pent_privesc_linux_enum_network_7",
+  "description": "Network enumeration for Linux privilege escalation checks",
+  "pattern": "linux privilege escalation checks|network enumeration",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "netstat -ano"
+      },
+      "expected_output": "Result of Network enumeration"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

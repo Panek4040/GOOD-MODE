@@ -1,0 +1,26 @@
+{
+  "name": "lnx_sys_log_tail_filter_systemctl_status_7",
+  "description": "Check service status for Tail and filter logs",
+  "pattern": "tail and filter logs|check service status",
+  "parameters": [
+    "service"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "systemctl status"
+      },
+      "expected_output": "Result of Check service status"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

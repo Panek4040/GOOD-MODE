@@ -1,0 +1,27 @@
+{
+  "name": "lnx_fs_find_large_files_find_pattern_2",
+  "description": "Find with pattern for Find largest files in path",
+  "pattern": "find largest files in path|find with pattern",
+  "parameters": [
+    "path",
+    "pattern"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "find"
+      },
+      "expected_output": "Result of Find with pattern"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

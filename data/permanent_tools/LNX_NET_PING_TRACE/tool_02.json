@@ -1,0 +1,24 @@
+{
+  "name": "lnx_net_ping_trace_ip_route_show_2",
+  "description": "Show routes for Ping and traceroute diagnostics",
+  "pattern": "ping and traceroute diagnostics|show routes",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "ip route show"
+      },
+      "expected_output": "Result of Show routes"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

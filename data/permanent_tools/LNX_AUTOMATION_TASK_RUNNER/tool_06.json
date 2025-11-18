@@ -1,0 +1,26 @@
+{
+  "name": "lnx_automation_task_runner_resource_monitor_6",
+  "description": "Monitor resources for Run sequence of shell tasks with checks",
+  "pattern": "run sequence of shell tasks with checks|monitor resources",
+  "parameters": [
+    "duration"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "top/vmstat"
+      },
+      "expected_output": "Result of Monitor resources"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

@@ -1,0 +1,56 @@
+{
+  "id": "episode_BRWS_NAV_LOGIN_FORM_001",
+  "goal": "Complete Login through HTML form workflow variant 1",
+  "thoughts": [
+    {
+      "type": "plan",
+      "content": "Planning to execute Login through HTML form",
+      "timestamp": 1763489734.3198178
+    },
+    {
+      "type": "analyze",
+      "content": "Analyzing requirements for navigation task",
+      "timestamp": 1763489739.3198178
+    }
+  ],
+  "actions": [
+    {
+      "step": "Initialize Login through HTML form",
+      "action": {
+        "type": "browser_action",
+        "command": "Execute step 1 of BRWS_NAV_LOGIN_FORM"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Step 1 completed for Login through HTML form"
+      }
+    },
+    {
+      "step": "Process navigation data",
+      "action": {
+        "type": "data_processing",
+        "command": "Process data for BRWS_NAV_LOGIN_FORM"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Data processed successfully"
+      }
+    },
+    {
+      "step": "Finalize Login through HTML form",
+      "action": {
+        "type": "validation",
+        "command": "Validate results"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Validation passed"
+      }
+    }
+  ],
+  "outcome": {
+    "success": true,
+    "steps_executed": 3
+  },
+  "duration": 8.5
+}

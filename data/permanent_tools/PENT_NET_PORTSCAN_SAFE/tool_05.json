@@ -1,0 +1,26 @@
+{
+  "name": "pent_net_portscan_safe_reverse_dns_5",
+  "description": "Reverse DNS for Safe network port scan",
+  "pattern": "safe network port scan|reverse dns",
+  "parameters": [
+    "ip"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "dig -x"
+      },
+      "expected_output": "Result of Reverse DNS"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

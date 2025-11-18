@@ -1,0 +1,56 @@
+{
+  "id": "episode_LNX_LOG_COLLECT_SUPPORT_BUNDLE_001",
+  "goal": "Complete Collect support bundle workflow variant 1",
+  "thoughts": [
+    {
+      "type": "plan",
+      "content": "Planning to execute Collect support bundle",
+      "timestamp": 1763489734.3111365
+    },
+    {
+      "type": "analyze",
+      "content": "Analyzing requirements for logs task",
+      "timestamp": 1763489739.3111365
+    }
+  ],
+  "actions": [
+    {
+      "step": "Initialize Collect support bundle",
+      "action": {
+        "type": "system_command",
+        "command": "Execute step 1 of LNX_LOG_COLLECT_SUPPORT_BUNDLE"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Step 1 completed for Collect support bundle"
+      }
+    },
+    {
+      "step": "Process logs data",
+      "action": {
+        "type": "data_processing",
+        "command": "Process data for LNX_LOG_COLLECT_SUPPORT_BUNDLE"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Data processed successfully"
+      }
+    },
+    {
+      "step": "Finalize Collect support bundle",
+      "action": {
+        "type": "validation",
+        "command": "Validate results"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Validation passed"
+      }
+    }
+  ],
+  "outcome": {
+    "success": true,
+    "steps_executed": 3
+  },
+  "duration": 8.5
+}

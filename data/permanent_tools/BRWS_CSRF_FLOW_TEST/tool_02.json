@@ -1,0 +1,27 @@
+{
+  "name": "brws_csrf_flow_test_fill_form_2",
+  "description": "Fill form field for CSRF flow tester",
+  "pattern": "csrf flow tester|fill form field",
+  "parameters": [
+    "selector",
+    "value"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "page.fill"
+      },
+      "expected_output": "Result of Fill form field"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}
