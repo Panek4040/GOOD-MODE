@@ -1,0 +1,67 @@
+{
+  "name": "kubectl_scale_deployment_replicas",
+  "description": "Scale Kubernetes deployment up or down by adjusting replica count",
+  "pattern": "scale.*deployment|kubectl.*scale|k8s.*replicas",
+  "parameters": ["deployment_name", "replicas", "namespace"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["get", "deployment", "{{deployment_name}}", "-n", "{{namespace}}", "-o", "jsonpath={.spec.replicas}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "3"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["scale", "deployment/{{deployment_name}}", "--replicas={{replicas}}", "-n", "{{namespace}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "deployment.apps/{{deployment_name}} scaled"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["rollout", "status", "deployment/{{deployment_name}}", "-n", "{{namespace}}", "--timeout=60s"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "deployment \"{{deployment_name}}\" successfully rolled out"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["get", "pods", "-n", "{{namespace}}", "-l", "app={{deployment_name}}", "--no-headers"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{{deployment_name}}-7d5f6b8c9-a1b2c   1/1     Running   0          2m\n{{deployment_name}}-7d5f6b8c9-d3e4f   1/1     Running   0          2m\n{{deployment_name}}-7d5f6b8c9-g5h6i   1/1     Running   0          2m\n{{deployment_name}}-7d5f6b8c9-j7k8l   1/1     Running   0          15s\n{{deployment_name}}-7d5f6b8c9-m9n0o   1/1     Running   0          15s"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

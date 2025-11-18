@@ -1,0 +1,67 @@
+{
+  "name": "kubectl_create_deployment_with_replicas",
+  "description": "Create Kubernetes deployment with specified image and replica count",
+  "pattern": "create.*deployment|kubectl.*deploy|k8s.*deployment.*create",
+  "parameters": ["deployment_name", "image", "replicas", "namespace"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["get", "deployments", "-n", "{{namespace}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "NAME      READY   UP-TO-DATE   AVAILABLE   AGE\nold-app   3/3     3            3           15d"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["create", "deployment", "{{deployment_name}}", "--image={{image}}", "--replicas={{replicas}}", "-n", "{{namespace}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "deployment.apps/{{deployment_name}} created"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["rollout", "status", "deployment/{{deployment_name}}", "-n", "{{namespace}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Waiting for deployment \"{{deployment_name}}\" rollout to finish: 0 of {{replicas}} updated replicas are available...\ndeployment \"{{deployment_name}}\" successfully rolled out"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["get", "deployment", "{{deployment_name}}", "-n", "{{namespace}}", "-o", "wide"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "NAME                 READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES          SELECTOR\n{{deployment_name}}  {{replicas}}/{{replicas}}     {{replicas}}            {{replicas}}           45s   nginx        {{image}}   app={{deployment_name}}"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

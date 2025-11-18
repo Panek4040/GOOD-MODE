@@ -1,0 +1,67 @@
+{
+  "name": "kubectl_expose_service_loadbalancer",
+  "description": "Expose Kubernetes deployment as service with LoadBalancer or ClusterIP",
+  "pattern": "expose.*service|kubectl.*expose|k8s.*service.*create",
+  "parameters": ["deployment_name", "service_name", "port", "service_type", "namespace"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["get", "deployment", "{{deployment_name}}", "-n", "{{namespace}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "NAME              READY   UP-TO-DATE   AVAILABLE   AGE\n{{deployment_name}}   3/3     3            3           5m"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["expose", "deployment", "{{deployment_name}}", "--name={{service_name}}", "--port={{port}}", "--type={{service_type}}", "-n", "{{namespace}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "service/{{service_name}} exposed"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["get", "service", "{{service_name}}", "-n", "{{namespace}}", "-o", "wide"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "NAME             TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)        AGE   SELECTOR\n{{service_name}}  {{service_type}}   10.96.128.45    <pending>       {{port}}:30123/TCP   5s    app={{deployment_name}}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["describe", "service", "{{service_name}}", "-n", "{{namespace}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Name:                     {{service_name}}\nNamespace:                {{namespace}}\nLabels:                   app={{deployment_name}}\nSelector:                 app={{deployment_name}}\nType:                     {{service_type}}\nIP Family Policy:         SingleStack\nIP Families:              IPv4\nIP:                       10.96.128.45\nPort:                     <unset>  {{port}}/TCP\nTargetPort:               {{port}}/TCP\nNodePort:                 <unset>  30123/TCP\nEndpoints:                10.244.1.5:{{port}},10.244.2.7:{{port}},10.244.3.9:{{port}}\nSession Affinity:         None"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}
