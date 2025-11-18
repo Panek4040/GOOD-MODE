@@ -1,0 +1,67 @@
+{
+  "name": "text_search_with_metadata",
+  "description": "Search for text and show file metadata like size and modification time",
+  "pattern": "search.*metadata|search.*show.*size|search.*modified",
+  "parameters": ["path", "pattern"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -l '{{pattern}}' '{{path}}' | xargs ls -lh"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "-rw-r--r-- 1 www-data www-data  4.2K Nov 18 10:30 /var/www/config.php\n-rw-r--r-- 1 www-data www-data   12K Nov 18 09:15 /var/www/index.php\n-rw-r--r-- 1 www-data www-data  8.5K Nov 17 14:22 /var/www/lib/database.php"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -l '{{pattern}}' '{{path}}' | xargs stat -c '%n|%s|%y' | sort -t'|' -k2 -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/index.php|12288|2025-11-18 09:15:42.000000000 +0000\n/var/www/lib/database.php|8704|2025-11-17 14:22:18.000000000 +0000\n/var/www/config.php|4301|2025-11-18 10:30:55.000000000 +0000"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -exec grep -l '{{pattern}}' {} \\; -exec stat -c '%n %s bytes, modified: %y' {} \\;"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/config.php 4301 bytes, modified: 2025-11-18 10:30:55.123456789 +0000\n/var/www/index.php 12288 bytes, modified: 2025-11-18 09:15:42.987654321 +0000"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -c '{{pattern}}' '{{path}}' | grep -v ':0$' | while IFS=: read -r file count; do size=$(stat -c %s \"$file\" 2>/dev/null); echo \"$file|$count matches|$size bytes\"; done | sort -t'|' -k2 -rn | head -10"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/index.php|45 matches|12288 bytes\n/var/www/lib/database.php|23 matches|8704 bytes\n/var/www/config.php|12 matches|4301 bytes"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

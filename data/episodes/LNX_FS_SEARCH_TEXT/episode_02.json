@@ -1,0 +1,96 @@
+{
+  "topic_id": "LNX_FS_SEARCH_TEXT",
+  "title": "Investigate error patterns in application logs",
+  "goal": "Search through log files to identify recurring errors and their frequency to troubleshoot production issues",
+  "steps": [
+    {
+      "thought": "Search for ERROR level messages across all logs",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -i 'error' /var/log --include='*.log' | wc -l"]
+      },
+      "observation": "1247"
+    },
+    {
+      "thought": "Find which log files contain the most errors",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -i -c 'error' /var/log --include='*.log' | grep -v ':0$' | sort -t: -k2 -rn | head -10"]
+      },
+      "observation": "/var/log/apache2/error.log:542\n/var/log/mysql/error.log:289\n/var/log/syslog:187\n/var/log/application.log:142\n/var/log/auth.log:87"
+    },
+    {
+      "thought": "Examine specific error types in Apache logs",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -i 'error' /var/log/apache2/error.log | awk -F'[\\[\\]]' '{print $4}' | sort | uniq -c | sort -rn | head -10"]
+      },
+      "observation": "    234 AH00135: Invalid method in request\n    127 AH01630: client denied by server configuration\n     89 AH00037: Symbolic link not allowed\n     52 PHP Fatal error: Uncaught Exception\n     40 ModSecurity: Access denied"
+    },
+    {
+      "thought": "Search for connection-related errors",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -i -E '(connection refused|timeout|cannot connect)' /var/log --include='*.log' | head -20"]
+      },
+      "observation": "/var/log/mysql/error.log:[ERROR] Can't connect to MySQL server on 'slave-db.internal'\n/var/log/application.log:2025-11-18 10:15:42 ERROR Connection timeout to Redis cache\n/var/log/syslog:Nov 18 09:30:15 server postfix/smtp[1234]: connect to mail.example.com[10.0.1.5]:25: Connection refused"
+    },
+    {
+      "thought": "Look for recent critical errors in the last hour",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find /var/log -name '*.log' -mmin -60 -exec grep -H -i -E '(critical|fatal|emergency)' {} \\;"]
+      },
+      "observation": "/var/log/application.log:2025-11-18 14:35:22 CRITICAL Database connection pool exhausted\n/var/log/application.log:2025-11-18 14:42:18 CRITICAL Out of memory error in worker process\n/var/log/mysql/error.log:[FATAL] InnoDB: Unable to lock ./ibdata1 error: 11"
+    },
+    {
+      "thought": "Search for PHP errors and warnings",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r 'PHP' /var/log --include='*.log' | grep -E '(Fatal error|Warning|Notice)' | awk -F'in /' '{print \"/\"$2}' | awk '{print $1}' | sort | uniq -c | sort -rn"]
+      },
+      "observation": "     42 /var/www/html/includes/database.php:156\n     28 /var/www/html/api/v1/users.php:89\n     15 /var/www/html/admin/reports.php:234\n      8 /var/www/html/lib/cache.class.php:67"
+    },
+    {
+      "thought": "Extract unique error messages from application log",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -i 'error' /var/log/application.log | awk -F'ERROR ' '{print $2}' | cut -d':' -f1 | sort | uniq -c | sort -rn | head -10"]
+      },
+      "observation": "     45 Connection timeout to Redis cache\n     32 Database connection pool exhausted\n     23 Failed to acquire lock on resource\n     18 Invalid JSON in API request\n     12 Permission denied accessing /tmp/cache"
+    },
+    {
+      "thought": "Check for authentication failures",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -i -E '(failed|failure|invalid).*auth' /var/log/auth.log | tail -20"]
+      },
+      "observation": "Nov 18 14:20:15 server sshd[5432]: Failed password for invalid user admin from 203.0.113.45 port 52341 ssh2\nNov 18 14:20:18 server sshd[5434]: Failed password for root from 203.0.113.45 port 52342 ssh2\nNov 18 14:30:22 server sudo: pam_unix(sudo:auth): authentication failure; logname=user uid=1000"
+    }
+  ],
+  "success_condition": "Identified 1247 total errors with Apache (542), MySQL (289) being top sources. Found critical issues: connection pool exhaustion, memory errors, and authentication failures"
+}
