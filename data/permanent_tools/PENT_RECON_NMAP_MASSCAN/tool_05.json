@@ -1,0 +1,30 @@
+{
+  "name": "nmap_udp_service_discovery",
+  "description": "UDP port scanning and service discovery using nmap -sU",
+  "pattern": "udp.*scan|nmap.*udp|service.*discovery|udp.*port",
+  "parameters": ["target", "ports"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sU", "-p", "{{ports}}", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "PORT    STATE         SERVICE\n53/udp  open          domain\n67/udp  open|filtered dhcps\n123/udp open          ntp\n161/udp open          snmp"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sU", "-sV", "-p", "161,162", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "161/udp open  snmp    SNMPv1 server; net-snmp SNMPv3 server\n162/udp open  snmptrap"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sU", "--top-ports", "20", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "Scanning top 20 UDP ports: 53 (DNS), 67 (DHCP), 123 (NTP), 161 (SNMP), 500 (IKE)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "nmap -sU -p {{ports}} {{target}} | grep 'open'"]},
+      "expected_output": {"type": "string", "example": "53/udp  open  domain\n123/udp open  ntp\n161/udp open  snmp"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sU", "-sC", "-p", "161", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "161/udp open  snmp\n| snmp-sysdescr: Linux server 5.15.0\n| snmp-info: Enterprise: net-snmp"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

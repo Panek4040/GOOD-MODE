@@ -1,0 +1,81 @@
+{
+  "episode_id": "PENT_RECON_NMAP_MASSCAN_EP01",
+  "title": "External Network Penetration Test - Phase 1 Reconnaissance",
+  "description": "Client authorized pentest of 192.168.1.0/24 network - discover live hosts and services",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Discover live hosts on target network using ping scan",
+      "tool": "nmap_network_range_scanning",
+      "parameters": {
+        "network": "192.168.1.0/24",
+        "ports": ""
+      },
+      "expected_outcome": "23 live hosts discovered out of 256 IP addresses scanned"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Perform fast TCP SYN scan on common ports across all live hosts",
+      "tool": "nmap_tcp_syn_port_scan",
+      "parameters": {
+        "target": "192.168.1.0/24",
+        "ports": "21,22,23,25,80,443,445,3306,3389,8080",
+        "scan_type": "SYN"
+      },
+      "expected_outcome": "Found services: 8 SSH (22), 12 HTTP (80), 5 HTTPS (443), 3 MySQL (3306), 2 RDP (3389)"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Detect operating systems on discovered hosts",
+      "tool": "nmap_os_detection_fingerprint",
+      "parameters": {
+        "target": "192.168.1.100"
+      },
+      "expected_outcome": "OS fingerprinted: Ubuntu Linux 22.04 (95% confidence), kernel 5.15"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Perform version detection on web server",
+      "tool": "nmap_tcp_syn_port_scan",
+      "parameters": {
+        "target": "192.168.1.100",
+        "ports": "80,443,8080",
+        "scan_type": "version"
+      },
+      "expected_outcome": "80/tcp Apache 2.4.52, 443/tcp nginx 1.18.0, 8080/tcp Tomcat 9.0.65"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Run NSE vulnerability scripts on web services",
+      "tool": "nmap_nse_script_scanning",
+      "parameters": {
+        "target": "192.168.1.100",
+        "script_name": "vuln"
+      },
+      "expected_outcome": "Vulnerabilities detected: Apache mod_proxy CVE-2021-44228 (Log4Shell), outdated SSL ciphers"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Scan for UDP services (DNS, SNMP, NTP)",
+      "tool": "nmap_udp_service_discovery",
+      "parameters": {
+        "target": "192.168.1.100",
+        "ports": "53,123,161,162"
+      },
+      "expected_outcome": "UDP services: 53/open DNS, 123/open NTP, 161/open SNMP (community: public)"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Export complete scan results for reporting",
+      "tool": "nmap_output_formats_reporting",
+      "parameters": {
+        "target": "192.168.1.0/24",
+        "output_file": "pentest_recon_phase1"
+      },
+      "expected_outcome": "Results saved: pentest_recon_phase1.nmap, .xml, .gnmap - ready for analysis"
+    }
+  ],
+  "success_criteria": "Discovered 23 live hosts, mapped 45 open services, identified 3 potential vulnerabilities, generated comprehensive scan reports",
+  "cleanup": "Documented all findings, prioritized targets for exploitation phase, informed client of critical CVE-2021-44228"
+}
