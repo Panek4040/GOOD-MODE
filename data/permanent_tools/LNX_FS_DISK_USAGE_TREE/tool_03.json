@@ -1,0 +1,67 @@
+{
+  "name": "disk_usage_recursive_tree",
+  "description": "Generate recursive tree view of disk usage with indentation",
+  "pattern": "tree.*disk|recursive.*usage|nested.*size",
+  "parameters": ["path", "max_depth"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "du",
+        "args": ["-h", "--max-depth={{max_depth}}", "{{path}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "4.0K\t/opt/app/config\n8.0K\t/opt/app/logs\n256K\t/opt/app/data\n512K\t/opt/app\n512K\t/opt"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -ah --max-depth={{max_depth}} '{{path}}' | sort -k2"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "512K\t/opt\n512K\t/opt/app\n4.0K\t/opt/app/config\n256K\t/opt/app/data\n8.0K\t/opt/app/logs"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -maxdepth {{max_depth}} -type d -exec du -sh {} \\; | sort -k2"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "512K\t/opt\n512K\t/opt/app\n4.0K\t/opt/app/config\n256K\t/opt/app/data\n8.0K\t/opt/app/logs"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -h --max-depth={{max_depth}} '{{path}}' | awk '{depth=gsub(/\\//, \"/\", $2); indent=\"\"; for(i=0;i<depth;i++) indent=indent\"  \"; print indent $1 \"\\t\" $2}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "512K\t/opt\n  512K\t/opt/app\n    4.0K\t/opt/app/config\n    256K\t/opt/app/data\n    8.0K\t/opt/app/logs"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

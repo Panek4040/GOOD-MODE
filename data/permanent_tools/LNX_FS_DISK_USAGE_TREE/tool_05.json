@@ -1,0 +1,67 @@
+{
+  "name": "disk_usage_threshold",
+  "description": "Find directories exceeding size threshold",
+  "pattern": "threshold.*size|larger.*than|exceed.*size",
+  "parameters": ["path", "min_size_mb"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du --max-depth=3 '{{path}}' | awk '$1 > {{min_size_mb}}*1024 {print}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "5242880\t/var/lib/mysql\n2097152\t/var/cache/apt\n1048576\t/var/log"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -m --max-depth=3 '{{path}}' | awk '$1 > {{min_size_mb}} {printf \"%dM|%s\\n\", $1, $2}' | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "5120M|/var/lib/mysql\n2048M|/var/cache/apt\n1024M|/var/log"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -maxdepth 3 -type d -exec du -sm {} \\; | awk '$1 > {{min_size_mb}}' | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "5120\t/var/lib/mysql\n2048\t/var/cache/apt\n1024\t/var/log\n512\t/var/www"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -h --max-depth=3 '{{path}}' | grep -E '^[0-9.]+[MG]' | awk -v min={{min_size_mb}} '{size=$1; gsub(/[MG]/, \"\", size); unit=substr($1, length($1)); if((unit==\"G\" && size*1024>=min) || (unit==\"M\" && size>=min)) print}' | sort -rh"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "5.0G\t/var/lib/mysql\n2.0G\t/var/cache/apt\n1.0G\t/var/log\n512M\t/var/www"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

@@ -1,0 +1,50 @@
+{
+  "topic_id": "LNX_FS_DISK_USAGE_TREE",
+  "title": "Find cache and temporary directories to clean",
+  "goal": "Locate cache directories exceeding 500MB that can be safely cleaned",
+  "steps": [
+    {
+      "thought": "Find large cache dirs",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "du -m --max-depth=4 / 2>/dev/null | awk '$1 > 500 && $2 ~ /cache|tmp/ {printf \"%dM|%s\\n\", $1, $2}' | sort -rn | head -10"
+        ]
+      },
+      "observation": "6656M|/var/cache/apt\n2048M|/tmp\n1536M|/home/alice/.cache\n1024M|/var/tmp"
+    },
+    {
+      "thought": "Check what's in apt cache",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "du -sh /var/cache/apt/*"
+        ]
+      },
+      "observation": "6.2G\t/var/cache/apt/archives\n512M\t/var/cache/apt/pkgcache.bin"
+    },
+    {
+      "thought": "Find directories over 500MB threshold",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "find / -maxdepth 3 -type d -exec du -sm {} \\; 2>/dev/null | awk '$1 > 500' | sort -rn | head -15"
+        ]
+      },
+      "observation": "45120\t/var\n28672\t/home\n18432\t/var/lib\n12288\t/var/log\n8704\t/var/cache\n6656\t/var/cache/apt\n5120\t/var/lib/mysql"
+    }
+  ],
+  "success_condition": "Found apt cache (6.6GB), /tmp (2GB), user caches (1.5GB) as cleanable"
+}

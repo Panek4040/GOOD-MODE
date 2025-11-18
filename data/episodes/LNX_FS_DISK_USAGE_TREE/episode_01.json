@@ -1,0 +1,50 @@
+{
+  "topic_id": "LNX_FS_DISK_USAGE_TREE",
+  "title": "Identify space-consuming directories in /var",
+  "goal": "Find which subdirectories in /var are consuming the most disk space and identify cleanup opportunities",
+  "steps": [
+    {
+      "thought": "First check overall /var size",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "du",
+        "args": [
+          "-sh",
+          "/var"
+        ]
+      },
+      "observation": "45G\t/var"
+    },
+    {
+      "thought": "Get breakdown of subdirectories",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "du -sh /var/* | sort -rh"
+        ]
+      },
+      "observation": "18G\t/var/lib\n12G\t/var/log\n8.5G\t/var/cache\n4.2G\t/var/www"
+    },
+    {
+      "thought": "Drill down into /var/lib",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "du -h --max-depth=2 /var/lib | sort -rh | head -15"
+        ]
+      },
+      "observation": "18G\t/var/lib\n8.5G\t/var/lib/mysql\n4.2G\t/var/lib/docker\n2.8G\t/var/lib/postgresql"
+    }
+  ],
+  "success_condition": "Identified top consumers: /var/lib (18GB), /var/log (12GB), /var/cache (8.5GB)"
+}
