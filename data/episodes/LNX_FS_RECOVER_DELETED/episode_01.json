@@ -1,0 +1,56 @@
+{
+  "id": "episode_LNX_FS_RECOVER_DELETED_001",
+  "goal": "Complete Attempt file recovery workflow variant 1",
+  "thoughts": [
+    {
+      "type": "plan",
+      "content": "Planning to execute Attempt file recovery",
+      "timestamp": 1763489734.2950854
+    },
+    {
+      "type": "analyze",
+      "content": "Analyzing requirements for forensics task",
+      "timestamp": 1763489739.2950854
+    }
+  ],
+  "actions": [
+    {
+      "step": "Initialize Attempt file recovery",
+      "action": {
+        "type": "system_command",
+        "command": "Execute step 1 of LNX_FS_RECOVER_DELETED"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Step 1 completed for Attempt file recovery"
+      }
+    },
+    {
+      "step": "Process forensics data",
+      "action": {
+        "type": "data_processing",
+        "command": "Process data for LNX_FS_RECOVER_DELETED"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Data processed successfully"
+      }
+    },
+    {
+      "step": "Finalize Attempt file recovery",
+      "action": {
+        "type": "validation",
+        "command": "Validate results"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Validation passed"
+      }
+    }
+  ],
+  "outcome": {
+    "success": true,
+    "steps_executed": 3
+  },
+  "duration": 8.5
+}

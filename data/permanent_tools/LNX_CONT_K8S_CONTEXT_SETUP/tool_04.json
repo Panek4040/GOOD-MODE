@@ -1,0 +1,24 @@
+{
+  "name": "lnx_cont_k8s_context_setup_reload_daemon_4",
+  "description": "Reload systemd for Setup Kube context",
+  "pattern": "setup kube context|reload systemd",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "systemctl daemon-reload"
+      },
+      "expected_output": "Result of Reload systemd"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

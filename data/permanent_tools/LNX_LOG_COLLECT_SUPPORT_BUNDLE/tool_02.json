@@ -1,0 +1,26 @@
+{
+  "name": "lnx_log_collect_support_bundle_systemctl_enable_2",
+  "description": "Enable service for Collect support bundle",
+  "pattern": "collect support bundle|enable service",
+  "parameters": [
+    "service"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "systemctl enable"
+      },
+      "expected_output": "Result of Enable service"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

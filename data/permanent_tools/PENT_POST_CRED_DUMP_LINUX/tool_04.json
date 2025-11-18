@@ -1,0 +1,24 @@
+{
+  "name": "pent_post_cred_dump_linux_enum_capabilities_4",
+  "description": "Check capabilities for Credential harvesting on Linux",
+  "pattern": "credential harvesting on linux|check capabilities",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "getcap -r /"
+      },
+      "expected_output": "Result of Check capabilities"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

@@ -1,0 +1,56 @@
+{
+  "id": "episode_BRWS_SCREENSHOT_FLOW_002",
+  "goal": "Complete Screenshot flow recorder workflow variant 2",
+  "thoughts": [
+    {
+      "type": "plan",
+      "content": "Planning to execute Screenshot flow recorder",
+      "timestamp": 1763490734.3591824
+    },
+    {
+      "type": "analyze",
+      "content": "Analyzing requirements for debug task",
+      "timestamp": 1763490739.3591824
+    }
+  ],
+  "actions": [
+    {
+      "step": "Initialize Screenshot flow recorder",
+      "action": {
+        "type": "browser_action",
+        "command": "Execute step 1 of BRWS_SCREENSHOT_FLOW"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Step 1 completed for Screenshot flow recorder"
+      }
+    },
+    {
+      "step": "Process debug data",
+      "action": {
+        "type": "data_processing",
+        "command": "Process data for BRWS_SCREENSHOT_FLOW"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Data processed successfully"
+      }
+    },
+    {
+      "step": "Finalize Screenshot flow recorder",
+      "action": {
+        "type": "validation",
+        "command": "Validate results"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Validation passed"
+      }
+    }
+  ],
+  "outcome": {
+    "success": true,
+    "steps_executed": 3
+  },
+  "duration": 10.8
+}

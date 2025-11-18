@@ -1,0 +1,26 @@
+{
+  "name": "code_git_audit_history_run_linter_10",
+  "description": "Run linter for Audit git history for secrets",
+  "pattern": "audit git history for secrets|run linter",
+  "parameters": [
+    "path"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "pylint/eslint"
+      },
+      "expected_output": "Result of Run linter"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

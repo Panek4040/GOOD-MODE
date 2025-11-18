@@ -1,0 +1,26 @@
+{
+  "name": "pent_post_cred_dump_browser_dump_history_6",
+  "description": "Dump shell history for Browser credential/session harvesting",
+  "pattern": "browser credential/session harvesting|dump shell history",
+  "parameters": [
+    "user"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "cat ~/.bash_history"
+      },
+      "expected_output": "Result of Dump shell history"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

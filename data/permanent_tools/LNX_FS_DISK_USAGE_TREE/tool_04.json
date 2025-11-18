@@ -1,0 +1,26 @@
+{
+  "name": "lnx_fs_disk_usage_tree_json_output_4",
+  "description": "Structured JSON output for Disk usage tree report",
+  "pattern": "disk usage tree report|structured json output",
+  "parameters": [
+    "path"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "find -printf"
+      },
+      "expected_output": "Result of Structured JSON output"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

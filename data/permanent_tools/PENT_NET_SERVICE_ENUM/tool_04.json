@@ -1,0 +1,26 @@
+{
+  "name": "pent_net_service_enum_whois_lookup_4",
+  "description": "WHOIS lookup for Service enumeration playbook",
+  "pattern": "service enumeration playbook|whois lookup",
+  "parameters": [
+    "domain"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "whois"
+      },
+      "expected_output": "Result of WHOIS lookup"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

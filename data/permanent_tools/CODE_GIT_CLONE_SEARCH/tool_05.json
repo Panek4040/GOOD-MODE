@@ -1,0 +1,26 @@
+{
+  "name": "code_git_clone_search_run_tests_5",
+  "description": "Run test suite for Clone repo and search patterns",
+  "pattern": "clone repo and search patterns|run test suite",
+  "parameters": [
+    "path"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "pytest/jest"
+      },
+      "expected_output": "Result of Run test suite"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

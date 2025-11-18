@@ -1,0 +1,27 @@
+{
+  "name": "pent_web_file_upload_test_sqli_time_based_10",
+  "description": "Time-based blind SQLi for File upload security testing",
+  "pattern": "file upload security testing|time-based blind sqli",
+  "parameters": [
+    "url",
+    "param"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "' AND SLEEP(5)"
+      },
+      "expected_output": "Result of Time-based blind SQLi"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

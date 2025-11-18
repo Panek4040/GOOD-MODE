@@ -1,0 +1,26 @@
+{
+  "name": "code_git_audit_history_build_project_6",
+  "description": "Build project for Audit git history for secrets",
+  "pattern": "audit git history for secrets|build project",
+  "parameters": [
+    "path"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "make/npm build"
+      },
+      "expected_output": "Result of Build project"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

@@ -1,0 +1,56 @@
+{
+  "id": "episode_PENT_POST_CRED_DUMP_BROWSER_003",
+  "goal": "Complete Browser credential/session harvesting workflow variant 3",
+  "thoughts": [
+    {
+      "type": "plan",
+      "content": "Planning to execute Browser credential/session harvesting",
+      "timestamp": 1763491734.464212
+    },
+    {
+      "type": "analyze",
+      "content": "Analyzing requirements for post task",
+      "timestamp": 1763491739.464212
+    }
+  ],
+  "actions": [
+    {
+      "step": "Initialize Browser credential/session harvesting",
+      "action": {
+        "type": "browser_action",
+        "command": "Execute step 1 of PENT_POST_CRED_DUMP_BROWSER"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Step 1 completed for Browser credential/session harvesting"
+      }
+    },
+    {
+      "step": "Process post data",
+      "action": {
+        "type": "data_processing",
+        "command": "Process data for PENT_POST_CRED_DUMP_BROWSER"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Data processed successfully"
+      }
+    },
+    {
+      "step": "Finalize Browser credential/session harvesting",
+      "action": {
+        "type": "validation",
+        "command": "Validate results"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Validation passed"
+      }
+    }
+  ],
+  "outcome": {
+    "success": true,
+    "steps_executed": 3
+  },
+  "duration": 13.1
+}

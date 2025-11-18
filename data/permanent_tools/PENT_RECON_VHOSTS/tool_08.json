@@ -1,0 +1,27 @@
+{
+  "name": "pent_recon_vhosts_subdomain_bruteforce_8",
+  "description": "Subdomain brute force for Virtual host discovery",
+  "pattern": "virtual host discovery|subdomain brute force",
+  "parameters": [
+    "domain",
+    "wordlist"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "gobuster dns"
+      },
+      "expected_output": "Result of Subdomain brute force"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

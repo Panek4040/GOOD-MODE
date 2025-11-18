@@ -1,0 +1,56 @@
+{
+  "id": "episode_BRWS_DOM_XSS_FUZZ_003",
+  "goal": "Complete DOM XSS fuzzing workflow variant 3",
+  "thoughts": [
+    {
+      "type": "plan",
+      "content": "Planning to execute DOM XSS fuzzing",
+      "timestamp": 1763491734.3642406
+    },
+    {
+      "type": "analyze",
+      "content": "Analyzing requirements for security task",
+      "timestamp": 1763491739.3642406
+    }
+  ],
+  "actions": [
+    {
+      "step": "Initialize DOM XSS fuzzing",
+      "action": {
+        "type": "browser_action",
+        "command": "Execute step 1 of BRWS_DOM_XSS_FUZZ"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Step 1 completed for DOM XSS fuzzing"
+      }
+    },
+    {
+      "step": "Process security data",
+      "action": {
+        "type": "data_processing",
+        "command": "Process data for BRWS_DOM_XSS_FUZZ"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Data processed successfully"
+      }
+    },
+    {
+      "step": "Finalize DOM XSS fuzzing",
+      "action": {
+        "type": "validation",
+        "command": "Validate results"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Validation passed"
+      }
+    }
+  ],
+  "outcome": {
+    "success": true,
+    "steps_executed": 3
+  },
+  "duration": 13.1
+}

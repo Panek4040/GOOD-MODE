@@ -1,0 +1,24 @@
+{
+  "name": "pent_post_cred_dump_browser_enum_users_1",
+  "description": "Enumerate users for Browser credential/session harvesting",
+  "pattern": "browser credential/session harvesting|enumerate users",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "cat /etc/passwd"
+      },
+      "expected_output": "Result of Enumerate users"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

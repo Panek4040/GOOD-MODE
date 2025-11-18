@@ -1,0 +1,26 @@
+{
+  "name": "devops_logs_elk_export_git_log_search_3",
+  "description": "Search git history for Export logs to ELK-compatible bundle",
+  "pattern": "export logs to elk-compatible bundle|search git history",
+  "parameters": [
+    "pattern"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "git log -S"
+      },
+      "expected_output": "Result of Search git history"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

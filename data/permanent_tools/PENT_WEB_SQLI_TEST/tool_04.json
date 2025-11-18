@@ -1,0 +1,27 @@
+{
+  "name": "pent_web_sqli_test_xss_stored_4",
+  "description": "Stored XSS test for SQL injection basic testing",
+  "pattern": "sql injection basic testing|stored xss test",
+  "parameters": [
+    "url",
+    "param"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "POST payload"
+      },
+      "expected_output": "Result of Stored XSS test"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

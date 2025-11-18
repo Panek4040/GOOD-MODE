@@ -1,0 +1,26 @@
+{
+  "name": "code_static_analysis_py_run_linter_10",
+  "description": "Run linter for Run static analysis on Python project",
+  "pattern": "run static analysis on python project|run linter",
+  "parameters": [
+    "path"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "pylint/eslint"
+      },
+      "expected_output": "Result of Run linter"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

@@ -1,0 +1,27 @@
+{
+  "name": "lnx_sys_resource_snapshot_create_unit_3",
+  "description": "Create unit file for System resource snapshot",
+  "pattern": "system resource snapshot|create unit file",
+  "parameters": [
+    "service",
+    "spec"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "cat > /etc/systemd"
+      },
+      "expected_output": "Result of Create unit file"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

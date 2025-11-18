@@ -1,0 +1,26 @@
+{
+  "name": "brws_dom_xss_fuzz_extract_text_6",
+  "description": "Extract text for DOM XSS fuzzing",
+  "pattern": "dom xss fuzzing|extract text",
+  "parameters": [
+    "selector"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "page.textContent"
+      },
+      "expected_output": "Result of Extract text"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

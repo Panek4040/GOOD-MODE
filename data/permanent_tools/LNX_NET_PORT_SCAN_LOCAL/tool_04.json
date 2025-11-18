@@ -1,0 +1,26 @@
+{
+  "name": "lnx_net_port_scan_local_traceroute_run_4",
+  "description": "Trace route for Local port scan (safe)",
+  "pattern": "local port scan (safe)|trace route",
+  "parameters": [
+    "target"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "traceroute"
+      },
+      "expected_output": "Result of Trace route"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

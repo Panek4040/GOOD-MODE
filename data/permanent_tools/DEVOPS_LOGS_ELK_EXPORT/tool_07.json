@@ -1,0 +1,26 @@
+{
+  "name": "devops_logs_elk_export_git_clone_7",
+  "description": "Clone repository for Export logs to ELK-compatible bundle",
+  "pattern": "export logs to elk-compatible bundle|clone repository",
+  "parameters": [
+    "url"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "git clone"
+      },
+      "expected_output": "Result of Clone repository"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

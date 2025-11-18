@@ -1,0 +1,26 @@
+{
+  "name": "lnx_cont_k8s_context_setup_systemctl_enable_8",
+  "description": "Enable service for Setup Kube context",
+  "pattern": "setup kube context|enable service",
+  "parameters": [
+    "service"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "systemctl enable"
+      },
+      "expected_output": "Result of Enable service"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

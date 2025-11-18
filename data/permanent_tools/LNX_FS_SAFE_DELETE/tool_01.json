@@ -1,0 +1,26 @@
+{
+  "name": "lnx_fs_safe_delete_list_basic_1",
+  "description": "Basic listing for Safe delete with backup",
+  "pattern": "safe delete with backup|basic listing",
+  "parameters": [
+    "path"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "ls -lah"
+      },
+      "expected_output": "Result of Basic listing"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

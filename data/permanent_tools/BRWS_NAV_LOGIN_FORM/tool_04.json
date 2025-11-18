@@ -1,0 +1,26 @@
+{
+  "name": "brws_nav_login_form_wait_element_4",
+  "description": "Wait for element for Login through HTML form",
+  "pattern": "login through html form|wait for element",
+  "parameters": [
+    "selector"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "page.waitForSelector"
+      },
+      "expected_output": "Result of Wait for element"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

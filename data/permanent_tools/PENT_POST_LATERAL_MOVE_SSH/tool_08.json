@@ -1,0 +1,24 @@
+{
+  "name": "pent_post_lateral_move_ssh_enum_processes_8",
+  "description": "Process enumeration for SSH lateral movement",
+  "pattern": "ssh lateral movement|process enumeration",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "ps aux"
+      },
+      "expected_output": "Result of Process enumeration"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

@@ -1,0 +1,26 @@
+{
+  "name": "brws_infinite_scroll_scrape_click_element_3",
+  "description": "Click element for Scrape infinite scroll content",
+  "pattern": "scrape infinite scroll content|click element",
+  "parameters": [
+    "selector"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "browser_action",
+        "tool": "browser_hands",
+        "operation": "page.click"
+      },
+      "expected_output": "Result of Click element"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

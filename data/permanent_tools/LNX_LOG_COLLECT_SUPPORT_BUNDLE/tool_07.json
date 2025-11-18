@@ -1,0 +1,26 @@
+{
+  "name": "lnx_log_collect_support_bundle_systemctl_status_7",
+  "description": "Check service status for Collect support bundle",
+  "pattern": "collect support bundle|check service status",
+  "parameters": [
+    "service"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "systemctl status"
+      },
+      "expected_output": "Result of Check service status"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

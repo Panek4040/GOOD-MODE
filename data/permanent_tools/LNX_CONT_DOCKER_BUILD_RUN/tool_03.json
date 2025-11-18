@@ -1,0 +1,27 @@
+{
+  "name": "lnx_cont_docker_build_run_create_unit_3",
+  "description": "Create unit file for Build and run Docker image",
+  "pattern": "build and run docker image|create unit file",
+  "parameters": [
+    "service",
+    "spec"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "system_command",
+        "command": "cat > /etc/systemd"
+      },
+      "expected_output": "Result of Create unit file"
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated",
+  "last_used": null
+}

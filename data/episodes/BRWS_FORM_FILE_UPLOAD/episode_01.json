@@ -1,0 +1,56 @@
+{
+  "id": "episode_BRWS_FORM_FILE_UPLOAD_001",
+  "goal": "Complete File upload via browser workflow variant 1",
+  "thoughts": [
+    {
+      "type": "plan",
+      "content": "Planning to execute File upload via browser",
+      "timestamp": 1763489734.3322003
+    },
+    {
+      "type": "analyze",
+      "content": "Analyzing requirements for forms task",
+      "timestamp": 1763489739.3322003
+    }
+  ],
+  "actions": [
+    {
+      "step": "Initialize File upload via browser",
+      "action": {
+        "type": "browser_action",
+        "command": "Execute step 1 of BRWS_FORM_FILE_UPLOAD"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Step 1 completed for File upload via browser"
+      }
+    },
+    {
+      "step": "Process forms data",
+      "action": {
+        "type": "data_processing",
+        "command": "Process data for BRWS_FORM_FILE_UPLOAD"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Data processed successfully"
+      }
+    },
+    {
+      "step": "Finalize File upload via browser",
+      "action": {
+        "type": "validation",
+        "command": "Validate results"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Validation passed"
+      }
+    }
+  ],
+  "outcome": {
+    "success": true,
+    "steps_executed": 3
+  },
+  "duration": 8.5
+}

@@ -1,0 +1,56 @@
+{
+  "id": "episode_BRWS_PERFORMANCE_TIMINGS_003",
+  "goal": "Complete Collect browser performance timings workflow variant 3",
+  "thoughts": [
+    {
+      "type": "plan",
+      "content": "Planning to execute Collect browser performance timings",
+      "timestamp": 1763491734.3722773
+    },
+    {
+      "type": "analyze",
+      "content": "Analyzing requirements for performance task",
+      "timestamp": 1763491739.3722773
+    }
+  ],
+  "actions": [
+    {
+      "step": "Initialize Collect browser performance timings",
+      "action": {
+        "type": "browser_action",
+        "command": "Execute step 1 of BRWS_PERFORMANCE_TIMINGS"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Step 1 completed for Collect browser performance timings"
+      }
+    },
+    {
+      "step": "Process performance data",
+      "action": {
+        "type": "data_processing",
+        "command": "Process data for BRWS_PERFORMANCE_TIMINGS"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Data processed successfully"
+      }
+    },
+    {
+      "step": "Finalize Collect browser performance timings",
+      "action": {
+        "type": "validation",
+        "command": "Validate results"
+      },
+      "result": {
+        "success": true,
+        "stdout": "Validation passed"
+      }
+    }
+  ],
+  "outcome": {
+    "success": true,
+    "steps_executed": 3
+  },
+  "duration": 13.1
+}
