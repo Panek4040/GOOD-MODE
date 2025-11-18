@@ -1,0 +1,80 @@
+{
+  "name": "vbox_create_vm_configure_storage",
+  "description": "Create new VirtualBox VM with disk, attach ISO, configure boot order",
+  "pattern": "create.*new.*vm|setup.*virtual.*machine|create.*vbox.*from.*iso",
+  "parameters": ["vm_name", "os_type", "memory_mb", "disk_size_mb", "iso_path"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "VBoxManage",
+        "args": ["createvm", "--name", "{{vm_name}}", "--ostype", "{{os_type}}", "--register"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Virtual machine '{{vm_name}}' is created and registered.\nUUID: 7c8d9e0f-1a2b-3c4d-5e6f-7a8b9c0d1e2f\nSettings file: '/home/user/VirtualBox VMs/{{vm_name}}/{{vm_name}}.vbox'"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "VBoxManage modifyvm '{{vm_name}}' --memory {{memory_mb}} --cpus 2 --nic1 nat --boot1 dvd --boot2 disk --boot3 none --boot4 none"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "VBoxManage createhd --filename \"$HOME/VirtualBox VMs/{{vm_name}}/{{vm_name}}.vdi\" --size {{disk_size_mb}} --format VDI"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "0%...10%...20%...30%...40%...50%...60%...70%...80%...90%...100%\nMedium created. UUID: 4a5b6c7d-8e9f-0a1b-2c3d-4e5f6a7b8c9d"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "VBoxManage storagectl '{{vm_name}}' --name 'SATA Controller' --add sata --controller IntelAhci && VBoxManage storageattach '{{vm_name}}' --storagectl 'SATA Controller' --port 0 --device 0 --type hdd --medium \"$HOME/VirtualBox VMs/{{vm_name}}/{{vm_name}}.vdi\""]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "VBoxManage storagectl '{{vm_name}}' --name 'IDE Controller' --add ide && VBoxManage storageattach '{{vm_name}}' --storagectl 'IDE Controller' --port 0 --device 0 --type dvddrive --medium '{{iso_path}}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

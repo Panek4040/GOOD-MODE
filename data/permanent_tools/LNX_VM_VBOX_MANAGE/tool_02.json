@@ -1,0 +1,67 @@
+{
+  "name": "vbox_control_vm_power_state",
+  "description": "Start, stop, pause, resume, or reset VirtualBox VM with state verification",
+  "pattern": "start.*virtual.*machine|stop.*vm|pause.*vbox|reset.*virtualbox",
+  "parameters": ["vm_name", "action"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "VBoxManage",
+        "args": ["showvminfo", "{{vm_name}}", "--machinereadable"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "name=\"Ubuntu-Server\"\nmemory=4096\ncpus=2\nVMState=\"poweroff\"\nVMStateChangeTime=\"2024-11-18T20:15:30.000000000\""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "if [ '{{action}}' = 'start' ]; then VBoxManage startvm '{{vm_name}}' --type headless; elif [ '{{action}}' = 'stop' ]; then VBoxManage controlvm '{{vm_name}}' acpipowerbutton; elif [ '{{action}}' = 'poweroff' ]; then VBoxManage controlvm '{{vm_name}}' poweroff; elif [ '{{action}}' = 'pause' ]; then VBoxManage controlvm '{{vm_name}}' pause; elif [ '{{action}}' = 'resume' ]; then VBoxManage controlvm '{{vm_name}}' resume; fi"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Waiting for VM \"Ubuntu-Server\" to power on...\nVM \"Ubuntu-Server\" has been successfully started."
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "sleep 3 && VBoxManage showvminfo '{{vm_name}}' --machinereadable | grep VMState="]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "VMState=\"running\""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "VBoxManage",
+        "args": ["guestproperty", "enumerate", "{{vm_name}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Name: /VirtualBox/GuestInfo/Net/0/V4/IP, value: 10.0.2.15, timestamp: 1700337330000000000\nName: /VirtualBox/GuestInfo/OS/Version, value: #1 SMP Ubuntu 22.04.3 LTS"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

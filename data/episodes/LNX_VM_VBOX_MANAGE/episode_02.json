@@ -1,0 +1,78 @@
+{
+  "episode_id": "LNX_VM_VBOX_MANAGE_EP02",
+  "title": "Clone Development Environment for Testing",
+  "description": "Clone existing dev VM, modify resources, test configuration changes safely",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Check current state of Dev-Environment VM",
+      "tool": "vbox_list_vms_status_info",
+      "parameters": {},
+      "expected_outcome": "Dev-Environment VM found: 8GB RAM, 4 CPUs, state=poweroff"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Create full clone for testing configuration changes",
+      "tool": "vbox_clone_vm_full_linked",
+      "parameters": {
+        "source_vm": "Dev-Environment",
+        "clone_name": "Dev-Test-Clone",
+        "clone_mode": "full"
+      },
+      "expected_outcome": "Full clone created with new UUID and MAC address, 25GB disk space used"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Reduce clone resources for test environment (2GB RAM, 2 CPUs)",
+      "tool": "vbox_modify_vm_resources_network",
+      "parameters": {
+        "vm_name": "Dev-Test-Clone",
+        "setting_type": "memory",
+        "setting_value": "2048"
+      },
+      "expected_outcome": "Memory reduced from 8192MB to 2048MB"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Change CPUs to 2 for the test clone",
+      "tool": "vbox_modify_vm_resources_network",
+      "parameters": {
+        "vm_name": "Dev-Test-Clone",
+        "setting_type": "cpus",
+        "setting_value": "2"
+      },
+      "expected_outcome": "CPU count changed from 4 to 2"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Start test clone to verify it works with reduced resources",
+      "tool": "vbox_control_vm_power_state",
+      "parameters": {
+        "vm_name": "Dev-Test-Clone",
+        "action": "start"
+      },
+      "expected_outcome": "Test clone started successfully with 2GB RAM and 2 CPUs"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Create snapshot of working test configuration",
+      "tool": "vbox_snapshot_create_restore_delete",
+      "parameters": {
+        "vm_name": "Dev-Test-Clone",
+        "snapshot_name": "Working Test Config",
+        "operation": "create"
+      },
+      "expected_outcome": "Snapshot created for test clone baseline"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Verify both VMs are independent and running",
+      "tool": "vbox_list_vms_status_info",
+      "parameters": {},
+      "expected_outcome": "Dev-Environment (poweroff) and Dev-Test-Clone (running) both exist independently"
+    }
+  ],
+  "success_criteria": "Test clone created with reduced resources, verified working, snapshot taken",
+  "cleanup": "When testing complete: delete Dev-Test-Clone to free disk space"
+}
