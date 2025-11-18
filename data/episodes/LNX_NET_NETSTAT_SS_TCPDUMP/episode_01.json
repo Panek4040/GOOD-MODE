@@ -1,0 +1,80 @@
+{
+  "episode_id": "LNX_NET_NETSTAT_SS_TCPDUMP_EP01",
+  "title": "Diagnose Suspicious Network Connections",
+  "description": "Identify unauthorized connections, find processes using ports, analyze traffic patterns",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Check all active TCP connections to see what's connected",
+      "tool": "ss_list_socket_connections_filter",
+      "parameters": {
+        "protocol": "tcp",
+        "state": "established"
+      },
+      "expected_outcome": "Found 47 established connections, several to unknown IPs"
+    },
+    {
+      "step_number": 2,
+      "instruction": "List all listening ports to find what services are exposed",
+      "tool": "netstat_show_routing_statistics",
+      "parameters": {
+        "info_type": "listening"
+      },
+      "expected_outcome": "SSH(22), HTTP(80), HTTPS(443), MySQL(3306), suspicious port 4444 listening"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Find what process is listening on suspicious port 4444",
+      "tool": "lsof_list_network_connections_files",
+      "parameters": {
+        "filter_type": "port",
+        "filter_value": "4444"
+      },
+      "expected_outcome": "Unknown process PID 7890 '/tmp/.hidden' using port 4444"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Capture packets on port 4444 to analyze the traffic",
+      "tool": "tcpdump_capture_filter_packets",
+      "parameters": {
+        "interface": "eth0",
+        "filter": "port 4444",
+        "count": "20"
+      },
+      "expected_outcome": "Captured 20 packets: reverse shell traffic detected to 203.0.113.45"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Scan the remote IP to understand what it is",
+      "tool": "nmap_scan_ports_services_hosts",
+      "parameters": {
+        "target": "203.0.113.45",
+        "scan_type": "quick"
+      },
+      "expected_outcome": "Remote host has ports 22, 80, 4444 open - appears to be C2 server"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Check firewall rules to see if port 4444 should be blocked",
+      "tool": "iptables_show_firewall_rules_chains",
+      "parameters": {
+        "chain": "INPUT",
+        "table": "filter"
+      },
+      "expected_outcome": "No rule blocking port 4444 - firewall misconfigured"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Trace the network path to the suspicious C2 server",
+      "tool": "traceroute_mtr_network_path_analysis",
+      "parameters": {
+        "destination": "203.0.113.45",
+        "tool_type": "mtr"
+      },
+      "expected_outcome": "Route traced: 5 hops, located in different country - confirmed malicious"
+    }
+  ],
+  "success_criteria": "Suspicious connection identified, process found, traffic analyzed, C2 server confirmed",
+  "cleanup": "Kill PID 7890, block port 4444 in iptables, investigate infection vector"
+}

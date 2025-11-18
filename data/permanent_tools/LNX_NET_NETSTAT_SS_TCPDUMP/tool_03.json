@@ -1,0 +1,67 @@
+{
+  "name": "tcpdump_capture_filter_packets",
+  "description": "Capture and analyze network packets with filters for host, port, protocol using tcpdump",
+  "pattern": "capture.*packets|tcpdump.*analysis|sniff.*traffic|packet.*capture",
+  "parameters": ["interface", "filter", "count"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "ip link show | grep -E '^[0-9]+:' | awk -F': ' '{print $2}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "lo\neth0\nwlan0\ndocker0"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "tcpdump",
+        "args": ["-D"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "1.eth0 [Up, Running, Connected]\n2.wlan0 [Up, Running]\n3.lo [Up, Running, Loopback]\n4.any (Pseudo-device that captures on all interfaces)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "timeout",
+        "args": ["10", "tcpdump", "-i", "{{interface}}", "-c", "{{count}}", "{{filter}}", "-n"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "tcpdump: verbose output suppressed, use -v[v]... for full protocol decode\nlistening on eth0, link-type EN10MB (Ethernet), snapshot length 262144 bytes\n15:23:45.123456 IP 192.168.1.100.22 > 192.168.1.50.54321: Flags [P.], seq 1:89, ack 1, win 501, length 88\n15:23:45.234567 IP 192.168.1.100.443 > 203.0.113.45.44556: Flags [.], ack 1234, win 1024, length 0\n15:23:45.345678 IP 192.168.1.100.80 > 10.0.0.15.33445: Flags [S.], seq 0, ack 1, win 29200, length 0\n3 packets captured\n3 packets received by filter\n0 packets dropped by kernel"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "timeout 5 tcpdump -i {{interface}} -c 10 '{{filter}}' -w /tmp/capture.pcap 2>&1 && ls -lh /tmp/capture.pcap"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "tcpdump: listening on eth0, link-type EN10MB\n10 packets captured\n-rw-r--r-- 1 root root 4.2K Nov 18 15:23 /tmp/capture.pcap"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

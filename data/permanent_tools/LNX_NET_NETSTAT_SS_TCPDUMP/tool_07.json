@@ -1,0 +1,67 @@
+{
+  "name": "traceroute_mtr_network_path_analysis",
+  "description": "Trace network path to destination, show hops, latency, packet loss using traceroute and mtr",
+  "pattern": "traceroute.*path|network.*hops|route.*trace|mtr.*analysis",
+  "parameters": ["destination", "tool_type"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "host {{destination}} || echo '{{destination}} is IP address'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{{destination}} has address 203.0.113.45\n{{destination}} mail is handled by 10 mail.{{destination}}."
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "if [ '{{tool_type}}' = 'traceroute' ]; then traceroute -n {{destination}}; elif [ '{{tool_type}}' = 'mtr' ]; then mtr --report --report-cycles 10 {{destination}}; elif [ '{{tool_type}}' = 'tcptraceroute' ]; then tcptraceroute {{destination}} 80; fi"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "traceroute to {{destination}} (203.0.113.45), 30 hops max, 60 byte packets\n 1  192.168.1.1       0.234 ms  0.189 ms  0.167 ms\n 2  10.0.0.1          2.456 ms  2.389 ms  2.312 ms\n 3  172.16.0.1        5.678 ms  5.612 ms  5.543 ms\n 4  203.0.113.1      12.345 ms 12.289 ms 12.234 ms\n 5  203.0.113.45     15.678 ms 15.612 ms 15.567 ms"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "mtr",
+        "args": ["--report", "--report-cycles", "5", "--no-dns", "{{destination}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Start: 2024-11-18T21:45:30+0000\nHOST: localhost                   Loss%   Snt   Last   Avg  Best  Wrst StDev\n  1.|-- 192.168.1.1                 0.0%     5    0.2   0.3   0.2   0.4   0.1\n  2.|-- 10.0.0.1                    0.0%     5    2.3   2.4   2.2   2.6   0.2\n  3.|-- 172.16.0.1                  0.0%     5    5.6   5.7   5.5   6.0   0.2\n  4.|-- 203.0.113.1                20.0%     5   12.5  12.6  12.3  13.1   0.3\n  5.|-- 203.0.113.45                0.0%     5   15.8  15.9  15.6  16.2   0.2"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "traceroute -n {{destination}} 2>&1 | tail -1"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": " 5  203.0.113.45  15.567 ms  15.612 ms  15.678 ms"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}
