@@ -1,0 +1,67 @@
+{
+  "name": "text_search_multipattern",
+  "description": "Search for multiple patterns with boolean logic",
+  "pattern": "multiple.*patterns|search.*or|search.*and",
+  "parameters": ["path", "pattern1", "pattern2"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -E '{{pattern1}}|{{pattern2}}' '{{path}}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/log/auth.log:Failed password for root from 192.168.1.100\n/var/log/auth.log:Failed password for admin from 192.168.1.101\n/var/log/syslog:Connection refused from 192.168.1.102"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -l '{{pattern1}}' '{{path}}' | xargs grep -l '{{pattern2}}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/config.php\n/var/www/settings.ini"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -E '{{pattern1}}' '{{path}}' | grep -E '{{pattern2}}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/config.php:define('DB_PASSWORD', 'secret123');\n/var/www/includes/auth.php:$admin_password = 'admin123';"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -E '{{pattern1}}|{{pattern2}}' '{{path}}' | awk -F: '{print $1}' | sort | uniq -c | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "     42 /var/log/auth.log\n     18 /var/log/syslog\n      7 /var/log/apache2/error.log\n      3 /var/log/mysql/error.log"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

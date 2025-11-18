@@ -1,0 +1,67 @@
+{
+  "name": "text_search_with_exclusions",
+  "description": "Search for text while excluding certain directories or patterns",
+  "pattern": "search.*exclude|ignore.*directories|skip.*folders",
+  "parameters": ["path", "pattern", "exclude_dir"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "grep",
+        "args": ["-r", "-n", "--exclude-dir={{exclude_dir}}", "{{pattern}}", "{{path}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/html/index.php:42:import module_name\n/var/www/src/main.py:15:import os\n/var/www/lib/utils.py:8:import sys"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -n --exclude-dir='{{exclude_dir}}' --exclude-dir='.*' '{{pattern}}' '{{path}}' | wc -l"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "89"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -l --exclude-dir='{{exclude_dir}}' --exclude='*.min.js' --exclude='*.log' '{{pattern}}' '{{path}}' | sort"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/html/index.php\n/var/www/lib/utils.py\n/var/www/src/main.py"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type d -name '{{exclude_dir}}' -prune -o -type f -exec grep -l '{{pattern}}' {} \\; 2>/dev/null | sort"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/html/app.js\n/var/www/html/index.php\n/var/www/src/config.py"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

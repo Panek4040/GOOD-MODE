@@ -1,0 +1,67 @@
+{
+  "name": "text_search_case_insensitive",
+  "description": "Search for text pattern ignoring case with extended regex",
+  "pattern": "case.*insensitive.*search|ignore.*case|search.*any.*case",
+  "parameters": ["path", "pattern"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "grep",
+        "args": ["-r", "-i", "-n", "{{pattern}}", "{{path}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/log/apache2/access.log:1042:ERROR: Connection refused\n/var/log/apache2/access.log:1089:Error: Timeout occurred\n/var/log/apache2/error.log:23:error in module mod_ssl"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "grep",
+        "args": ["-r", "-i", "-E", "-n", "{{pattern}}", "{{path}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/etc/nginx/nginx.conf:45:server_name example.com www.example.com;\n/etc/nginx/sites-available/default:12:server_name localhost;"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -i -l '{{pattern}}' '{{path}}' | sort | uniq"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/log/apache2/access.log\n/var/log/apache2/error.log\n/var/log/syslog"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -i -c '{{pattern}}' '{{path}}' | grep -v ':0$' | sort -t: -k2 -rn | head -10"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/log/apache2/access.log:127\n/var/log/apache2/error.log:84\n/var/log/syslog:42\n/var/log/auth.log:18"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

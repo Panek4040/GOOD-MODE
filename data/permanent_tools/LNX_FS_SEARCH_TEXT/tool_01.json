@@ -1,0 +1,67 @@
+{
+  "name": "text_search_basic",
+  "description": "Search for text pattern in files recursively",
+  "pattern": "search.*text|find.*string|grep.*files",
+  "parameters": ["path", "pattern"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "grep",
+        "args": ["-r", "-n", "{{pattern}}", "{{path}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/config.php:42:define('DB_HOST', 'localhost');\n/var/www/config.php:43:define('DB_USER', 'admin');\n/var/www/includes/db.php:15:$host = 'localhost';"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -n '{{pattern}}' '{{path}}' | wc -l"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "127"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -l '{{pattern}}' '{{path}}' | sort"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/config.php\n/var/www/includes/db.php\n/var/www/lib/database.class.php"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -n -H -C 2 '{{pattern}}' '{{path}}' | head -20"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/config.php-40-// Database configuration\n/var/www/config.php-41-\n/var/www/config.php:42:define('DB_HOST', 'localhost');\n/var/www/config.php-43-define('DB_USER', 'admin');\n/var/www/config.php-44-define('DB_PASS', 'secret123');"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

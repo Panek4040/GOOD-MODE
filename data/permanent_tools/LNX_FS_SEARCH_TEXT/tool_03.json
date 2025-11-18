@@ -1,0 +1,67 @@
+{
+  "name": "text_search_by_filetype",
+  "description": "Search for text pattern in specific file types",
+  "pattern": "search.*filetype|grep.*extension|search.*only.*files",
+  "parameters": ["path", "pattern", "extension"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -name '*.{{extension}}' -exec grep -n '{{pattern}}' {} +"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/html/index.php:15:$db_host = 'localhost';\n/var/www/html/config.php:8:$hostname = 'localhost';\n/var/www/includes/database.php:42:private $host = 'localhost';"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -name '*.{{extension}}' -exec grep -l '{{pattern}}' {} \\; | sort"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/html/config.php\n/var/www/html/index.php\n/var/www/includes/database.php"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -name '*.{{extension}}' | xargs grep -c '{{pattern}}' 2>/dev/null | grep -v ':0$' | sort -t: -k2 -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/html/index.php:45\n/var/www/html/config.php:12\n/var/www/includes/database.php:8\n/var/www/lib/db.class.php:3"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -name '*.{{extension}}' -exec grep -n -H -A 1 -B 1 '{{pattern}}' {} \\; | head -30"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/html/index.php-14-// Database connection\n/var/www/html/index.php:15:$db_host = 'localhost';\n/var/www/html/index.php-16-$db_user = 'root';\n--\n/var/www/html/config.php-7-\n/var/www/html/config.php:8:$hostname = 'localhost';\n/var/www/html/config.php-9-$port = 3306;"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

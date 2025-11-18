@@ -1,0 +1,107 @@
+{
+  "topic_id": "LNX_FS_SAFE_DELETE",
+  "title": "Securely delete sensitive files with verification",
+  "goal": "Identify and securely shred sensitive files containing credentials or personal data",
+  "steps": [
+    {
+      "thought": "Find files with potentially sensitive data",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find /tmp -type f \\( -name '*password*' -o -name '*secret*' -o -name '*credential*' \\) 2>/dev/null"]
+      },
+      "observation": "/tmp/passwords_backup.txt\n/tmp/api_secrets.json\n/tmp/old_credentials.conf\n/tmp/ssh_password_temp.txt"
+    },
+    {
+      "thought": "Check file details and ownership",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find /tmp -type f \\( -name '*password*' -o -name '*secret*' \\) -exec stat -c 'File: %n|Size: %s|Owner: %U|Perms: %a|Modified: %y' {} \\;"]
+      },
+      "observation": "File: /tmp/passwords_backup.txt|Size: 2048|Owner: user|Perms: 600|Modified: 2025-11-15 10:30:22.000000000 +0000\nFile: /tmp/api_secrets.json|Size: 4096|Owner: user|Perms: 644|Modified: 2025-11-17 14:20:15.000000000 +0000"
+    },
+    {
+      "thought": "Calculate MD5 hashes before deletion for audit",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find /tmp -type f -name '*password*' -exec sh -c 'echo \"$1|$(md5sum \\\"$1\\\" | awk \"{print \\$1}\")\"' _ {} \\;"]
+      },
+      "observation": "/tmp/passwords_backup.txt|5d41402abc4b2a76b9719d911017c592\n/tmp/ssh_password_temp.txt|098f6bcd4621d373cade4e832627b4f6"
+    },
+    {
+      "thought": "Preview file contents to confirm deletion",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "head -3 /tmp/passwords_backup.txt"]
+      },
+      "observation": "admin:P@ssw0rd123!\ndb_user:SecretDB2025\napi_key:sk_live_abc123xyz789"
+    },
+    {
+      "thought": "Shred first file with 3 passes",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "shred",
+        "args": ["-v", "-n", "3", "/tmp/passwords_backup.txt"]
+      },
+      "observation": "shred: /tmp/passwords_backup.txt: pass 1/3 (random)...\nshred: /tmp/passwords_backup.txt: pass 2/3 (random)...\nshred: /tmp/passwords_backup.txt: pass 3/3 (random)..."
+    },
+    {
+      "thought": "Verify file is overwritten but still exists",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "md5sum /tmp/passwords_backup.txt | awk '{print \"After shred MD5: \" $1}' && head -1 /tmp/passwords_backup.txt | od -c | head -2"]
+      },
+      "observation": "After shred MD5: 8f14e45fceea167a5a36dedd4bea2543\n0000000 \\266 032 217 \\t 344 \\203 \\a 302 \\365 035 \\271 245 260 < \\267"
+    },
+    {
+      "thought": "Complete secure deletion with removal",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "for f in /tmp/passwords_backup.txt /tmp/api_secrets.json /tmp/old_credentials.conf /tmp/ssh_password_temp.txt; do [ -f \"$f\" ] && shred -u -v -z \"$f\" 2>&1 | grep -E '(pass|removing|removed)'; done"]
+      },
+      "observation": "shred: /tmp/passwords_backup.txt: pass 1/1 (000000)...\nshred: /tmp/passwords_backup.txt: removing\nshred: /tmp/passwords_backup.txt: removed\nshred: /tmp/api_secrets.json: pass 1/1 (000000)...\nshred: /tmp/api_secrets.json: removed"
+    },
+    {
+      "thought": "Verify files are permanently deleted",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "for f in passwords_backup.txt api_secrets.json old_credentials.conf ssh_password_temp.txt; do if [ -f \"/tmp/$f\" ]; then echo \"$f still exists\"; else echo \"$f securely deleted\"; fi; done"]
+      },
+      "observation": "passwords_backup.txt securely deleted\napi_secrets.json securely deleted\nold_credentials.conf securely deleted\nssh_password_temp.txt securely deleted"
+    },
+    {
+      "thought": "Log secure deletion event",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "logger -t secure_delete \"User $(whoami) securely deleted 4 sensitive files from /tmp\" && journalctl -t secure_delete -n 1"]
+      },
+      "observation": "Nov 18 14:35:22 server secure_delete[12345]: User user securely deleted 4 sensitive files from /tmp"
+    }
+  ],
+  "success_condition": "Securely shredded and deleted 4 sensitive files containing credentials, verified removal with MD5 hash changes and file non-existence"
+}
