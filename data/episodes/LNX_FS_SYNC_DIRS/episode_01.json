@@ -1,0 +1,85 @@
+{
+  "topic_id": "LNX_FS_SYNC_DIRS",
+  "title": "Sync production website to backup server with verification",
+  "goal": "Synchronize live website to backup location with dry-run verification and size validation",
+  "steps": [
+    {
+      "thought": "Check current sizes of source and destination",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -sh /var/www/html && du -sh /backup/www_html 2>/dev/null || echo '/backup/www_html: does not exist'"]
+      },
+      "observation": "2.4G\t/var/www/html\n2.1G\t/backup/www_html"
+    },
+    {
+      "thought": "Run dry-run to see what would change",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "rsync",
+        "args": ["-av", "--dry-run", "--stats", "/var/www/html/", "/backup/www_html/"]
+      },
+      "observation": "sending incremental file list\nindex.php\nconfig.php\nassets/app.js\nassets/style.css\n\nNumber of files: 1,247 (reg: 1,102, dir: 145)\nNumber of created files: 23\nNumber of deleted files: 0\nNumber of regular files transferred: 23\nTotal file size: 2.4G bytes\nTotal transferred file size: 156M bytes"
+    },
+    {
+      "thought": "Record start time and begin actual sync",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo 'Starting sync at: '$(date +'%Y-%m-%d %H:%M:%S')"]
+      },
+      "observation": "Starting sync at: 2025-11-18 15:00:00"
+    },
+    {
+      "thought": "Execute rsync with progress monitoring",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "rsync",
+        "args": ["-av", "--progress", "/var/www/html/", "/backup/www_html/"]
+      },
+      "observation": "sending incremental file list\nindex.php\n      12,288 100%    0.00kB/s    0:00:00\nconfig.php\n       4,096 100%    3.91MB/s    0:00:00\nassets/app.js\n      89,456 100%   42.35MB/s    0:00:00\nassets/style.css\n      15,672 100%    7.42MB/s    0:00:00\n\nsent 156.23M bytes  received 1.42K bytes  10.41M bytes/sec\ntotal size is 2.42G  speedup is 15.49"
+    },
+    {
+      "thought": "Verify completion time and final size",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo 'Completed at: '$(date +'%Y-%m-%d %H:%M:%S') && du -sh /backup/www_html"]
+      },
+      "observation": "Completed at: 2025-11-18 15:02:30\n2.4G\t/backup/www_html"
+    },
+    {
+      "thought": "Verify file counts match",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo \"Source files: $(find /var/www/html -type f | wc -l)\" && echo \"Dest files: $(find /backup/www_html -type f | wc -l)\""]
+      },
+      "observation": "Source files: 1102\nDest files: 1102"
+    },
+    {
+      "thought": "Sample checksum verification",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "md5sum /var/www/html/index.php /backup/www_html/index.php"]
+      },
+      "observation": "5d41402abc4b2a76b9719d911017c592  /var/www/html/index.php\n5d41402abc4b2a76b9719d911017c592  /backup/www_html/index.php"
+    }
+  ],
+  "success_condition": "Synced 2.4G across 1,102 files, transferred 156MB of changes, verified file counts and checksums match"
+}

@@ -1,0 +1,80 @@
+{
+  "name": "sync_dirs_incremental_backup",
+  "description": "Incremental sync with backup of changed files",
+  "pattern": "incremental.*sync|backup.*changes|sync.*backup",
+  "parameters": ["source_path", "dest_path", "backup_dir"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "mkdir -p '{{backup_dir}}' && echo 'Backup directory ready'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Backup directory ready"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "backup_timestamp=$(date +%Y%m%d_%H%M%S); echo \"Backup timestamp: $backup_timestamp\""]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Backup timestamp: 20251118_145000"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "rsync -av --backup --backup-dir='{{backup_dir}}/backup_$(date +%Y%m%d_%H%M%S)' --dry-run --stats '{{source_path}}/' '{{dest_path}}/' | grep -E '(Number of|Total)'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Number of files: 1,247 (reg: 1,102, dir: 145)\nNumber of created files: 12\nNumber of regular files transferred: 12\nTotal file size: 2.4G bytes\nTotal transferred file size: 23M bytes"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "rsync -av --backup --backup-dir='{{backup_dir}}/backup_$(date +%Y%m%d_%H%M%S)' '{{source_path}}/' '{{dest_path}}/'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "sending incremental file list\nindex.php\nconfig.php\nassets/style.css\n\nsent 23.4M bytes  received 542 bytes  1.56M bytes/sec\ntotal size is 2.4G  speedup is 102.56"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{backup_dir}}' -type f | head -5 && echo '...' && find '{{backup_dir}}' -type f | wc -l"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/backup/backup_20251118_145000/config.php\n/backup/backup_20251118_145000/index.php\n/backup/backup_20251118_145000/assets/style.css\n...\n12"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

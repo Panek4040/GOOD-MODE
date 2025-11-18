@@ -1,0 +1,80 @@
+{
+  "name": "sync_dirs_checksum_verify",
+  "description": "Sync with checksum verification for data integrity",
+  "pattern": "sync.*checksum|verify.*sync|integrity.*sync",
+  "parameters": ["source_path", "dest_path"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{source_path}}' -type f | head -5 | xargs md5sum"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "5d41402abc4b2a76b9719d911017c592  /var/www/html/index.php\n098f6bcd4621d373cade4e832627b4f6  /var/www/html/config.php\nd8e8fca2dc0f896fd7cb4cb0031ba249  /var/www/html/assets/style.css"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "rsync",
+        "args": ["-avc", "--dry-run", "{{source_path}}/", "{{dest_path}}/"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "sending incremental file list\nindex.php\nconfig.php\nassets/style.css\n\nsent 1.2K bytes  received 42 bytes  2.48K bytes/sec\ntotal size is 2.4G  speedup is 1,935,483.87 (DRY RUN)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "rsync",
+        "args": ["-avc", "--stats", "{{source_path}}/", "{{dest_path}}/"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "sending incremental file list\nindex.php\nconfig.php\nassets/style.css\n\nNumber of files: 1,247\nNumber of regular files transferred: 3\nTotal file size: 2.4G bytes\nLiteral data: 156K bytes\nMatched data: 0 bytes\n\nsent 157.2K bytes  received 89 bytes  104.9K bytes/sec\ntotal size is 2.4G  speedup is 15,267.52"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "cd '{{source_path}}' && find . -type f -exec md5sum {} \\; | sort > /tmp/source_checksums.txt && cd '{{dest_path}}' && find . -type f -exec md5sum {} \\; | sort > /tmp/dest_checksums.txt && diff /tmp/source_checksums.txt /tmp/dest_checksums.txt && echo 'Checksums match' || echo 'Checksum differences found'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Checksums match"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "wc -l /tmp/source_checksums.txt /tmp/dest_checksums.txt"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "  1102 /tmp/source_checksums.txt\n  1102 /tmp/dest_checksums.txt\n  2204 total"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}
