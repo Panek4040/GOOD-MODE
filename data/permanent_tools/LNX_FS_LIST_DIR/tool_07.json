@@ -1,0 +1,67 @@
+{
+  "name": "list_by_type_extension",
+  "description": "List files grouped by type and extension with counts",
+  "pattern": "group.*type|extension.*list|file.*types|categorize.*files",
+  "parameters": ["path"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "find",
+        "args": ["{{path}}", "-type", "f", "-name", "*.*"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/home/user/data.json\n/home/user/script.py\n/home/user/config.yaml\n/home/user/document.pdf\n/home/user/image.png"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -name '*.*' | sed 's/.*\\.//' | sort | uniq -c"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "      3 json\n      5 py\n      2 yaml\n      1 pdf\n      4 png\n      2 txt"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -printf '%f\\n' | grep -o '\\.[^.]*$$' | sort | uniq -c | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "      5 .py\n      4 .png\n      3 .json\n      2 .yaml\n      2 .txt\n      1 .pdf"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "file '{{path}}'/* | awk -F: '{print $$2}' | sort | uniq -c"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "      3  ASCII text\n      5  Python script, ASCII text executable\n      2  YAML document, ASCII text\n      1  PDF document, version 1.4\n      4  PNG image data, 1920 x 1080, 8-bit/color RGB\n      2  UTF-8 Unicode text"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

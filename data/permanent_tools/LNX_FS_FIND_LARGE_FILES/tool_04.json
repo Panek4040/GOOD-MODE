@@ -1,0 +1,67 @@
+{
+  "name": "find_large_with_age",
+  "description": "Find large files older than specified days",
+  "pattern": "old.*large.*files|large.*files.*older|size.*age",
+  "parameters": ["path", "min_size_mb", "days_old"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "find",
+        "args": ["{{path}}", "-type", "f", "-size", "+{{min_size_mb}}M", "-mtime", "+{{days_old}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/backups/archive_2023.tar.gz\n/var/log/syslog.2.gz\n/home/user/old_database.sql"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -mtime +{{days_old}} -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "1073741824|/var/backups/archive_2023.tar.gz|2023-12-15\n524288000|/var/log/syslog.2.gz|2025-10-10\n314572800|/home/user/old_database.sql|2025-09-20"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -mtime +{{days_old}} -exec stat -c '%s|%n|%y' {} \\;"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "1073741824|/var/backups/archive_2023.tar.gz|2023-12-15 10:30:22.456789 +0000\n524288000|/var/log/syslog.2.gz|2025-10-10 14:22:15.123456 +0000\n314572800|/home/user/old_database.sql|2025-09-20 08:15:30.987654 +0000"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -mtime +{{days_old}} -printf '%s %p\\n' | awk '{sum+=$1; count++; print} END {print \"Total files: \"count; print \"Total size: \"sum}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "1073741824 /var/backups/archive_2023.tar.gz\n524288000 /var/log/syslog.2.gz\n314572800 /home/user/old_database.sql\nTotal files: 3\nTotal size: 1912602624"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

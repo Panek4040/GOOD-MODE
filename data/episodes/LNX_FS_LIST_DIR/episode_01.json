@@ -1,0 +1,96 @@
+{
+  "topic_id": "LNX_FS_LIST_DIR",
+  "title": "Investigate disk space usage in web server",
+  "goal": "Find which files and directories are consuming the most disk space in /var/www and identify old log files for cleanup",
+  "steps": [
+    {
+      "thought": "First, I need to get an overview of the directory structure and total size",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "du",
+        "args": ["-h", "--max-depth=2", "/var/www"]
+      },
+      "observation": "4.0K\t/var/www/html/assets/css\n8.0K\t/var/www/html/assets/js\n256K\t/var/www/html/assets/images\n512K\t/var/www/html/assets\n128K\t/var/www/html/uploads\n2.5G\t/var/www/html/logs\n3.2G\t/var/www/html\n3.2G\t/var/www"
+    },
+    {
+      "thought": "The logs directory is consuming 2.5GB - I should investigate what's inside",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "ls",
+        "args": ["-lah", "/var/www/html/logs"]
+      },
+      "observation": "total 2.5G\ndrwxr-xr-x 2 www-data www-data 4.0K Nov 18 14:50 .\ndrwxr-xr-x 6 www-data www-data 4.0K Nov 15 10:00 ..\n-rw-r--r-- 1 www-data www-data 1.2G Nov 18 14:50 access.log\n-rw-r--r-- 1 www-data www-data 850M Nov 17 23:59 access.log.1\n-rw-r--r-- 1 www-data www-data 250M Nov 16 23:59 access.log.2.gz\n-rw-r--r-- 1 www-data www-data 150M Nov 15 23:59 access.log.3.gz\n-rw-r--r-- 1 www-data www-data  50M Nov 18 14:50 error.log"
+    },
+    {
+      "thought": "Now I'll find the largest files in the entire /var/www tree sorted by size",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "find",
+        "args": ["/var/www", "-type", "f", "-printf", "%s|%p|%TY-%Tm-%Td\\n"]
+      },
+      "observation": "1288490188|/var/www/html/logs/access.log|2025-11-18\n891289600|/var/www/html/logs/access.log.1|2025-11-17\n262144000|/var/www/html/logs/access.log.2.gz|2025-11-16\n157286400|/var/www/html/logs/access.log.3.gz|2025-11-15\n52428800|/var/www/html/logs/error.log|2025-11-18\n8388608|/var/www/html/uploads/video_demo.mp4|2025-11-12\n2097152|/var/www/html/assets/images/hero.png|2025-11-10"
+    },
+    {
+      "thought": "Let me sort these by size to identify the top 10 largest files",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find /var/www -type f -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn | head -10"]
+      },
+      "observation": "1288490188|/var/www/html/logs/access.log|2025-11-18\n891289600|/var/www/html/logs/access.log.1|2025-11-17\n262144000|/var/www/html/logs/access.log.2.gz|2025-11-16\n157286400|/var/www/html/logs/access.log.3.gz|2025-11-15\n52428800|/var/www/html/logs/error.log|2025-11-18\n8388608|/var/www/html/uploads/video_demo.mp4|2025-11-12\n2097152|/var/www/html/assets/images/hero.png|2025-11-10\n1048576|/var/www/html/assets/images/banner.jpg|2025-11-08\n524288|/var/www/html/uploads/document.pdf|2025-11-05\n262144|/var/www/html/assets/js/bundle.min.js|2025-11-01"
+    },
+    {
+      "thought": "I should check modification times on the log files to see which ones are old",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "stat",
+        "args": ["-c", "%n|%s|%y", "/var/www/html/logs/*"]
+      },
+      "observation": "/var/www/html/logs/access.log|1288490188|2025-11-18 14:50:32.456789123 +0000\n/var/www/html/logs/access.log.1|891289600|2025-11-17 23:59:01.123456789 +0000\n/var/www/html/logs/access.log.2.gz|262144000|2025-11-16 23:59:01.987654321 +0000\n/var/www/html/logs/access.log.3.gz|157286400|2025-11-15 23:59:01.456123789 +0000\n/var/www/html/logs/error.log|52428800|2025-11-18 14:50:32.789456123 +0000"
+    },
+    {
+      "thought": "Let me also check what file types are present in the entire tree",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find /var/www -type f -name '*.*' | sed 's/.*\\.//' | sort | uniq -c"]
+      },
+      "observation": "     42 css\n      1 gz\n     89 html\n     18 jpg\n     67 js\n      4 log\n      8 mp4\n     23 pdf\n     34 php\n     56 png\n     12 svg"
+    },
+    {
+      "thought": "Now let me get detailed permissions and ownership info on the logs directory",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "ls",
+        "args": ["-la", "/var/www/html/logs/"]
+      },
+      "observation": "total 2621440\ndrwxr-xr-x 2 www-data www-data      4096 Nov 18 14:50 .\ndrwxr-xr-x 6 www-data www-data      4096 Nov 15 10:00 ..\n-rw-r--r-- 1 www-data www-data 1288490188 Nov 18 14:50 access.log\n-rw-r--r-- 1 www-data www-data  891289600 Nov 17 23:59 access.log.1\n-rw-r--r-- 1 www-data www-data  262144000 Nov 16 23:59 access.log.2.gz\n-rw-r--r-- 1 www-data www-data  157286400 Nov 15 23:59 access.log.3.gz\n-rw-r--r-- 1 www-data www-data   52428800 Nov 18 14:50 error.log"
+    },
+    {
+      "thought": "Finally, let me check for any files older than 7 days that could be archived",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "find",
+        "args": ["/var/www", "-type", "f", "-mtime", "+7", "-printf", "%p|%s|%TY-%Tm-%Td\\n"]
+      },
+      "observation": "/var/www/html/logs/access.log.2.gz|262144000|2025-11-16\n/var/www/html/logs/access.log.3.gz|157286400|2025-11-15\n/var/www/html/uploads/old_presentation.pptx|10485760|2025-11-08\n/var/www/html/assets/images/banner.jpg|1048576|2025-11-08\n/var/www/html/uploads/archive.zip|5242880|2025-11-05"
+    }
+  ],
+  "success_condition": "Successfully identified that log files (especially access.log at 1.2GB and access.log.1 at 850MB) are consuming most space, and found old compressed logs that can be moved to archive storage"
+}
