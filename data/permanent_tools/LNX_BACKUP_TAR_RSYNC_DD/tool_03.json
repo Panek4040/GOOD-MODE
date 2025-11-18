@@ -1,0 +1,80 @@
+{
+  "name": "dd_disk_image_clone_backup",
+  "description": "Create disk images, clone partitions, backup MBR using dd command",
+  "pattern": "dd.*image|clone.*disk|disk.*backup|dd.*command",
+  "parameters": ["input_device", "output_file", "block_size"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "lsblk | grep -E '{{input_device}}|NAME'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "NAME   MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT\nsda      8:0    0 238.5G  0 disk\n├─sda1   8:1    0   512M  0 part /boot\n└─sda2   8:2    0   238G  0 part /"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "blockdev --getsize64 {{input_device}} 2>/dev/null || stat -c%s {{input_device}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "256060514304"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "dd if={{input_device}} of={{output_file}} bs={{block_size}} status=progress 2>&1 | tail -5"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "128530257152 bytes (129 GB, 120 GiB) copied, 456 s, 282 MB/s\n256060514304 bytes (256 GB) copied, 908.234 s, 282 MB/s\n500118192+0 records in\n500118192+0 records out"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "ls -lh {{output_file}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "-rw-r--r-- 1 root root 239G Nov 18 23:30 {{output_file}}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "file {{output_file}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{{output_file}}: DOS/MBR boot sector; partition 1 : ID=0x83, active, start-CHS (0x0,32,33), end-CHS (0x3ff,254,63)"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

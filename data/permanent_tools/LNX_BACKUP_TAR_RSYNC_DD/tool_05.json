@@ -1,0 +1,67 @@
+{
+  "name": "rsync_remote_server_backup_ssh",
+  "description": "Backup to remote server using rsync over SSH with bandwidth limit and exclude patterns",
+  "pattern": "remote.*backup|rsync.*ssh|backup.*server",
+  "parameters": ["local_path", "remote_host", "remote_path", "bandwidth_limit"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -sh {{local_path}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "4.7G\t{{local_path}}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "ssh {{remote_host}} 'du -sh {{remote_path}} 2>/dev/null || echo \"{{remote_path}} not found\"'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "4.2G\t{{remote_path}}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "rsync -avz --bwlimit={{bandwidth_limit}} --exclude='*.tmp' --exclude='cache/*' --dry-run {{local_path}}/ {{remote_host}}:{{remote_path}}/ 2>&1 | tail -15"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Number of files: 2,847 (reg: 2,234, dir: 613)\nNumber of created files: 89\nTotal file size: 4.7G bytes"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "rsync -avz --bwlimit={{bandwidth_limit}} --exclude='*.tmp' --exclude='cache/*' --progress {{local_path}}/ {{remote_host}}:{{remote_path}}/ 2>&1 | tail -5"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "sent 523.45M bytes  received 23.45K bytes  8.23M bytes/sec\ntotal size is 4.68G  speedup is 8.94\nbandwidth limit: {{bandwidth_limit}} KB/s"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

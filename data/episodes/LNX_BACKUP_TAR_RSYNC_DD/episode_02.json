@@ -1,0 +1,74 @@
+{
+  "episode_id": "LNX_BACKUP_TAR_RSYNC_DD_EP02",
+  "title": "Incremental Database Backup Strategy",
+  "description": "Setup full and incremental backup schedule for PostgreSQL database",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Create full backup baseline on Sunday",
+      "tool": "incremental_differential_backup_strategy",
+      "parameters": {
+        "source_dir": "/var/lib/postgresql",
+        "backup_base": "/backup/db",
+        "backup_type": "full"
+      },
+      "expected_outcome": "Full backup created: 1.8GB, snapshot file initialized"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Create Monday incremental backup (only changed files)",
+      "tool": "incremental_differential_backup_strategy",
+      "parameters": {
+        "source_dir": "/var/lib/postgresql",
+        "backup_base": "/backup/db",
+        "backup_type": "incremental"
+      },
+      "expected_outcome": "Incremental backup: 234MB (changed files only)"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Compare compression formats for optimal storage",
+      "tool": "tar_different_compression_formats",
+      "parameters": {
+        "source_dir": "/var/lib/postgresql",
+        "output_base": "/backup/db-test"
+      },
+      "expected_outcome": "gzip: 456MB/42s, bzip2: 389MB/2m15s, xz: 312MB/4m33s"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Verify all backup archives are valid",
+      "tool": "backup_verify_integrity_test_restore",
+      "parameters": {
+        "archive_path": "/backup/db-full.tar.gz",
+        "verification_type": "test"
+      },
+      "expected_outcome": "All archives verified successfully"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Sync all backups to remote server with bandwidth limit",
+      "tool": "rsync_remote_server_backup_ssh",
+      "parameters": {
+        "local_path": "/backup",
+        "remote_host": "backup.example.com",
+        "remote_path": "/storage/db-backups",
+        "bandwidth_limit": "5000"
+      },
+      "expected_outcome": "2.2GB total backups synced to remote server"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Test restore procedure from incremental backups",
+      "tool": "backup_verify_integrity_test_restore",
+      "parameters": {
+        "archive_path": "/backup/db-inc-20241118.tar.gz",
+        "verification_type": "extract_test"
+      },
+      "expected_outcome": "Restore test successful, data integrity confirmed"
+    }
+  ],
+  "success_criteria": "Incremental backup strategy implemented, tested, and automated",
+  "cleanup": "Schedule daily incrementals via systemd timer, weekly full backups"
+}

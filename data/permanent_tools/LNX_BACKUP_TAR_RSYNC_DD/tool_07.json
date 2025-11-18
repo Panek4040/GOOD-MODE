@@ -1,0 +1,80 @@
+{
+  "name": "incremental_differential_backup_strategy",
+  "description": "Implement incremental/differential backup strategy using tar with listed-incremental or rsync hardlinks",
+  "pattern": "incremental.*backup|differential.*backup|backup.*strategy",
+  "parameters": ["source_dir", "backup_base", "backup_type"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -sh {{source_dir}} && find {{source_dir}} -type f | wc -l"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "5.2G\t{{source_dir}}\n4523"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "if [ '{{backup_type}}' = 'full' ]; then tar -czf {{backup_base}}-full.tar.gz -g {{backup_base}}.snar {{source_dir}}; elif [ '{{backup_type}}' = 'incremental' ]; then tar -czf {{backup_base}}-inc-$(date +%Y%m%d).tar.gz -g {{backup_base}}.snar {{source_dir}}; fi"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "ls -lh {{backup_base}}*.tar.gz | awk '{print $5, $9}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "1.8G {{backup_base}}-full.tar.gz\n234M {{backup_base}}-inc-20241118.tar.gz\n156M {{backup_base}}-inc-20241119.tar.gz"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "cat {{backup_base}}.snar | head -10"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "GNU tar-1.32-2\n1700000000\n0\n/path/to/{{source_dir}}\nN 1234 1700000000\nD 5678"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -ch {{backup_base}}*.tar.gz | tail -1"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "2.2G\ttotal"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}
