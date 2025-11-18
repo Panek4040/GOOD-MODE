@@ -1,0 +1,67 @@
+{
+  "name": "list_with_permissions_owner",
+  "description": "List files with detailed permissions, owner, group and ACLs",
+  "pattern": "permissions|owner.*files|acl|chmod.*info",
+  "parameters": ["path"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "ls",
+        "args": ["-la", "{{path}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "total 128\ndrwxr-xr-x  5 user user  4096 Nov 18 10:30 .\ndrwxr-xr-x 12 user user  4096 Nov 18 09:15 ..\n-rw-r--r--  1 user user 12288 Nov 18 10:30 data.json\n-rwxr-xr-x  1 user user  8704 Nov 17 14:22 script.py\ndrwx------  2 user user  4096 Nov 16 11:00 private"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "find",
+        "args": ["{{path}}", "-maxdepth", "1", "-printf", "%M|%u|%g|%p|%s\\n"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "drwxr-xr-x|user|user|/home/user|4096\n-rw-r--r--|user|user|/home/user/data.json|12288\n-rwxr-xr-x|user|user|/home/user/script.py|8704\ndrwx------|user|user|/home/user/private|4096"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "stat",
+        "args": ["-c", "%A|%U|%G|%n|%s|%a", "{{path}}/*"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "-rw-r--r--|user|user|/home/user/data.json|12288|644\n-rwxr-xr-x|user|user|/home/user/script.py|8704|755\ndrwx------|user|user|/home/user/private|4096|700"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "getfacl",
+        "args": ["-p", "{{path}}/*"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "# file: /home/user/data.json\n# owner: user\n# group: user\nuser::rw-\ngroup::r--\nother::r--\n\n# file: /home/user/script.py\n# owner: user\n# group: user\nuser::rwx\ngroup::r-x\nother::r-x"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

@@ -1,0 +1,80 @@
+{
+  "name": "find_top_n_largest",
+  "description": "Find and list top N largest files with detailed information",
+  "pattern": "top.*largest|biggest.*files|largest.*n.*files",
+  "parameters": ["path", "limit"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -printf '%s|%p\\n' | sort -rn | head -n {{limit}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "2147483648|/var/lib/mysql/ibdata1\n1073741824|/home/user/videos/movie.mkv\n536870912|/opt/backups/full.tar.gz"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -printf '%s|%p|%TY-%Tm-%Td %TH:%TM\\n' | sort -rn | head -n {{limit}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "2147483648|/var/lib/mysql/ibdata1|2025-11-18 14:30\n1073741824|/home/user/videos/movie.mkv|2025-11-17 10:22\n536870912|/opt/backups/full.tar.gz|2025-11-16 09:15"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -printf '%s %p\\n' | sort -rn | head -n {{limit}} | awk '{print $1\"|\"$2}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "2147483648|/var/lib/mysql/ibdata1\n1073741824|/home/user/videos/movie.mkv\n536870912|/opt/backups/full.tar.gz"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -exec du -b {} + | sort -rn | head -n {{limit}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "2147483648\t/var/lib/mysql/ibdata1\n1073741824\t/home/user/videos/movie.mkv\n536870912\t/opt/backups/full.tar.gz"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -printf '%s %p\\n' | sort -rn | head -n {{limit}} | numfmt --to=iec --field=1 --padding=7"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "    2.0G /var/lib/mysql/ibdata1\n    1.0G /home/user/videos/movie.mkv\n     512M /opt/backups/full.tar.gz"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}
