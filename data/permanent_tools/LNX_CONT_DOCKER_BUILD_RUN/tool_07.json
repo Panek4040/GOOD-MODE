@@ -1,0 +1,80 @@
+{
+  "name": "docker_container_lifecycle_stop_remove",
+  "description": "Manage container lifecycle: stop, restart, and remove containers with cleanup",
+  "pattern": "stop.*container|remove.*docker|docker.*rm|cleanup.*containers",
+  "parameters": ["container_name"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker",
+        "args": ["ps", "-a", "--filter", "name={{container_name}}", "--format", "{{.ID}} {{.Status}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "a1b2c3d4e5f6 Up 3 hours"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker",
+        "args": ["stop", "{{container_name}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{{container_name}}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker",
+        "args": ["ps", "-a", "--filter", "name={{container_name}}", "--format", "{{.Status}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Exited (0) 2 seconds ago"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker",
+        "args": ["rm", "{{container_name}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{{container_name}}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker",
+        "args": ["ps", "-a", "--filter", "name={{container_name}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}
