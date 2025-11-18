@@ -1,0 +1,105 @@
+{
+  "episode_id": "LNX_TEXT_SED_AWK_CUT_EP03",
+  "title": "Clean and Standardize Configuration Files",
+  "description": "Process 50 config files - remove comments, normalize formatting, fix inconsistencies",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Remove comment lines starting with #",
+      "tool": "sed_stream_editor_find_replace",
+      "parameters": {
+        "pattern": "^#",
+        "replacement": "",
+        "file": "config/*.conf"
+      },
+      "expected_outcome": "Comment lines deleted, only configuration directives remain"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Remove blank lines from configs",
+      "tool": "sed_stream_editor_find_replace",
+      "parameters": {
+        "pattern": "^$",
+        "replacement": "",
+        "file": "config/*.conf"
+      },
+      "expected_outcome": "Blank lines removed, compact configuration files"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Extract only lines with 'server' directive",
+      "tool": "grep_advanced_pattern_matching",
+      "parameters": {
+        "pattern": "^server",
+        "file": "config/*.conf",
+        "context": "0"
+      },
+      "expected_outcome": "Server directives: server 192.168.1.100:8080, server backend1.local..."
+    },
+    {
+      "step_number": 4,
+      "instruction": "Normalize spacing - squeeze multiple spaces to single",
+      "tool": "tr_character_translation_deletion",
+      "parameters": {
+        "set1": " ",
+        "set2": " "
+      },
+      "expected_outcome": "Spacing normalized: server    192.168.1.100 -> server 192.168.1.100"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Extract port numbers from server directives",
+      "tool": "awk_pattern_scan_field_processing",
+      "parameters": {
+        "field_number": "2",
+        "pattern": "server",
+        "file": "config/nginx.conf"
+      },
+      "expected_outcome": "Ports extracted: 8080, 8081, 8082, 443, 80"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Replace old IP addresses with new datacenter IPs",
+      "tool": "sed_stream_editor_find_replace",
+      "parameters": {
+        "pattern": "192\\.168\\.1\\.",
+        "replacement": "10.0.0.",
+        "file": "config/*.conf"
+      },
+      "expected_outcome": "IPs migrated: 192.168.1.100 -> 10.0.0.100, 192.168.1.101 -> 10.0.0.101"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Sort configuration directives alphabetically",
+      "tool": "sort_uniq_text_organization",
+      "parameters": {
+        "file": "config/app.conf",
+        "sort_key": "1"
+      },
+      "expected_outcome": "Directives alphabetically sorted for easier maintenance"
+    },
+    {
+      "step_number": 8,
+      "instruction": "Remove duplicate server entries",
+      "tool": "sort_uniq_text_organization",
+      "parameters": {
+        "file": "servers.txt",
+        "sort_key": ""
+      },
+      "expected_outcome": "50 duplicate entries removed, 23 unique servers remain"
+    },
+    {
+      "step_number": 9,
+      "instruction": "Extract only numeric values (timeouts, ports, limits)",
+      "tool": "tr_character_translation_deletion",
+      "parameters": {
+        "set1": "[:alpha:]",
+        "set2": ""
+      },
+      "expected_outcome": "Numeric values extracted: timeout 30 -> 30, port 8080 -> 8080"
+    }
+  ],
+  "success_criteria": "Processed 50 config files, removed 2,341 comment lines, normalized 50 duplicate servers to 23, migrated IPs to new datacenter range",
+  "cleanup": "Backed up original configs, deployed cleaned configurations, verified services running"
+}

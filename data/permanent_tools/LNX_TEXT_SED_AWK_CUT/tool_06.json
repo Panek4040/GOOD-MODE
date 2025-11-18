@@ -1,0 +1,30 @@
+{
+  "name": "grep_advanced_pattern_matching",
+  "description": "Advanced grep patterns - extended regex, invert match, count, context lines",
+  "pattern": "grep.*pattern|regex.*search|grep.*context|pattern.*match",
+  "parameters": ["pattern", "file", "context"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "grep -E '{{pattern}}' {{file}}"]},
+      "expected_output": {"type": "string", "example": "Lines matching extended regex pattern '{{pattern}}'"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "grep -v '{{pattern}}' {{file}}"]},
+      "expected_output": {"type": "string", "example": "Lines NOT matching '{{pattern}}' (inverted match)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "grep -c '{{pattern}}' {{file}}"]},
+      "expected_output": {"type": "string", "example": "45 (count of lines matching pattern)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "grep -A{{context}} -B{{context}} '{{pattern}}' {{file}}"]},
+      "expected_output": {"type": "string", "example": "Lines matching pattern with {{context}} lines before and after for context"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "grep -o '{{pattern}}' {{file}} | sort | uniq -c | sort -rn"]},
+      "expected_output": {"type": "string", "example": "Pattern occurrences counted and sorted:\n  45 error\n  23 warning\n  12 info"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

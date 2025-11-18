@@ -1,0 +1,30 @@
+{
+  "name": "cut_column_field_extraction",
+  "description": "Extract specific columns or fields from delimited text using cut command",
+  "pattern": "cut.*field|extract.*column|cut.*delimiter|field.*extract",
+  "parameters": ["field", "delimiter", "file"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cut -f{{field}} {{file}}"]},
+      "expected_output": {"type": "string", "example": "Field {{field}} extracted (tab-delimited default)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cut -d'{{delimiter}}' -f{{field}} {{file}}"]},
+      "expected_output": {"type": "string", "example": "Field {{field}} extracted using '{{delimiter}}' as separator"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cut -d'{{delimiter}}' -f1,3,5 {{file}}"]},
+      "expected_output": {"type": "string", "example": "Fields 1, 3, and 5 extracted (multi-column selection)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cut -c1-10 {{file}}"]},
+      "expected_output": {"type": "string", "example": "First 10 characters from each line extracted"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cut -d'{{delimiter}}' -f{{field}}- {{file}}"]},
+      "expected_output": {"type": "string", "example": "Field {{field}} through end of line extracted"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

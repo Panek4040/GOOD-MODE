@@ -1,0 +1,30 @@
+{
+  "name": "sed_stream_editor_find_replace",
+  "description": "Stream editor for find/replace, line deletion, insertion, text transformation using sed",
+  "pattern": "sed.*replace|find.*replace|stream.*edit|text.*substitute",
+  "parameters": ["pattern", "replacement", "file"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Sample text for testing' | sed 's/{{pattern}}/{{replacement}}/g'"]},
+      "expected_output": {"type": "string", "example": "Sample {{replacement}} for testing (pattern replaced)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sed 's/{{pattern}}/{{replacement}}/g' {{file}}"]},
+      "expected_output": {"type": "string", "example": "File content with all occurrences of '{{pattern}}' replaced by '{{replacement}}'"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sed -n '/{{pattern}}/p' {{file}}"]},
+      "expected_output": {"type": "string", "example": "Lines matching pattern '{{pattern}}' printed"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sed '/{{pattern}}/d' {{file}}"]},
+      "expected_output": {"type": "string", "example": "File content with lines containing '{{pattern}}' deleted"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sed '1,5s/{{pattern}}/{{replacement}}/' {{file}}"]},
+      "expected_output": {"type": "string", "example": "First 5 lines: replaced '{{pattern}}' with '{{replacement}}', rest unchanged"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

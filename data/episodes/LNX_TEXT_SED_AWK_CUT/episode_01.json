@@ -1,0 +1,85 @@
+{
+  "episode_id": "LNX_TEXT_SED_AWK_CUT_EP01",
+  "title": "Parse and Analyze Apache Access Logs",
+  "description": "Extract statistics from 500MB Apache access.log - top IPs, status codes, URLs",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Extract IP addresses (first field) from access log",
+      "tool": "awk_pattern_scan_field_processing",
+      "parameters": {
+        "field_number": "1",
+        "pattern": "",
+        "file": "/var/log/apache2/access.log"
+      },
+      "expected_outcome": "IP addresses extracted: 192.168.1.100, 10.0.0.50, 172.16.0.23..."
+    },
+    {
+      "step_number": 2,
+      "instruction": "Count unique IP addresses and sort by frequency",
+      "tool": "sort_uniq_text_organization",
+      "parameters": {
+        "file": "ips.txt",
+        "sort_key": ""
+      },
+      "expected_outcome": "Top IPs: 192.168.1.100 (4523 requests), 10.0.0.50 (2314 requests), 172.16.0.23 (1876 requests)"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Extract HTTP status codes (9th field)",
+      "tool": "cut_column_field_extraction",
+      "parameters": {
+        "field": "9",
+        "delimiter": " ",
+        "file": "/var/log/apache2/access.log"
+      },
+      "expected_outcome": "Status codes extracted: 200, 200, 404, 200, 500, 304..."
+    },
+    {
+      "step_number": 4,
+      "instruction": "Count occurrences of each status code",
+      "tool": "sort_uniq_text_organization",
+      "parameters": {
+        "file": "status_codes.txt",
+        "sort_key": "1"
+      },
+      "expected_outcome": "Status distribution: 200 (45234), 304 (8765), 404 (2341), 500 (123)"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Extract URLs containing 'api' in the path",
+      "tool": "grep_advanced_pattern_matching",
+      "parameters": {
+        "pattern": "/api/",
+        "file": "/var/log/apache2/access.log",
+        "context": "0"
+      },
+      "expected_outcome": "4523 API requests found - /api/users, /api/products, /api/auth"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Extract request bytes (last field) and calculate total",
+      "tool": "awk_pattern_scan_field_processing",
+      "parameters": {
+        "field_number": "10",
+        "pattern": "",
+        "file": "/var/log/apache2/access.log"
+      },
+      "expected_outcome": "Total bytes served: 523456789 (498 MB transferred)"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Replace IP addresses with 'REDACTED' for privacy",
+      "tool": "sed_stream_editor_find_replace",
+      "parameters": {
+        "pattern": "[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}\\.[0-9]\\{1,3\\}",
+        "replacement": "REDACTED",
+        "file": "/var/log/apache2/access.log"
+      },
+      "expected_outcome": "IPs anonymized: REDACTED - [18/Nov/2025:14:30:45] GET /api/users 200"
+    }
+  ],
+  "success_criteria": "Analyzed 500MB log file: identified top IPs, status code distribution (89% success rate), 498MB served, 4523 API requests",
+  "cleanup": "Created dashboard showing request patterns, set up alerts for 500 errors"
+}
