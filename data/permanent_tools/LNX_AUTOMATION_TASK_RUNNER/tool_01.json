@@ -1,0 +1,80 @@
+{
+  "name": "create_cron_job",
+  "description": "Create and schedule cron job for automated task execution",
+  "pattern": "cron.*job|schedule.*task|automate.*script",
+  "parameters": ["schedule", "command"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "crontab",
+        "args": ["-l"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "0 2 * * * /usr/local/bin/backup.sh\n30 */6 * * * /usr/local/bin/cleanup.sh\n0 0 * * 0 /usr/local/bin/weekly_report.sh"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo '{{schedule}} {{command}}' | crontab -l > /tmp/crontab.tmp 2>/dev/null || true && echo '{{schedule}} {{command}}' >> /tmp/crontab.tmp && cat /tmp/crontab.tmp"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "0 2 * * * /usr/local/bin/backup.sh\n30 */6 * * * /usr/local/bin/cleanup.sh\n0 0 * * 0 /usr/local/bin/weekly_report.sh\n0 3 * * * /usr/local/bin/new_task.sh"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "crontab",
+        "args": ["/tmp/crontab.tmp"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "crontab",
+        "args": ["-l"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "0 2 * * * /usr/local/bin/backup.sh\n30 */6 * * * /usr/local/bin/cleanup.sh\n0 0 * * 0 /usr/local/bin/weekly_report.sh\n0 3 * * * /usr/local/bin/new_task.sh"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo 'Cron job added: {{schedule}} {{command}}' && rm /tmp/crontab.tmp"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Cron job added: 0 3 * * * /usr/local/bin/new_task.sh"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}
