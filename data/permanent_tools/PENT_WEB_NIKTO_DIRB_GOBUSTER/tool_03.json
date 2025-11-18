@@ -1,0 +1,30 @@
+{
+  "name": "dirb_web_content_scanner",
+  "description": "Web content scanner and directory bruteforcer using DIRB with recursive scanning",
+  "pattern": "dirb.*scan|web.*content|directory.*scan|dirb.*brute",
+  "parameters": ["target", "wordlist"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "dirb", "args": ["{{target}}", "{{wordlist}}"]},
+      "expected_output": {"type": "string", "example": "DIRB v2.22\nSTART_TIME: Mon Nov 18 14:30:00 2025\nURL_BASE: {{target}}\nWORDLIST_FILES: {{wordlist}}\n\n+ {{target}}/admin (CODE:200|SIZE:4523)\n+ {{target}}/backup (CODE:301|SIZE:0)\n+ {{target}}/api (CODE:200|SIZE:1234)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "dirb", "args": ["{{target}}", "{{wordlist}}", "-r"]},
+      "expected_output": {"type": "string", "example": "Recursive scan enabled - scanning subdirectories\nFound: /admin/config.php, /admin/login.php, /backup/old/, /api/v1/, /api/v2/"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "dirb", "args": ["{{target}}", "{{wordlist}}", "-X", ".php,.html,.txt,.bak"]},
+      "expected_output": {"type": "string", "example": "Extension scanning: .php, .html, .txt, .bak\n+ /config.bak (CODE:200|SIZE:2345)\n+ /index.html (CODE:200|SIZE:12345)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "dirb {{target}} {{wordlist}} -o dirb_scan.txt && grep 'CODE:200' dirb_scan.txt"]},
+      "expected_output": {"type": "string", "example": "45 accessible pages found (HTTP 200): /admin, /api, /dashboard, /upload, /manage"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "dirb", "args": ["{{target}}", "{{wordlist}}", "-a", "Mozilla/5.0"]},
+      "expected_output": {"type": "string", "example": "Using custom User-Agent: Mozilla/5.0 - bypassing basic bot detection"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

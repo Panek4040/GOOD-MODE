@@ -1,0 +1,30 @@
+{
+  "name": "dirsearch_advanced_directory_scanner",
+  "description": "Advanced web directory and file scanner with recursive capabilities using dirsearch",
+  "pattern": "dirsearch.*scan|directory.*search|recursive.*scan|path.*brute",
+  "parameters": ["target", "extensions"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "dirsearch", "args": ["-u", "{{target}}", "-e", "{{extensions}}"]},
+      "expected_output": {"type": "string", "example": "[14:30:00] 200 -  4KB  - /admin.php\n[14:30:01] 301 -  312B  - /backup\n[14:30:02] 200 -  1KB  - /api.php\n[14:30:03] 403 -  287B  - /uploads/\n45 files/directories discovered"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "dirsearch", "args": ["-u", "{{target}}", "-e", "php,html,txt,bak", "-r", "-R", "3"]},
+      "expected_output": {"type": "string", "example": "Recursive scan (depth 3): /admin/config.php, /admin/panel/index.php, /backup/old/db.sql"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "dirsearch", "args": ["-u", "{{target}}", "-e", "*", "-x", "403,404"]},
+      "expected_output": {"type": "string", "example": "Excluded 403/404: showing only accessible resources (200, 301, 302)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "dirsearch -u {{target}} -e {{extensions}} -o dirsearch.txt && grep '200' dirsearch.txt"]},
+      "expected_output": {"type": "string", "example": "67 accessible pages: /admin, /api, /config, /dashboard, /manage, /upload"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "dirsearch", "args": ["-u", "{{target}}", "-e", "php", "--random-agent", "-t", "50"]},
+      "expected_output": {"type": "string", "example": "Fast scan with random User-Agent (50 threads): completed in 23 seconds"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}
