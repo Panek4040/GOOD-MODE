@@ -1,0 +1,80 @@
+{
+  "name": "syslog_rsyslog_config_remote_logging",
+  "description": "Configure rsyslog for local and remote log forwarding with filters",
+  "pattern": "rsyslog.*config|syslog.*forward|remote.*logging",
+  "parameters": ["remote_host", "remote_port", "facility"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cat",
+        "args": ["/etc/rsyslog.conf"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "# rsyslog configuration file\n$ModLoad imuxsock\n$ModLoad imjournal\n$WorkDirectory /var/spool/rsyslog\n*.info;mail.none;authpriv.none;cron.none /var/log/messages\nauthpriv.* /var/log/secure\nmail.* -/var/log/maillog\ncron.* /var/log/cron"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo '{{facility}}.* @@{{remote_host}}:{{remote_port}}' >> /etc/rsyslog.d/50-remote.conf && cat /etc/rsyslog.d/50-remote.conf"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "# Forward logs to remote syslog server\n{{facility}}.* @@{{remote_host}}:{{remote_port}}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "rsyslogd",
+        "args": ["-N1"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "rsyslogd: version 8.2112.0, config validation run (level 1), master config /etc/rsyslog.conf\nrsyslogd: End of config validation run. Bye."
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": ["restart", "rsyslog"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": ["status", "rsyslog", "--no-pager"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "● rsyslog.service - System Logging Service\n   Active: active (running) since Mon 2025-11-18 14:50:12 UTC; 5s ago\n Main PID: 5678 (rsyslogd)\n    Tasks: 4"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}
