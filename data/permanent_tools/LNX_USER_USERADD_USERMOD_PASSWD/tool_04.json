@@ -1,0 +1,67 @@
+{
+  "name": "groupadd_groupmod_group_management",
+  "description": "Create new groups, modify group settings, add/remove members, delete groups",
+  "pattern": "create.*group|add.*group|groupadd.*command|manage.*groups",
+  "parameters": ["groupname", "operation", "username"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -E '^{{groupname}}:' /etc/group || echo 'Group does not exist'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Group does not exist"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "if [ '{{operation}}' = 'create' ]; then groupadd {{groupname}}; elif [ '{{operation}}' = 'add_member' ]; then gpasswd -a {{username}} {{groupname}}; elif [ '{{operation}}' = 'remove_member' ]; then gpasswd -d {{username}} {{groupname}}; elif [ '{{operation}}' = 'delete' ]; then groupdel {{groupname}}; elif [ '{{operation}}' = 'rename' ]; then groupmod -n {{username}} {{groupname}}; fi"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Adding user {{username}} to group {{groupname}}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -E '^{{groupname}}:' /etc/group"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{{groupname}}:x:1002:{{username}}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "getent group {{groupname}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{{groupname}}:x:1002:user1,user2,{{username}}"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

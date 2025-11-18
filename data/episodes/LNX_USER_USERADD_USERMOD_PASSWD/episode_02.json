@@ -1,0 +1,83 @@
+{
+  "episode_id": "LNX_USER_USERADD_USERMOD_PASSWD_EP02",
+  "title": "Security Audit: Lock Inactive Accounts",
+  "description": "Identify inactive users, check last login, lock accounts, review sudo privileges",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Check last login times for all users to find inactive accounts",
+      "tool": "id_whoami_who_user_info_display",
+      "parameters": {
+        "username": "olddev",
+        "info_type": "last"
+      },
+      "expected_outcome": "User olddev last logged in 6 months ago - account inactive"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Review sudo privileges for inactive user",
+      "tool": "sudo_visudo_manage_privileges",
+      "parameters": {
+        "username": "olddev",
+        "sudo_rule": ""
+      },
+      "expected_outcome": "olddev has full sudo access (ALL=(ALL) ALL) - security risk!"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Lock the inactive account to prevent login",
+      "tool": "usermod_modify_user_properties",
+      "parameters": {
+        "username": "olddev",
+        "setting_type": "lock",
+        "setting_value": ""
+      },
+      "expected_outcome": "Account olddev locked, password disabled with '!' in /etc/shadow"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Set account expiration date for 30 days from now",
+      "tool": "passwd_chage_password_management",
+      "parameters": {
+        "username": "olddev",
+        "operation": "expire_date"
+      },
+      "expected_outcome": "Account will expire on 2025-12-31, then be permanently disabled"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Verify account is locked and cannot login",
+      "tool": "id_whoami_who_user_info_display",
+      "parameters": {
+        "username": "olddev",
+        "info_type": "id"
+      },
+      "expected_outcome": "User exists but account is locked, login attempts will fail"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Create audit group for temporary access if needed",
+      "tool": "groupadd_groupmod_group_management",
+      "parameters": {
+        "groupname": "locked_accounts",
+        "operation": "create",
+        "username": ""
+      },
+      "expected_outcome": "Group locked_accounts created for tracking disabled users"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Add locked user to audit group for tracking",
+      "tool": "groupadd_groupmod_group_management",
+      "parameters": {
+        "groupname": "locked_accounts",
+        "operation": "add_member",
+        "username": "olddev"
+      },
+      "expected_outcome": "olddev added to locked_accounts group for audit trail"
+    }
+  ],
+  "success_criteria": "Inactive account identified, locked, expiration set, tracked in audit group",
+  "cleanup": "Review all accounts monthly, delete accounts inactive for 1 year"
+}

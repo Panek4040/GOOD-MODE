@@ -1,0 +1,80 @@
+{
+  "name": "sudo_visudo_manage_privileges",
+  "description": "Manage sudo privileges, edit sudoers file safely, grant/revoke root access, configure sudo rules",
+  "pattern": "sudo.*config|visudo.*edit|grant.*sudo|manage.*privileges",
+  "parameters": ["username", "sudo_rule"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -E '^{{username}}|^%sudo' /etc/sudoers /etc/sudoers.d/* 2>/dev/null | head -10"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/etc/sudoers:%sudo\tALL=(ALL:ALL) ALL\n/etc/sudoers.d/{{username}}:{{username}} ALL=(ALL) NOPASSWD: /usr/bin/systemctl"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "sudo -l -U {{username}} 2>&1"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "User {{username}} may run the following commands:\n    (ALL : ALL) ALL\n    (ALL) NOPASSWD: /usr/bin/systemctl restart nginx"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo '{{sudo_rule}}' > /etc/sudoers.d/{{username}} && chmod 440 /etc/sudoers.d/{{username}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "visudo",
+        "args": ["-c"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/etc/sudoers: parsed OK\n/etc/sudoers.d/{{username}}: parsed OK"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "cat /etc/sudoers.d/{{username}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{{sudo_rule}}"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}
