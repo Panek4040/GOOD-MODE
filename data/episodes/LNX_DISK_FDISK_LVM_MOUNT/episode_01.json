@@ -1,0 +1,104 @@
+{
+  "episode_id": "LNX_DISK_FDISK_LVM_MOUNT_EP01",
+  "title": "Add New Disk and Create LVM Storage",
+  "description": "Install new 500GB SSD, partition, create LVM volume for database storage",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Identify the new disk device",
+      "tool": "fdisk_partition_disk_management",
+      "parameters": {
+        "device": "/dev/sdb",
+        "operation": "list"
+      },
+      "expected_outcome": "Disk /dev/sdb: 500GB, no partitions - new blank disk detected"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Create GPT partition table and single partition",
+      "tool": "parted_advanced_partition_management",
+      "parameters": {
+        "device": "/dev/sdb",
+        "operation": "create"
+      },
+      "expected_outcome": "Created GPT table, partition 1: 1MB-500GB for LVM use"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Initialize physical volume for LVM",
+      "tool": "lvm_physical_volume_group_logical",
+      "parameters": {
+        "vg_name": "vg-database",
+        "lv_name": "data",
+        "size": "400G"
+      },
+      "expected_outcome": "Physical volume /dev/sdb1 created: 500GB available"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Create volume group for database storage",
+      "tool": "lvm_physical_volume_group_logical",
+      "parameters": {
+        "vg_name": "vg-database",
+        "lv_name": "data",
+        "size": "400G"
+      },
+      "expected_outcome": "Volume group vg-database created: 500GB total, 500GB free"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Create logical volume for PostgreSQL data",
+      "tool": "lvm_physical_volume_group_logical",
+      "parameters": {
+        "vg_name": "vg-database",
+        "lv_name": "postgres-data",
+        "size": "400G"
+      },
+      "expected_outcome": "Logical volume postgres-data created: 400GB allocated, 100GB free in VG"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Format the new logical volume with ext4",
+      "tool": "mkfs_filesystem_creation_formatting",
+      "parameters": {
+        "device": "/dev/vg-database/postgres-data",
+        "fs_type": "ext4",
+        "label": "postgres-data"
+      },
+      "expected_outcome": "Filesystem created: ext4, 104857600 inodes, UUID assigned, label set"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Get UUID for /etc/fstab configuration",
+      "tool": "blkid_uuid_filesystem_identifier",
+      "parameters": {
+        "device": "/dev/vg-database/postgres-data"
+      },
+      "expected_outcome": "UUID: d4e5f6a7-b8c9-0123-defg-234567890123, TYPE: ext4, LABEL: postgres-data"
+    },
+    {
+      "step_number": 8,
+      "instruction": "Mount the new filesystem",
+      "tool": "mount_umount_filesystem_operations",
+      "parameters": {
+        "device": "/dev/vg-database/postgres-data",
+        "mount_point": "/var/lib/postgresql",
+        "fs_type": "ext4"
+      },
+      "expected_outcome": "Mounted at /var/lib/postgresql, 400GB available for database"
+    },
+    {
+      "step_number": 9,
+      "instruction": "Verify disk space availability",
+      "tool": "df_du_disk_space_usage_analyzer",
+      "parameters": {
+        "path": "/var/lib/postgresql",
+        "unit": "h"
+      },
+      "expected_outcome": "Filesystem: 400GB total, 72MB used (filesystem overhead), 396GB available (99% free)"
+    }
+  ],
+  "success_criteria": "New 500GB SSD configured with LVM, ext4 filesystem created, mounted at /var/lib/postgresql with 396GB usable space",
+  "cleanup": "Added UUID to /etc/fstab for automatic mount, tested reboot persistence"
+}

@@ -1,0 +1,113 @@
+{
+  "episode_id": "LNX_DISK_FDISK_LVM_MOUNT_EP03",
+  "title": "Migrate System to Larger Disk",
+  "description": "Clone existing 250GB system disk to new 500GB SSD, expand partitions",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Document current disk layout",
+      "tool": "fdisk_partition_disk_management",
+      "parameters": {
+        "device": "/dev/sda",
+        "operation": "list"
+      },
+      "expected_outcome": "sda: 250GB with partitions: sda1 (512MB /boot), sda2 (249GB LVM)"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Verify current LVM configuration",
+      "tool": "lvm_physical_volume_group_logical",
+      "parameters": {
+        "vg_name": "vg-system",
+        "lv_name": "",
+        "size": ""
+      },
+      "expected_outcome": "VG vg-system: 249GB, LVs: root (50GB), home (100GB), swap (8GB), 91GB free"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Check new disk is detected",
+      "tool": "parted_advanced_partition_management",
+      "parameters": {
+        "device": "/dev/sdb",
+        "operation": "print"
+      },
+      "expected_outcome": "Disk /dev/sdb: 500GB, blank, no partition table"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Create matching partition layout on new disk",
+      "tool": "parted_advanced_partition_management",
+      "parameters": {
+        "device": "/dev/sdb",
+        "operation": "create"
+      },
+      "expected_outcome": "Created GPT table: sdb1 (512MB EFI), sdb2 (499GB LVM), aligned optimally"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Format boot partition",
+      "tool": "mkfs_filesystem_creation_formatting",
+      "parameters": {
+        "device": "/dev/sdb1",
+        "fs_type": "ext4",
+        "label": "boot"
+      },
+      "expected_outcome": "Boot partition formatted: ext4, 512MB, labeled 'boot'"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Get UUIDs for new partitions",
+      "tool": "blkid_uuid_filesystem_identifier",
+      "parameters": {
+        "device": "/dev/sdb1"
+      },
+      "expected_outcome": "sdb1 UUID: e5f6a7b8-c9d0-1234-efgh-345678901234, TYPE: ext4"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Create new PV on larger partition",
+      "tool": "lvm_physical_volume_group_logical",
+      "parameters": {
+        "vg_name": "vg-system-new",
+        "lv_name": "",
+        "size": ""
+      },
+      "expected_outcome": "PV /dev/sdb2 created: 499GB available (250GB more than original)"
+    },
+    {
+      "step_number": 8,
+      "instruction": "Mount new boot partition temporarily",
+      "tool": "mount_umount_filesystem_operations",
+      "parameters": {
+        "device": "/dev/sdb1",
+        "mount_point": "/mnt/newboot",
+        "fs_type": "ext4"
+      },
+      "expected_outcome": "New boot partition mounted at /mnt/newboot for data copy"
+    },
+    {
+      "step_number": 9,
+      "instruction": "Verify space on new disk",
+      "tool": "df_du_disk_space_usage_analyzer",
+      "parameters": {
+        "path": "/mnt/newboot",
+        "unit": "h"
+      },
+      "expected_outcome": "New boot: 512MB available, ready for system files"
+    },
+    {
+      "step_number": 10,
+      "instruction": "Verify partition alignment for performance",
+      "tool": "parted_advanced_partition_management",
+      "parameters": {
+        "device": "/dev/sdb",
+        "operation": "align-check"
+      },
+      "expected_outcome": "All partitions optimally aligned - maximum SSD performance"
+    }
+  ],
+  "success_criteria": "New 500GB disk prepared with matching layout, 250GB extra space available for expansion",
+  "cleanup": "After data clone: updated /etc/fstab with new UUIDs, updated GRUB, expanded LVs to use extra 250GB"
+}
