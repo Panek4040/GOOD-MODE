@@ -1,0 +1,67 @@
+{
+  "name": "kubectl_delete_resources_cleanup",
+  "description": "Delete Kubernetes resources including deployments, services, and pods",
+  "pattern": "delete.*deployment|kubectl.*delete|k8s.*remove|cleanup.*resources",
+  "parameters": ["resource_type", "resource_name", "namespace"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["get", "{{resource_type}}", "{{resource_name}}", "-n", "{{namespace}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "NAME              READY   UP-TO-DATE   AVAILABLE   AGE\n{{resource_name}}   3/3     3            3           2d"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["get", "{{resource_type}}", "{{resource_name}}", "-n", "{{namespace}}", "-o", "yaml"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: {{resource_name}}\n  namespace: {{namespace}}\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: {{resource_name}}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["delete", "{{resource_type}}", "{{resource_name}}", "-n", "{{namespace}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{{resource_type}}.apps \"{{resource_name}}\" deleted"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["get", "{{resource_type}}", "-n", "{{namespace}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "No resources found in {{namespace}} namespace."
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

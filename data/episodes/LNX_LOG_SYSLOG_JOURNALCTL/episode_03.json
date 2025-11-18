@@ -1,0 +1,64 @@
+{
+  "episode_id": "LNX_LOG_SYSLOG_JOURNALCTL_EP03",
+  "title": "Automated Log Collection and Alerting",
+  "description": "Create script to collect errors, pipe to journal, set up monitoring",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Check for errors in the last 24 hours across all services",
+      "tool": "journalctl_query_system_logs_time_range",
+      "parameters": {
+        "time_since": "24 hours ago",
+        "priority": "err"
+      },
+      "expected_outcome": "Found 156 errors across multiple services in last 24 hours"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Monitor nginx error log for 5xx responses",
+      "tool": "tail_grep_realtime_log_monitoring",
+      "parameters": {
+        "log_file": "/var/log/nginx/error.log",
+        "grep_pattern": "500|502|503|504"
+      },
+      "expected_outcome": "Found 12 instances of 502 Bad Gateway errors"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Create error summary report and pipe to systemd journal",
+      "tool": "systemd_cat_log_command_output",
+      "parameters": {
+        "command": "echo 'Error Summary: 156 errors found. Critical: 12x 502 errors in nginx. Action required: restart upstream services'",
+        "identifier": "error-report",
+        "priority": "warning"
+      },
+      "expected_outcome": "Error summary logged to systemd journal with identifier error-report"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Log detailed nginx service status to journal",
+      "tool": "systemd_cat_log_command_output",
+      "parameters": {
+        "command": "systemctl status nginx",
+        "identifier": "health-check",
+        "priority": "info"
+      },
+      "expected_outcome": "Nginx status captured in journal for audit trail"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Send alert message to syslog for monitoring system",
+      "tool": "logger_write_to_syslog_facility",
+      "parameters": {
+        "message": "ALERT: High error rate detected - 156 errors in 24h, nginx experiencing 502 errors",
+        "facility": "local2",
+        "priority": "alert",
+        "tag": "monitoring-alert"
+      },
+      "expected_outcome": "Alert sent to syslog and forwarded to monitoring system"
+    }
+  ],
+  "success_criteria": "Errors identified, summary generated, alerts sent to monitoring",
+  "cleanup": "systemctl restart nginx && systemctl restart app-server"
+}

@@ -1,0 +1,70 @@
+{
+  "episode_id": "LNX_NET_NETSTAT_SS_TCPDUMP_EP02",
+  "title": "Troubleshoot Web Server Connection Issues",
+  "description": "Diagnose why clients can't connect to web server, check routing, firewall, services",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Verify nginx is listening on ports 80 and 443",
+      "tool": "lsof_list_network_connections_files",
+      "parameters": {
+        "filter_type": "process",
+        "filter_value": "nginx"
+      },
+      "expected_outcome": "Nginx listening on *:80 and *:443 with 4 worker processes"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Check all socket statistics for HTTP connections",
+      "tool": "ss_list_socket_connections_filter",
+      "parameters": {
+        "protocol": "tcp",
+        "state": "listen"
+      },
+      "expected_outcome": "Port 80 and 443 in LISTEN state, but no established connections"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Check iptables rules to see if traffic is being blocked",
+      "tool": "iptables_show_firewall_rules_chains",
+      "parameters": {
+        "chain": "INPUT",
+        "table": "filter"
+      },
+      "expected_outcome": "Default policy is DROP, but found ACCEPT rules for 22, missing 80 and 443!"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Verify routing table is correct for incoming traffic",
+      "tool": "netstat_show_routing_statistics",
+      "parameters": {
+        "info_type": "routing"
+      },
+      "expected_outcome": "Default route 0.0.0.0 via 192.168.1.1, local network route present"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Capture packets on port 80 to see if SYN packets arrive",
+      "tool": "tcpdump_capture_filter_packets",
+      "parameters": {
+        "interface": "eth0",
+        "filter": "port 80",
+        "count": "10"
+      },
+      "expected_outcome": "SYN packets arriving but no SYN-ACK replies - firewall dropping them"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Scan server from external network to verify port status",
+      "tool": "nmap_scan_ports_services_hosts",
+      "parameters": {
+        "target": "192.168.1.100",
+        "scan_type": "quick"
+      },
+      "expected_outcome": "Ports 80 and 443 showing as filtered (blocked by firewall)"
+    }
+  ],
+  "success_criteria": "Root cause identified: iptables missing ACCEPT rules for HTTP/HTTPS traffic",
+  "cleanup": "Add iptables rules: -A INPUT -p tcp --dport 80 -j ACCEPT && --dport 443"
+}

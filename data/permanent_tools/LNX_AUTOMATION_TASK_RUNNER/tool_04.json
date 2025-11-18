@@ -1,0 +1,80 @@
+{
+  "name": "list_scheduled_tasks",
+  "description": "List all scheduled tasks from cron, systemd timers and at queue",
+  "pattern": "list.*scheduled|show.*tasks|view.*cron",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo '=== Cron Jobs ===' && crontab -l 2>/dev/null | grep -v '^#' | grep -v '^$'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "=== Cron Jobs ===\n0 2 * * * /usr/local/bin/backup.sh\n30 */6 * * * /usr/local/bin/cleanup.sh\n0 0 * * 0 /usr/local/bin/weekly_report.sh"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo '=== System Cron ===' && ls -1 /etc/cron.{hourly,daily,weekly,monthly} 2>/dev/null | head -10"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "=== System Cron ===\n/etc/cron.daily/apt-compat\n/etc/cron.daily/dpkg\n/etc/cron.daily/logrotate\n/etc/cron.weekly/man-db"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo '=== Systemd Timers ===' && systemctl list-timers --no-pager | head -10"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "=== Systemd Timers ===\nNEXT                          LEFT          LAST                          PASSED       UNIT                         ACTIVATES\nMon 2025-11-18 18:00:00 UTC  2h 29min left Mon 2025-11-18 12:00:00 UTC  3h 30min ago backup.timer                 backup.service\nTue 2025-11-19 00:00:00 UTC  8h left       Mon 2025-11-18 00:00:00 UTC  15h ago      logrotate.timer              logrotate.service\nTue 2025-11-19 06:09:00 UTC  14h left      Mon 2025-11-18 06:09:00 UTC  9h ago       apt-daily.timer              apt-daily.service"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo '=== At Queue ===' && atq"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "=== At Queue ===\n5\tMon Nov 18 18:00:00 2025 a user\n7\tTue Nov 19 02:00:00 2025 a user\n12\tMon Nov 18 20:00:00 2025 a user"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "total_cron=$(crontab -l 2>/dev/null | grep -v '^#' | grep -v '^$' | wc -l); total_timers=$(systemctl list-timers --no-pager --no-legend | wc -l); total_at=$(atq | wc -l); echo \"Total scheduled tasks: Cron=$total_cron, Timers=$total_timers, At=$total_at\""]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Total scheduled tasks: Cron=3, Timers=12, At=3"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

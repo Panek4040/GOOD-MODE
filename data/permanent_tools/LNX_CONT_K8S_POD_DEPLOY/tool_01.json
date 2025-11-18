@@ -1,0 +1,67 @@
+{
+  "name": "kubectl_get_describe_pods_status",
+  "description": "Get and describe Kubernetes pods with detailed status and events",
+  "pattern": "kubectl.*get.*pods|describe.*pod|k8s.*pod.*status",
+  "parameters": ["namespace", "pod_name"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["version", "--client", "--short"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Client Version: v1.28.4"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["get", "pods", "-n", "{{namespace}}", "-o", "wide"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "NAME                     READY   STATUS    RESTARTS   AGE   IP           NODE\nweb-app-7d5f6b8c9-x4m2p  1/1     Running   0          2h    10.244.1.5   worker-1\napi-server-6c7d8f9-k8p3q 2/2     Running   1          5h    10.244.2.8   worker-2"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["describe", "pod", "{{pod_name}}", "-n", "{{namespace}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Name:             {{pod_name}}\nNamespace:        {{namespace}}\nPriority:         0\nService Account:  default\nNode:             worker-1/192.168.1.10\nStart Time:       Mon, 18 Nov 2025 12:30:45 +0000\nLabels:           app=web\nStatus:           Running\nIP:               10.244.1.5\nContainers:\n  nginx:\n    Image:          nginx:1.25\n    Port:           80/TCP\n    State:          Running\n    Ready:          True\nConditions:\n  Type              Status\n  Initialized       True\n  Ready             True\n  ContainersReady   True\n  PodScheduled      True\nEvents:\n  Type    Reason     Age   Message\n  Normal  Scheduled  2h    Successfully assigned default/{{pod_name}} to worker-1\n  Normal  Pulled     2h    Container image \"nginx:1.25\" already present\n  Normal  Created    2h    Created container nginx\n  Normal  Started    2h    Started container nginx"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": ["get", "pod", "{{pod_name}}", "-n", "{{namespace}}", "-o", "jsonpath={.status.phase}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Running"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

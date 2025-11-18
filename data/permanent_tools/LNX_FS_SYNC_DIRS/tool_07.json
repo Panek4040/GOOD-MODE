@@ -1,0 +1,80 @@
+{
+  "name": "sync_dirs_permissions_preserve",
+  "description": "Sync directories preserving permissions, ownership and timestamps",
+  "pattern": "sync.*permissions|preserve.*sync|sync.*ownership",
+  "parameters": ["source_path", "dest_path"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{source_path}}' -type f | head -3 | xargs stat -c '%n|%a|%U:%G|%y'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/html/index.php|644|www-data:www-data|2025-11-18 10:30:22.000000000 +0000\n/var/www/html/config.php|600|www-data:www-data|2025-11-17 14:20:15.000000000 +0000\n/var/www/html/assets/style.css|644|www-data:www-data|2025-11-15 08:45:10.000000000 +0000"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "rsync",
+        "args": ["-avp", "--dry-run", "{{source_path}}/", "{{dest_path}}/"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "sending incremental file list\nindex.php\nconfig.php\nassets/\nassets/style.css\n\nsent 1.2K bytes  received 23 bytes  2.45K bytes/sec\ntotal size is 2.4G  speedup is 1,959,183.67 (DRY RUN)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "rsync",
+        "args": ["-avp", "--times", "--perms", "--owner", "--group", "{{source_path}}/", "{{dest_path}}/"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "sending incremental file list\nindex.php\nconfig.php\nassets/style.css\n\nsent 156.4M bytes  received 1.5K bytes  10.43M bytes/sec\ntotal size is 2.4G  speedup is 15.35"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{dest_path}}' -type f | head -3 | xargs stat -c '%n|%a|%U:%G|%y'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/backup/www_html/index.php|644|www-data:www-data|2025-11-18 10:30:22.000000000 +0000\n/backup/www_html/config.php|600|www-data:www-data|2025-11-17 14:20:15.000000000 +0000\n/backup/www_html/assets/style.css|644|www-data:www-data|2025-11-15 08:45:10.000000000 +0000"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo 'Verifying permissions match...' && diff <(find '{{source_path}}' -type f -exec stat -c '%n|%a' {} \\; | sort) <(find '{{dest_path}}' -type f -exec stat -c '%n|%a' {} \\; | sed 's|{{dest_path}}|{{source_path}}|' | sort) && echo 'Permissions verified'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Verifying permissions match...\nPermissions verified"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

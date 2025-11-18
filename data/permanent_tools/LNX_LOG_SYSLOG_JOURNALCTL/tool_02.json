@@ -1,0 +1,67 @@
+{
+  "name": "journalctl_filter_by_service_unit",
+  "description": "Filter journal logs by specific systemd service or unit with follow mode",
+  "pattern": "journalctl.*service|filter.*unit.*logs|service.*logs",
+  "parameters": ["unit_name", "lines"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": ["status", "{{unit_name}}", "--no-pager"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "● {{unit_name}}.service - Web Application Service\n   Loaded: loaded (/etc/systemd/system/{{unit_name}}.service; enabled)\n   Active: active (running) since Mon 2025-11-18 12:30:45 UTC; 2h 15min ago\n Main PID: 1234 (python3)\n    Tasks: 4 (limit: 4915)\n   Memory: 142.5M"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "journalctl",
+        "args": ["-u", "{{unit_name}}", "-n", "{{lines}}", "--no-pager"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Nov 18 14:45:12 server1 python3[1234]: [INFO] Processing request GET /api/users\nNov 18 14:45:13 server1 python3[1234]: [INFO] Database query completed in 45ms\nNov 18 14:45:14 server1 python3[1234]: [INFO] Response sent: 200 OK\nNov 18 14:45:23 server1 systemd[1]: {{unit_name}}.service: Sent signal SIGHUP"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "journalctl",
+        "args": ["-u", "{{unit_name}}", "--since", "today", "--priority=err", "--no-pager"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Nov 18 10:23:45 server1 python3[1234]: [ERROR] Failed to connect to Redis at localhost:6379\nNov 18 11:45:12 server1 python3[1234]: [ERROR] Database connection timeout after 30s"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "journalctl",
+        "args": ["-u", "{{unit_name}}", "--output=cat", "--no-pager", "--lines=5"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[INFO] Application started on port 8080\n[INFO] Loaded configuration from /etc/app/config.yaml\n[INFO] Connected to database postgres://db:5432/production\n[INFO] Cache initialized with 1024MB\n[INFO] Server ready to accept connections"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

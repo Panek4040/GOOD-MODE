@@ -1,0 +1,80 @@
+{
+  "name": "check_task_logs",
+  "description": "Check execution logs and history of scheduled tasks",
+  "pattern": "check.*logs|task.*history|cron.*output",
+  "parameters": ["service_name"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep CRON /var/log/syslog | grep {{service_name}} | tail -10"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Nov 18 02:00:01 server CRON[12345]: (root) CMD (/usr/local/bin/backup.sh)\nNov 18 02:00:05 server CRON[12345]: (CRON) info (No MTA installed, discarding output)\nNov 18 08:00:01 server CRON[23456]: (root) CMD (/usr/local/bin/backup.sh)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "journalctl",
+        "args": ["-u", "{{service_name}}.service", "--no-pager", "-n", "20"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Nov 18 02:00:01 server systemd[1]: Starting backup automated task...\nNov 18 02:00:01 server backup.sh[12345]: Starting backup process\nNov 18 02:00:45 server backup.sh[12345]: Backup completed: 2.4G\nNov 18 02:00:45 server systemd[1]: backup.service: Succeeded."
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "journalctl -u {{service_name}}.service --since '24 hours ago' --no-pager | grep -E '(Started|Succeeded|Failed)' | tail -10"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Nov 17 02:00:01 server systemd[1]: Started backup automated task.\nNov 17 02:00:45 server systemd[1]: backup.service: Succeeded.\nNov 18 02:00:01 server systemd[1]: Started backup automated task.\nNov 18 02:00:45 server systemd[1]: backup.service: Succeeded."
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": ["list-timers", "{{service_name}}.timer", "--no-pager"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "NEXT                          LEFT          LAST                          PASSED       UNIT            ACTIVATES\nTue 2025-11-19 02:00:00 UTC  10h left      Mon 2025-11-18 02:00:00 UTC  13h ago      backup.timer    backup.service\n\n1 timers listed."
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "success=$(journalctl -u {{service_name}}.service --since '7 days ago' --no-pager | grep -c 'Succeeded'); failed=$(journalctl -u {{service_name}}.service --since '7 days ago' --no-pager | grep -c 'Failed'); echo \"Last 7 days: Success=$success, Failed=$failed\""]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Last 7 days: Success=14, Failed=0"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

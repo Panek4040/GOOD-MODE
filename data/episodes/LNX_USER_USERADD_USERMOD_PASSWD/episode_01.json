@@ -1,0 +1,71 @@
+{
+  "episode_id": "LNX_USER_USERADD_USERMOD_PASSWD_EP01",
+  "title": "Onboard New Developer with Proper Access",
+  "description": "Create developer account, configure groups, setup sudo, set password policy",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Create new user account for developer 'jsmith' with bash shell",
+      "tool": "useradd_create_user_with_settings",
+      "parameters": {
+        "username": "jsmith",
+        "shell": "/bin/bash",
+        "groups": "developers,docker"
+      },
+      "expected_outcome": "User jsmith created with UID 1005, home directory /home/jsmith, member of developers and docker groups"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Set password aging policy: 90 day max, 7 day min, 14 day warning",
+      "tool": "passwd_chage_password_management",
+      "parameters": {
+        "username": "jsmith",
+        "operation": "max_days_90"
+      },
+      "expected_outcome": "Password must be changed every 90 days"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Configure minimum 7 days between password changes",
+      "tool": "passwd_chage_password_management",
+      "parameters": {
+        "username": "jsmith",
+        "operation": "min_days_7"
+      },
+      "expected_outcome": "User cannot change password more than once per week"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Grant sudo access for systemctl and docker commands only",
+      "tool": "sudo_visudo_manage_privileges",
+      "parameters": {
+        "username": "jsmith",
+        "sudo_rule": "jsmith ALL=(ALL) NOPASSWD: /usr/bin/systemctl, /usr/bin/docker"
+      },
+      "expected_outcome": "Sudo rule created: jsmith can run systemctl and docker without password"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Force password change on first login",
+      "tool": "passwd_chage_password_management",
+      "parameters": {
+        "username": "jsmith",
+        "operation": "expire_now"
+      },
+      "expected_outcome": "Password expired, user must set new password on first login"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Verify user account configuration",
+      "tool": "id_whoami_who_user_info_display",
+      "parameters": {
+        "username": "jsmith",
+        "info_type": "id"
+      },
+      "expected_outcome": "jsmith: UID 1005, groups: jsmith, developers, docker, correct sudo privileges"
+    }
+  ],
+  "success_criteria": "Developer account created with proper groups, password policy, sudo access configured",
+  "cleanup": "Send welcome email with credentials to jsmith@company.com"
+}

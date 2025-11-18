@@ -1,0 +1,93 @@
+{
+  "episode_id": "LNX_USER_USERADD_USERMOD_PASSWD_EP03",
+  "title": "Offboard Terminated Employee Safely",
+  "description": "Locate all user files, backup data, remove account, revoke access completely",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Check user's current groups and permissions before deletion",
+      "tool": "id_whoami_who_user_info_display",
+      "parameters": {
+        "username": "terminated_emp",
+        "info_type": "groups"
+      },
+      "expected_outcome": "terminated_emp in groups: sudo, docker, developers, sensitive_data - has high privileges"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Check sudo configuration for any special rules",
+      "tool": "sudo_visudo_manage_privileges",
+      "parameters": {
+        "username": "terminated_emp",
+        "sudo_rule": ""
+      },
+      "expected_outcome": "Has NOPASSWD sudo for database commands - critical access"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Immediately lock account to prevent any access",
+      "tool": "usermod_modify_user_properties",
+      "parameters": {
+        "username": "terminated_emp",
+        "setting_type": "lock",
+        "setting_value": ""
+      },
+      "expected_outcome": "Account locked immediately, all active sessions will timeout"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Find all files owned by user across filesystem",
+      "tool": "userdel_delete_user_cleanup_files",
+      "parameters": {
+        "username": "terminated_emp",
+        "remove_files": "no"
+      },
+      "expected_outcome": "Found 1247 files in /home, /var, /tmp, /opt/projects - need backup"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Remove from sensitive groups to revoke permissions",
+      "tool": "groupadd_groupmod_group_management",
+      "parameters": {
+        "groupname": "developers",
+        "operation": "remove_member",
+        "username": "terminated_emp"
+      },
+      "expected_outcome": "Removed from developers group, revoking repository access"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Remove from sudo and docker groups",
+      "tool": "groupadd_groupmod_group_management",
+      "parameters": {
+        "groupname": "sudo",
+        "operation": "remove_member",
+        "username": "terminated_emp"
+      },
+      "expected_outcome": "Sudo access revoked, cannot elevate privileges"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Delete user account and home directory after backup",
+      "tool": "userdel_delete_user_cleanup_files",
+      "parameters": {
+        "username": "terminated_emp",
+        "remove_files": "yes"
+      },
+      "expected_outcome": "User account deleted, home directory removed, mail spool cleaned"
+    },
+    {
+      "step_number": 8,
+      "instruction": "Verify complete removal from system",
+      "tool": "id_whoami_who_user_info_display",
+      "parameters": {
+        "username": "terminated_emp",
+        "info_type": "id"
+      },
+      "expected_outcome": "User does not exist, offboarding complete"
+    }
+  ],
+  "success_criteria": "Account locked, files backed up, all access revoked, user deleted from system",
+  "cleanup": "Update documentation, notify IT security, rotate any shared credentials"
+}

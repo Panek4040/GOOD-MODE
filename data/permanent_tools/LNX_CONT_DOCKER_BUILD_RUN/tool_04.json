@@ -1,0 +1,80 @@
+{
+  "name": "docker_compose_multi_container_orchestration",
+  "description": "Deploy multi-container application using docker-compose with service dependencies",
+  "pattern": "docker.compose.*up|compose.*start.*services|multi.container.*orchestration",
+  "parameters": ["compose_file_path", "project_name"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker-compose",
+        "args": ["--version"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Docker Compose version v2.23.0"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cat",
+        "args": ["{{compose_file_path}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "version: '3.8'\nservices:\n  web:\n    image: nginx:alpine\n    ports:\n      - '8080:80'\n  db:\n    image: postgres:15\n    environment:\n      POSTGRES_PASSWORD: secret"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker-compose",
+        "args": ["-f", "{{compose_file_path}}", "-p", "{{project_name}}", "up", "-d"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[+] Running 3/3\n ✔ Network {{project_name}}_default    Created\n ✔ Container {{project_name}}-db-1     Started\n ✔ Container {{project_name}}-web-1    Started"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker-compose",
+        "args": ["-f", "{{compose_file_path}}", "-p", "{{project_name}}", "ps", "--format", "table"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "NAME                    IMAGE              COMMAND                  SERVICE   STATUS\n{{project_name}}-db-1   postgres:15        \"docker-entrypoint.s…\"   db        Up 5 seconds\n{{project_name}}-web-1  nginx:alpine       \"/docker-entrypoint.…\"   web       Up 5 seconds"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker",
+        "args": ["network", "ls", "--filter", "name={{project_name}}", "--format", "{{.Name}} - {{.Driver}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{{project_name}}_default - bridge"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

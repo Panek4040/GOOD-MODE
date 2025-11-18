@@ -1,0 +1,80 @@
+{
+  "name": "create_anacron_job",
+  "description": "Create periodic task using anacron for systems not always on",
+  "pattern": "anacron|periodic.*task|laptop.*schedule",
+  "parameters": ["period_days", "delay_minutes", "job_id", "command"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cat",
+        "args": ["/etc/anacrontab"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "# /etc/anacrontab: configuration file for anacron\nSHELL=/bin/sh\nPATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin\n\n1\t5\tcron.daily\t\trun-parts /etc/cron.daily\n7\t10\tcron.weekly\t\trun-parts /etc/cron.weekly\n@monthly\t15\tcron.monthly\trun-parts /etc/cron.monthly"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo '{{period_days}}\t{{delay_minutes}}\t{{job_id}}\t{{command}}' >> /etc/anacrontab && echo 'Anacron job added'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Anacron job added"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "cat /etc/anacrontab | grep '{{job_id}}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "3\t10\tbackup_periodic\t/usr/local/bin/backup.sh"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "anacron",
+        "args": ["-T"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo 'Job {{job_id}} will run every {{period_days}} days with {{delay_minutes}} min delay'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Job backup_periodic will run every 3 days with 10 min delay"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

@@ -1,0 +1,56 @@
+{
+  "episode_id": "LNX_CONT_K8S_POD_DEPLOY_EP01",
+  "title": "Deploy and Scale Web Application on Kubernetes",
+  "description": "Create deployment, scale replicas, expose service, verify pods running",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Create nginx deployment with 3 replicas in production namespace",
+      "tool": "kubectl_create_deployment_with_replicas",
+      "parameters": {
+        "deployment_name": "nginx-web",
+        "image": "nginx:1.25",
+        "replicas": "3",
+        "namespace": "production"
+      },
+      "expected_outcome": "Deployment nginx-web created with 3/3 pods running"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Check status of all nginx-web pods",
+      "tool": "kubectl_get_describe_pods_status",
+      "parameters": {
+        "namespace": "production",
+        "pod_name": "nginx-web-7d5f6b8c9-x4m2p"
+      },
+      "expected_outcome": "Pod running with 1/1 containers ready, events show successful start"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Expose nginx deployment as LoadBalancer service on port 80",
+      "tool": "kubectl_expose_service_loadbalancer",
+      "parameters": {
+        "deployment_name": "nginx-web",
+        "service_name": "nginx-service",
+        "port": "80",
+        "service_type": "LoadBalancer",
+        "namespace": "production"
+      },
+      "expected_outcome": "Service nginx-service exposed with external IP assigned"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Scale deployment to 5 replicas for increased traffic",
+      "tool": "kubectl_scale_deployment_replicas",
+      "parameters": {
+        "deployment_name": "nginx-web",
+        "replicas": "5",
+        "namespace": "production"
+      },
+      "expected_outcome": "Deployment scaled to 5/5 replicas, all pods running"
+    }
+  ],
+  "success_criteria": "5 nginx pods running, service accessible via LoadBalancer",
+  "cleanup": "kubectl delete deployment nginx-web -n production && kubectl delete service nginx-service -n production"
+}

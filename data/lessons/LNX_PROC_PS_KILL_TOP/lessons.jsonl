@@ -1,0 +1,35 @@
+{"instruction":"Show me all running processes sorted by CPU usage","input":{},"output":{"tool":"ps_list_processes_filter","action":"ps aux --sort=-%cpu | head -20","result":"mysqld using 45%, apache2 23%, python3 12%"}}
+{"instruction":"Monitor system resources in real-time to see which process is consuming all CPU","input":{},"output":{"tool":"top_htop_realtime_monitor","action":"top -b -n 1","result":"Load 4.23, mysqld PID 1234 at 45.2% CPU"}}
+{"instruction":"Kill the hung process with PID 5678 using SIGTERM","input":{},"output":{"tool":"kill_terminate_process_signal","action":"kill -15 5678","result":"Process 5678 terminated gracefully"}}
+{"instruction":"Stop all nginx worker processes at once","input":{},"output":{"tool":"pkill_killall_by_name","action":"pkill -15 nginx","result":"All nginx processes terminated"}}
+{"instruction":"Lower the priority of the backup script running as PID 9012 so it doesn't slow down the system","input":{},"output":{"tool":"nice_renice_process_priority","action":"renice 15 -p 9012","result":"Priority changed from 0 to 15, backup now running slower"}}
+{"instruction":"Find all python processes running as user webapp","input":{},"output":{"tool":"pgrep_find_process_by_pattern","action":"pgrep -u webapp python","result":"Found 5 processes: 1234, 5678, 9012, 3456, 7890"}}
+{"instruction":"Check which process is listening on port 8080","input":{},"output":{"tool":"lsof_list_open_files_ports","action":"lsof -i :8080","result":"java PID 1234 listening on *:8080"}}
+{"instruction":"List all processes owned by the database user","input":{},"output":{"tool":"ps_list_processes_filter","action":"ps -u database","result":"postgres processes: 3 active, total memory 2.1GB"}}
+{"instruction":"Show top 10 memory-consuming processes","input":{},"output":{"tool":"top_htop_realtime_monitor","action":"ps aux --sort=-%mem | head -11","result":"elasticsearch 12.3%, mysqld 8.7%, java 6.4%"}}
+{"instruction":"Force kill the frozen application with PID 3456","input":{},"output":{"tool":"kill_terminate_process_signal","action":"kill -9 3456","result":"Process 3456 forcefully killed"}}
+{"instruction":"Terminate all java processes immediately","input":{},"output":{"tool":"pkill_killall_by_name","action":"pkill -9 java","result":"All java processes killed"}}
+{"instruction":"Increase priority of the web server process PID 7890","input":{},"output":{"tool":"nice_renice_process_priority","action":"renice -5 -p 7890","result":"Priority increased to -5 for faster response"}}
+{"instruction":"Find the PID of the redis-server process","input":{},"output":{"tool":"pgrep_find_process_by_pattern","action":"pgrep redis-server","result":"PID: 2345"}}
+{"instruction":"List all files opened by process 1234","input":{},"output":{"tool":"lsof_list_open_files_ports","action":"lsof -p 1234","result":"47 files: logs, sockets, libraries"}}
+{"instruction":"Show processes sorted by memory usage for debugging memory leak","input":{},"output":{"tool":"ps_list_processes_filter","action":"ps aux --sort=-%mem","result":"node process at 15.2GB, likely memory leak"}}
+{"instruction":"Monitor CPU usage every 2 seconds","input":{},"output":{"tool":"top_htop_realtime_monitor","action":"top -d 2","result":"Real-time monitoring: CPU 45%, load average 2.1"}}
+{"instruction":"Send SIGHUP to reload configuration of PID 5678","input":{},"output":{"tool":"kill_terminate_process_signal","action":"kill -1 5678","result":"Configuration reloaded for process 5678"}}
+{"instruction":"Kill all processes matching pattern 'worker'","input":{},"output":{"tool":"pkill_killall_by_name","action":"pkill worker","result":"8 worker processes terminated"}}
+{"instruction":"Set nice value to 19 for low-priority batch job PID 4567","input":{},"output":{"tool":"nice_renice_process_priority","action":"renice 19 -p 4567","result":"Batch job deprioritized to lowest CPU priority"}}
+{"instruction":"Find all apache processes owned by www-data","input":{},"output":{"tool":"pgrep_find_process_by_pattern","action":"pgrep -u www-data apache","result":"12 apache worker processes found"}}
+{"instruction":"Check what's using port 3306","input":{},"output":{"tool":"lsof_list_open_files_ports","action":"lsof -i :3306","result":"mysqld PID 1234 listening on port 3306"}}
+{"instruction":"List all zombie processes","input":{},"output":{"tool":"ps_list_processes_filter","action":"ps aux | grep Z","result":"3 zombie processes found, parent PIDs: 567, 890, 123"}}
+{"instruction":"Show live process statistics with htop-like output","input":{},"output":{"tool":"top_htop_realtime_monitor","action":"top -b -n 1","result":"247 processes, 2 running, load 1.23"}}
+{"instruction":"Gracefully stop the application server PID 8901","input":{},"output":{"tool":"kill_terminate_process_signal","action":"kill -15 8901","result":"Application server stopped gracefully"}}
+{"instruction":"Stop all python3 processes running background jobs","input":{},"output":{"tool":"pkill_killall_by_name","action":"pkill -15 python3","result":"All python3 background jobs terminated"}}
+{"instruction":"Boost priority of critical service PID 2345 to -10","input":{},"output":{"tool":"nice_renice_process_priority","action":"renice -10 -p 2345","result":"Critical service now has high CPU priority"}}
+{"instruction":"Search for processes with 'backup' in the name","input":{},"output":{"tool":"pgrep_find_process_by_pattern","action":"pgrep -a backup","result":"Found: 5678 /usr/bin/backup-service"}}
+{"instruction":"See which process has file /var/log/app.log open","input":{},"output":{"tool":"lsof_list_open_files_ports","action":"lsof /var/log/app.log","result":"python3 PID 3456 has app.log open for writing"}}
+{"instruction":"Find the most CPU-intensive process right now","input":{},"output":{"tool":"ps_list_processes_filter","action":"ps aux --sort=-%cpu | head -2","result":"ffmpeg transcoding at 98.7% CPU"}}
+{"instruction":"Display current system load and top processes","input":{},"output":{"tool":"top_htop_realtime_monitor","action":"top -b -n 1 | head -20","result":"Load 3.45, top: mysqld 23%, node 18%, java 15%"}}
+{"instruction":"Send SIGKILL to process 9999 that won't respond to SIGTERM","input":{},"output":{"tool":"kill_terminate_process_signal","action":"kill -9 9999","result":"Process 9999 forcefully terminated"}}
+{"instruction":"Terminate all processes named 'old-worker'","input":{},"output":{"tool":"pkill_killall_by_name","action":"pkill old-worker","result":"All old-worker processes killed"}}
+{"instruction":"Set background encoding job PID 6789 to lowest priority","input":{},"output":{"tool":"nice_renice_process_priority","action":"renice 19 -p 6789","result":"Encoding job set to minimum priority"}}
+{"instruction":"Count how many nginx processes are running","input":{},"output":{"tool":"pgrep_find_process_by_pattern","action":"pgrep -c nginx","result":"5 nginx processes running"}}
+{"instruction":"Find what's listening on all ports above 8000","input":{},"output":{"tool":"lsof_list_open_files_ports","action":"lsof -i -P -n | grep LISTEN | grep ':8'","result":"node:8080, python:8000, java:8443"}}

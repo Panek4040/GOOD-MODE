@@ -1,0 +1,75 @@
+{
+  "episode_id": "LNX_CONT_K8S_POD_DEPLOY_EP03",
+  "title": "Rolling Update and Resource Cleanup",
+  "description": "Deploy app, perform rolling update, verify, scale down, cleanup resources",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Deploy Python Flask API with 4 replicas",
+      "tool": "kubectl_create_deployment_with_replicas",
+      "parameters": {
+        "deployment_name": "flask-api",
+        "image": "python:3.11-slim",
+        "replicas": "4",
+        "namespace": "staging"
+      },
+      "expected_outcome": "Flask API deployment created with 4 pods distributed across nodes"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Apply updated manifest with new image version",
+      "tool": "kubectl_apply_manifest_yaml_files",
+      "parameters": {
+        "manifest_path": "/k8s/flask-api-v2.yaml",
+        "namespace": "staging"
+      },
+      "expected_outcome": "Rolling update initiated, pods updated one by one"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Monitor pod status during rollout",
+      "tool": "kubectl_get_describe_pods_status",
+      "parameters": {
+        "namespace": "staging",
+        "pod_name": "flask-api-8f9d0e1-p7q8r"
+      },
+      "expected_outcome": "New pods running with updated image, old pods terminating"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Check application logs to verify new version deployed",
+      "tool": "kubectl_logs_exec_pod_diagnostics",
+      "parameters": {
+        "pod_name": "flask-api-8f9d0e1-p7q8r",
+        "namespace": "staging",
+        "container_name": "flask"
+      },
+      "expected_outcome": "Logs show version 2.0, new features initialized"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Scale down deployment to 2 replicas for cost savings",
+      "tool": "kubectl_scale_deployment_replicas",
+      "parameters": {
+        "deployment_name": "flask-api",
+        "replicas": "2",
+        "namespace": "staging"
+      },
+      "expected_outcome": "Deployment scaled down, 2 pods terminated gracefully"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Delete the staging deployment after testing complete",
+      "tool": "kubectl_delete_resources_cleanup",
+      "parameters": {
+        "resource_type": "deployment",
+        "resource_name": "flask-api",
+        "namespace": "staging"
+      },
+      "expected_outcome": "Deployment deleted, all pods terminated, resources freed"
+    }
+  ],
+  "success_criteria": "Successful rolling update, verification complete, clean resource removal",
+  "cleanup": "kubectl delete namespace staging"
+}
