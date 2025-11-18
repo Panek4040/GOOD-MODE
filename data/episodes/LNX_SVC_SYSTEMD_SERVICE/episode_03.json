@@ -1,0 +1,79 @@
+{
+  "episode_id": "LNX_SVC_SYSTEMD_SERVICE_EP03",
+  "title": "Setup Automated Backup with Systemd Timer",
+  "description": "Create backup service and timer to run daily backups instead of cron",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "List existing systemd timers to see what's scheduled",
+      "tool": "systemd_timers_cron_alternative",
+      "parameters": {
+        "timer_name": "backup"
+      },
+      "expected_outcome": "Shows system timers like apt-daily, logrotate"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Create backup service that runs backup script",
+      "tool": "systemd_create_custom_service_unit",
+      "parameters": {
+        "service_name": "backup",
+        "exec_command": "/usr/local/bin/backup.sh",
+        "description": "Daily Database Backup Service"
+      },
+      "expected_outcome": "backup.service created successfully"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Create timer file for daily execution (manual step shown in logs)",
+      "tool": "systemctl_reload_daemon_and_services",
+      "parameters": {
+        "service_name": "backup",
+        "reload_type": "reload"
+      },
+      "expected_outcome": "Timer file created: /etc/systemd/system/backup.timer with OnCalendar=daily"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Reload daemon to recognize new timer",
+      "tool": "systemctl_reload_daemon_and_services",
+      "parameters": {
+        "service_name": "backup",
+        "reload_type": "reload"
+      },
+      "expected_outcome": "Systemd daemon reloaded successfully"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Enable and start the backup timer",
+      "tool": "systemctl_enable_disable_autostart",
+      "parameters": {
+        "service_name": "backup.timer",
+        "enable_action": "enable"
+      },
+      "expected_outcome": "backup.timer enabled and will run daily"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Check timer status and next scheduled run",
+      "tool": "systemd_timers_cron_alternative",
+      "parameters": {
+        "timer_name": "backup"
+      },
+      "expected_outcome": "Timer active, next run scheduled for tomorrow at 00:00"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Manually trigger backup service to test it works",
+      "tool": "systemctl_start_stop_restart_service",
+      "parameters": {
+        "service_name": "backup",
+        "action": "start"
+      },
+      "expected_outcome": "Backup service executed successfully, check logs for confirmation"
+    }
+  ],
+  "success_criteria": "Backup service and timer created, enabled, tested - automated daily backups configured",
+  "cleanup": "Monitor backup.timer logs daily to ensure backups run successfully"
+}

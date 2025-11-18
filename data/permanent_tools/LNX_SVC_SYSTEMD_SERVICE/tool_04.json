@@ -1,0 +1,67 @@
+{
+  "name": "systemctl_list_all_services_states",
+  "description": "List all systemd services, filter by state (running, failed, enabled), count services",
+  "pattern": "list.*services|show.*all.*units|systemctl.*list",
+  "parameters": ["filter_state"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": ["list-units", "--type=service", "--all", "--no-pager"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "UNIT                               LOAD   ACTIVE SUB     DESCRIPTION\nnginx.service                      loaded active running Web Server\nsshd.service                       loaded active running OpenSSH Server\napache2.service                    loaded failed failed  Apache Web Server"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "systemctl list-units --type=service --state={{filter_state}} --no-pager | head -20"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "UNIT                    LOAD   ACTIVE SUB     DESCRIPTION\nnginx.service           loaded active running nginx web server\nsshd.service            loaded active running OpenSSH Daemon"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "systemctl list-units --type=service --state=running --no-pager | wc -l"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "47"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "systemctl list-unit-files --type=service --state=enabled --no-pager | grep -v UNIT | wc -l"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "89"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

@@ -1,0 +1,67 @@
+{
+  "name": "systemd_timers_cron_alternative",
+  "description": "Manage systemd timers as cron alternative, list timers, check timer status and next run",
+  "pattern": "systemd.*timer|list.*timers|schedule.*service",
+  "parameters": ["timer_name"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": ["list-timers", "--all", "--no-pager"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "NEXT                         LEFT          LAST                         PASSED       UNIT                         ACTIVATES\nMon 2024-11-18 23:00:00      37min left    Mon 2024-11-18 22:00:00      22min ago    backup.timer                 backup.service\nTue 2024-11-19 00:00:00      1h 37min left Mon 2024-11-18 00:00:00      22h ago      logrotate.timer              logrotate.service"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": ["status", "{{timer_name}}.timer", "--no-pager"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "● {{timer_name}}.timer - {{timer_name}} Timer\n   Loaded: loaded (/etc/systemd/system/{{timer_name}}.timer; enabled)\n   Active: active (waiting) since Mon 2024-11-18\n   Trigger: Mon 2024-11-18 23:00:00; 35min left"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": ["cat", "{{timer_name}}.timer"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[Unit]\nDescription={{timer_name}} Timer\n\n[Timer]\nOnCalendar=daily\nPersistent=true\n\n[Install]\nWantedBy=timers.target"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "systemctl list-timers --no-pager | grep {{timer_name}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Mon 2024-11-18 23:00:00  35min left  Mon 2024-11-18 22:00:00  22min ago  {{timer_name}}.timer  {{timer_name}}.service"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

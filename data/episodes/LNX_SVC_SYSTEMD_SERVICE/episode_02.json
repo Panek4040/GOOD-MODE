@@ -1,0 +1,65 @@
+{
+  "episode_id": "LNX_SVC_SYSTEMD_SERVICE_EP02",
+  "title": "Troubleshoot Failed Database Service",
+  "description": "Investigate why PostgreSQL failed to start, fix issues, restart service",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "List all services and check which are failed",
+      "tool": "systemctl_list_all_services_states",
+      "parameters": {
+        "filter_state": "failed"
+      },
+      "expected_outcome": "postgresql.service showing as failed"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Check detailed status and recent logs for postgresql",
+      "tool": "systemctl_status_logs_journal",
+      "parameters": {
+        "service_name": "postgresql"
+      },
+      "expected_outcome": "Logs show: 'FATAL: data directory /var/lib/postgresql/14/main has wrong permissions'"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Fix the data directory permissions (manual step)",
+      "tool": "systemctl_status_logs_journal",
+      "parameters": {
+        "service_name": "postgresql"
+      },
+      "expected_outcome": "Permissions fixed: chown -R postgres:postgres /var/lib/postgresql"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Restart postgresql service after fixing permissions",
+      "tool": "systemctl_start_stop_restart_service",
+      "parameters": {
+        "service_name": "postgresql",
+        "action": "restart"
+      },
+      "expected_outcome": "Service restarted successfully"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Verify postgresql is now running and accepting connections",
+      "tool": "systemctl_status_logs_journal",
+      "parameters": {
+        "service_name": "postgresql"
+      },
+      "expected_outcome": "Logs show: 'database system is ready to accept connections'"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Check all services again to confirm no failures",
+      "tool": "systemctl_list_all_services_states",
+      "parameters": {
+        "filter_state": "running"
+      },
+      "expected_outcome": "postgresql.service now in running state"
+    }
+  ],
+  "success_criteria": "PostgreSQL service failure diagnosed, fixed, and verified running",
+  "cleanup": "Document the permission issue for future reference"
+}
