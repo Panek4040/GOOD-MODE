@@ -1,0 +1,30 @@
+{
+  "name": "mpstat_multiprocessor_cpu_statistics",
+  "description": "Monitor per-CPU statistics, core utilization, interrupts using mpstat for multi-core systems",
+  "pattern": "mpstat.*cpu|per.*core|multiprocessor.*stats|cpu.*utilization",
+  "parameters": ["interval", "cpu_id"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "mpstat", "args": ["1", "5"]},
+      "expected_output": {"type": "string", "example": "Linux 5.4.0-42-generic (hostname)  11/18/2025  _x86_64_  (8 CPU)\n\n02:35:01 PM  CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle\n02:35:02 PM  all   12.34    0.00    3.21    0.87    0.12    0.34    0.00    0.00    0.00   83.12"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "mpstat", "args": ["-P", "ALL", "1", "3"]},
+      "expected_output": {"type": "string", "example": "02:35:01 PM  CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle\n02:35:02 PM    0   23.45    0.00    5.67    1.23    0.00    0.45    0.00    0.00    0.00   69.20\n02:35:02 PM    1   11.11    0.00    2.22    0.33    0.00    0.11    0.00    0.00    0.00   86.23"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "mpstat -P {{cpu_id}} {{interval}} 5"]},
+      "expected_output": {"type": "string", "example": "CPU {{cpu_id}} utilization: avg %usr: 15.67, %sys: 4.23, %idle: 78.45"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "mpstat", "args": ["-I", "SUM", "1", "3"]},
+      "expected_output": {"type": "string", "example": "02:35:01 PM  CPU    intr/s\n02:35:02 PM  all   4567.89 (showing interrupt rate per second)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "mpstat -P ALL 1 10 | grep -E 'CPU|Average'"]},
+      "expected_output": {"type": "string", "example": "Average CPU utilization: CPU0: 45.2%, CPU1: 23.4%, CPU2: 67.8%, CPU3: 12.3% - unbalanced load detected"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

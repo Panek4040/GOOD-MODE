@@ -1,0 +1,30 @@
+{
+  "name": "sar_system_activity_reporter",
+  "description": "Collect and report system activity using sar - CPU, memory, network, disk over time",
+  "pattern": "sar.*activity|system.*statistics|historical.*performance|collect.*metrics",
+  "parameters": ["interval", "metric_type"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sar -u 1 5"]},
+      "expected_output": {"type": "string", "example": "Linux 5.4.0-42-generic (hostname)  11/18/2025  _x86_64_  (8 CPU)\n\n02:30:01 PM     CPU     %user     %nice   %system   %iowait    %steal     %idle\n02:30:02 PM     all     12.34      0.00      3.21      0.87      0.00     83.58"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sar -r 1 3"]},
+      "expected_output": {"type": "string", "example": "02:30:01 PM kbmemfree   kbavail kbmemused  %memused kbbuffers  kbcached  kbcommit   %commit\n02:30:02 PM   4567890   6789012   3456789     42.31    123456   2345678   5678901     34.56"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sar -n DEV 1 3"]},
+      "expected_output": {"type": "string", "example": "02:30:01 PM     IFACE   rxpck/s   txpck/s    rxkB/s    txkB/s\n02:30:02 PM      eth0   1234.56    987.65    567.89    234.12"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sar -b {{interval}} 3"]},
+      "expected_output": {"type": "string", "example": "02:30:01 PM       tps      rtps      wtps   bread/s   bwrtn/s\n02:30:02 PM    234.56    123.45    111.11   4567.89   2345.67"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sar -q 1 5 | tail -3"]},
+      "expected_output": {"type": "string", "example": "Load average: runq-sz 2, plist-sz 234, ldavg-1: 1.23, ldavg-5: 1.45, ldavg-15: 1.67"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

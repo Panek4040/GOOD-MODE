@@ -1,0 +1,30 @@
+{
+  "name": "vmstat_memory_cpu_process_statistics",
+  "description": "Monitor virtual memory statistics, CPU usage, processes, swap activity using vmstat",
+  "pattern": "vmstat.*memory|cpu.*statistics|swap.*activity|process.*stats",
+  "parameters": ["interval", "count"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "vmstat", "args": ["1", "5"]},
+      "expected_output": {"type": "string", "example": "procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----\n r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st\n 2  0      0 456789  12345 234567    0    0   234   123  456  789 12  3 83  2  0"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "vmstat", "args": ["-s"]},
+      "expected_output": {"type": "string", "example": "8192456 K total memory\n  4567890 K used memory\n  2345678 K active memory\n  1234567 K inactive memory"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "vmstat", "args": ["-d", "2", "3"]},
+      "expected_output": {"type": "string", "example": "disk- ------------reads------------ ------------writes----------- -----IO------\nsda   total merged sectors ms  total merged sectors ms    cur    sec"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "vmstat {{interval}} {{count}} | tail -3"]},
+      "expected_output": {"type": "string", "example": "r:2 b:0 swpd:0 free:456MB cache:234MB si:0 so:0 us:12 sy:3 id:83 wa:2"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "vmstat -w 1 5 | grep -v procs"]},
+      "expected_output": {"type": "string", "example": "Wide output showing high memory pressure: free dropping from 456MB to 234MB"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}
