@@ -1,0 +1,80 @@
+{
+  "name": "safe_delete_empty_trash",
+  "description": "Empty trash directory with statistics and confirmation",
+  "pattern": "empty.*trash|clear.*trash|purge.*deleted",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "count=$(find ~/.local/share/Trash/files -type f | wc -l); echo \"Files in trash: $count\""]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Files in trash: 47"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "total_size=$(find ~/.local/share/Trash/files -type f -exec stat -c %s {} \\; | awk '{sum+=$1} END {print sum}'); size_mb=$((total_size / 1024 / 1024)); echo \"Total size: ${size_mb}MB (${total_size} bytes)\""]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Total size: 128MB (134217728 bytes)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find ~/.local/share/Trash/files -type f -exec stat -c '%y %n' {} \\; | sort | head -5 | awk '{print \"Oldest:\", $1, $2}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Oldest: 2025-10-15 10:30:22.123456789\nOldest: 2025-10-20 14:15:33.987654321\nOldest: 2025-10-25 08:45:10.555555555"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find ~/.local/share/Trash/files -type f -printf '%s %p\\n' | sort -rn | head -5 | awk '{size=$1/1024/1024; printf \"Largest: %.2fMB - %s\\n\", size, $2}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Largest: 45.23MB - /home/user/.local/share/Trash/files/video.mp4.20251115_100000\nLargest: 32.15MB - /home/user/.local/share/Trash/files/backup.tar.gz.20251110_143022"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "deleted=0; size_freed=0; for f in ~/.local/share/Trash/files/*; do [ -f \"$f\" ] && size_freed=$((size_freed + $(stat -c %s \"$f\"))) && rm \"$f\" && ((deleted++)); done; size_mb=$((size_freed / 1024 / 1024)); echo \"Emptied trash: $deleted files, ${size_mb}MB freed\""]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Emptied trash: 47 files, 128MB freed"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}
