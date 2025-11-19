@@ -1,0 +1,67 @@
+{
+  "name": "netstat_show_routing_statistics",
+  "description": "Display network statistics, routing table, interface stats using legacy netstat command",
+  "pattern": "netstat.*command|show.*routing|network.*statistics|interface.*stats",
+  "parameters": ["info_type"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "netstat",
+        "args": ["-i"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Kernel Interface table\nIface      MTU    RX-OK RX-ERR RX-DRP RX-OVR    TX-OK TX-ERR TX-DRP TX-OVR Flg\neth0      1500  1234567      0      0 0       987654      0      0      0 BMRU\nlo       65536    45678      0      0 0        45678      0      0      0 LRU"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "if [ '{{info_type}}' = 'routing' ]; then netstat -rn; elif [ '{{info_type}}' = 'listening' ]; then netstat -tlnp; elif [ '{{info_type}}' = 'stats' ]; then netstat -s; elif [ '{{info_type}}' = 'all' ]; then netstat -tunap; fi"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Kernel IP routing table\nDestination     Gateway         Genmask         Flags   MSS Window  irtt Iface\n0.0.0.0         192.168.1.1     0.0.0.0         UG        0 0          0 eth0\n192.168.1.0     0.0.0.0         255.255.255.0   U         0 0          0 eth0"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "netstat",
+        "args": ["-tlnp"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Active Internet connections (only servers)\nProto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name\ntcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      1234/sshd\ntcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      5678/nginx\ntcp        0      0 0.0.0.0:3306            0.0.0.0:*               LISTEN      9012/mysqld"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "netstat -s | grep -A 5 'Tcp:'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Tcp:\n    12345 active connection openings\n    6789 passive connection openings\n    234 failed connection attempts\n    56 connection resets received\n    8 connections established"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

@@ -1,0 +1,65 @@
+{
+  "episode_id": "LNX_CONT_K8S_POD_DEPLOY_EP02",
+  "title": "Deploy Application from YAML Manifest and Debug",
+  "description": "Apply YAML manifest, troubleshoot failing pod, check logs, execute commands",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Deploy microservices application from manifest file",
+      "tool": "kubectl_apply_manifest_yaml_files",
+      "parameters": {
+        "manifest_path": "/k8s/manifests/microservices.yaml",
+        "namespace": "default"
+      },
+      "expected_outcome": "Deployment, service, and configmap created successfully"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Check status of api-server pod to verify deployment",
+      "tool": "kubectl_get_describe_pods_status",
+      "parameters": {
+        "namespace": "default",
+        "pod_name": "api-server-6c7d8f9-k8p3q"
+      },
+      "expected_outcome": "Pod details show 2/2 containers running, no CrashLoopBackOff"
+    },
+    {
+      "step_number": 3,
+      "instruction": "View logs from api-server container to debug connection issues",
+      "tool": "kubectl_logs_exec_pod_diagnostics",
+      "parameters": {
+        "pod_name": "api-server-6c7d8f9-k8p3q",
+        "namespace": "default",
+        "container_name": "api"
+      },
+      "expected_outcome": "Logs show application started, database connected"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Execute health check command inside api-server pod",
+      "tool": "kubectl_logs_exec_pod_diagnostics",
+      "parameters": {
+        "pod_name": "api-server-6c7d8f9-k8p3q",
+        "namespace": "default",
+        "container_name": "api"
+      },
+      "expected_outcome": "Health check returns 200 OK, all services responsive"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Expose api-server as ClusterIP service on port 8080",
+      "tool": "kubectl_expose_service_loadbalancer",
+      "parameters": {
+        "deployment_name": "api-server",
+        "service_name": "api-service",
+        "port": "8080",
+        "service_type": "ClusterIP",
+        "namespace": "default"
+      },
+      "expected_outcome": "Internal service created for pod-to-pod communication"
+    }
+  ],
+  "success_criteria": "Application deployed, pods healthy, logs clean, service accessible internally",
+  "cleanup": "kubectl delete -f /k8s/manifests/microservices.yaml -n default"
+}

@@ -1,19 +1,60 @@
 {
-  "name": "lnx_fs_find_large_files_recursive_scan_3",
-  "description": "Recursive scan for Find largest files in path",
-  "pattern": "find largest files in path|recursive scan",
-  "parameters": [
-    "path",
-    "depth"
-  ],
+  "name": "find_large_by_extension",
+  "description": "Find large files filtered by extension or file type",
+  "pattern": "large.*type|big.*files.*extension|size.*filter.*type",
+  "parameters": ["path", "extension", "min_size_mb"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "find -type f"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -name '*.{{extension}}' -size +{{min_size_mb}}M"]
       },
-      "expected_output": "Result of Recursive scan"
+      "expected_output": {
+        "type": "string",
+        "example": "/var/log/syslog.log\n/var/log/apache2/access.log\n/var/log/mysql/error.log"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -name '*.{{extension}}' -size +{{min_size_mb}}M -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "524288000|/var/log/syslog.log|2025-11-18\n314572800|/var/log/apache2/access.log|2025-11-17\n157286400|/var/log/mysql/error.log|2025-11-16"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -name '*.{{extension}}' -size +{{min_size_mb}}M -exec ls -lh {} \\; | awk '{print $5\"|\"$9}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "500M|/var/log/syslog.log\n300M|/var/log/apache2/access.log\n150M|/var/log/mysql/error.log"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -name '*.{{extension}}' -size +{{min_size_mb}}M -printf '%s %p\\n' | awk '{sum+=$1; print} END {print \"Total: \"sum}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "524288000 /var/log/syslog.log\n314572800 /var/log/apache2/access.log\n157286400 /var/log/mysql/error.log\nTotal: 996147200"
+      }
     }
   ],
   "stats": {
@@ -22,6 +63,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

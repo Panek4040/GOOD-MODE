@@ -1,0 +1,69 @@
+{
+  "episode_id": "LNX_VM_VBOX_MANAGE_EP01",
+  "title": "Deploy New Ubuntu Server VM from ISO",
+  "description": "Create a new Ubuntu Server VM, configure storage and network, install from ISO",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "List existing VMs to check names and avoid conflicts",
+      "tool": "vbox_list_vms_status_info",
+      "parameters": {},
+      "expected_outcome": "Found 3 existing VMs: Windows-10, Kali-Linux, Dev-Environment"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Create new Ubuntu-Server VM with 4GB RAM and 50GB disk",
+      "tool": "vbox_create_vm_configure_storage",
+      "parameters": {
+        "vm_name": "Ubuntu-Server-22",
+        "os_type": "Ubuntu_64",
+        "memory_mb": "4096",
+        "disk_size_mb": "51200",
+        "iso_path": "/home/user/ISOs/ubuntu-22.04.3-live-server-amd64.iso"
+      },
+      "expected_outcome": "VM created, SATA controller configured, 50GB VDI disk attached, ISO mounted"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Modify VM to use bridged networking for LAN access",
+      "tool": "vbox_modify_vm_resources_network",
+      "parameters": {
+        "vm_name": "Ubuntu-Server-22",
+        "setting_type": "bridged",
+        "setting_value": "eth0"
+      },
+      "expected_outcome": "Network adapter 1 changed from NAT to bridged on eth0"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Start the VM in headless mode for installation",
+      "tool": "vbox_control_vm_power_state",
+      "parameters": {
+        "vm_name": "Ubuntu-Server-22",
+        "action": "start"
+      },
+      "expected_outcome": "VM started successfully, booting from ISO for Ubuntu installation"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Create initial snapshot before OS installation",
+      "tool": "vbox_snapshot_create_restore_delete",
+      "parameters": {
+        "vm_name": "Ubuntu-Server-22",
+        "snapshot_name": "Fresh VM Before Install",
+        "operation": "create"
+      },
+      "expected_outcome": "Snapshot created successfully for rollback if needed"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Verify VM is running and accessible",
+      "tool": "vbox_list_vms_status_info",
+      "parameters": {},
+      "expected_outcome": "Ubuntu-Server-22 showing as running with 4GB RAM, 2 CPUs, bridged network"
+    }
+  ],
+  "success_criteria": "Ubuntu Server VM created, configured, running from ISO, snapshot taken",
+  "cleanup": "After OS installation: eject ISO, create 'Clean Install' snapshot"
+}

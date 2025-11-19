@@ -1,18 +1,73 @@
 {
-  "name": "lnx_fs_safe_delete_list_basic_1",
-  "description": "Basic listing for Safe delete with backup",
-  "pattern": "safe delete with backup|basic listing",
-  "parameters": [
-    "path"
-  ],
+  "name": "safe_delete_to_trash",
+  "description": "Move files to trash directory instead of permanent deletion",
+  "pattern": "safe.*delete|trash.*file|move.*trash",
+  "parameters": ["file_path"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "ls -lah"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "test -e '{{file_path}}' && echo 'File exists' || echo 'File not found'"]
       },
-      "expected_output": "Result of Basic listing"
+      "expected_output": {
+        "type": "string",
+        "example": "File exists"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "mkdir -p ~/.local/share/Trash/files && echo 'Trash directory ready'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Trash directory ready"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "stat -c '%n|%s|%y' '{{file_path}}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/old_backup.tar.gz|10485760|2025-10-15 10:30:22.123456789 +0000"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "timestamp=$(date +%Y%m%d_%H%M%S); mv '{{file_path}}' ~/.local/share/Trash/files/\"$(basename '{{file_path}}').$timestamp\" && echo \"Moved to trash: $(basename '{{file_path}}').$timestamp\""]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Moved to trash: old_backup.tar.gz.20251118_143022"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "ls -lh ~/.local/share/Trash/files/ | tail -5"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "-rw-r--r-- 1 user user  10M Nov 18 14:30 old_backup.tar.gz.20251118_143022\n-rw-r--r-- 1 user user 4.2K Nov 18 13:15 temp_data.csv.20251118_131522"
+      }
     }
   ],
   "stats": {
@@ -21,6 +76,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

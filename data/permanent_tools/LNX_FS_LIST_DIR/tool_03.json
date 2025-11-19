@@ -1,19 +1,60 @@
 {
-  "name": "lnx_fs_list_dir_recursive_scan_3",
-  "description": "Recursive scan for List directory contents with filters",
-  "pattern": "list directory contents with filters|recursive scan",
-  "parameters": [
-    "path",
-    "depth"
-  ],
+  "name": "list_hidden_files_recursive",
+  "description": "Recursively find and list all hidden files and directories including their sizes",
+  "pattern": "show.*hidden|find.*dotfiles|list.*hidden.*recursive",
+  "parameters": ["path", "max_depth"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "find -type f"
+        "tool": "shell",
+        "operation": "run",
+        "command": "find",
+        "args": ["{{path}}", "-maxdepth", "{{max_depth}}", "-name", ".*", "-not", "-path", "{{path}}"]
       },
-      "expected_output": "Result of Recursive scan"
+      "expected_output": {
+        "type": "string",
+        "example": "/home/user/.bashrc\n/home/user/.bash_history\n/home/user/.ssh\n/home/user/.config"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "find",
+        "args": ["{{path}}", "-maxdepth", "{{max_depth}}", "-name", ".*", "-not", "-path", "{{path}}", "-exec", "ls", "-ldh", "{}", ";"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "-rw-r--r-- 1 user user 3.5K Nov 15 10:22 /home/user/.bashrc\n-rw------- 1 user user  12K Nov 18 14:30 /home/user/.bash_history\ndrwx------ 2 user user 4.0K Nov 10 09:15 /home/user/.ssh"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -ah '{{path}}' | grep '/\\.'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "4.0K\t/home/user/.ssh\n12K\t/home/user/.bash_history\n3.5K\t/home/user/.bashrc\n256K\t/home/user/.cache"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "find",
+        "args": ["{{path}}", "-maxdepth", "{{max_depth}}", "-name", ".*", "-type", "f", "-printf", "%p|%s|%TY-%Tm-%Td|%u|%g\\n"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/home/user/.bashrc|3584|2025-11-15|user|user\n/home/user/.bash_history|12288|2025-11-18|user|user\n/home/user/.vimrc|1024|2025-11-10|user|user"
+      }
     }
   ],
   "stats": {
@@ -22,6 +63,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

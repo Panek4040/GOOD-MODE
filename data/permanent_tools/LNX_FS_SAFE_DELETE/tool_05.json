@@ -1,18 +1,73 @@
 {
-  "name": "lnx_fs_safe_delete_sorted_time_5",
-  "description": "Sort by modification time for Safe delete with backup",
-  "pattern": "safe delete with backup|sort by modification time",
-  "parameters": [
-    "path"
-  ],
+  "name": "safe_delete_secure_shred",
+  "description": "Securely delete files using shred to overwrite data",
+  "pattern": "secure.*delete|shred.*file|permanent.*erase",
+  "parameters": ["file_path"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "ls -lt"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "if [ -f '{{file_path}}' ]; then stat -c 'File: %n\nSize: %s bytes\nInode: %i\nLinks: %h' '{{file_path}}'; else echo 'File not found'; fi"]
       },
-      "expected_output": "Result of Sort by modification time"
+      "expected_output": {
+        "type": "string",
+        "example": "File: /tmp/sensitive_data.txt\nSize: 4096 bytes\nInode: 123456\nLinks: 1"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "md5sum '{{file_path}}' | awk '{print \"Original MD5: \" $1}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Original MD5: 5d41402abc4b2a76b9719d911017c592"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "shred",
+        "args": ["-v", "-n", "3", "{{file_path}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "shred: /tmp/sensitive_data.txt: pass 1/3 (random)...\nshred: /tmp/sensitive_data.txt: pass 2/3 (random)...\nshred: /tmp/sensitive_data.txt: pass 3/3 (random)..."
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "if [ -f '{{file_path}}' ]; then md5sum '{{file_path}}' | awk '{print \"Shredded MD5: \" $1}'; else echo 'File removed'; fi"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Shredded MD5: 8f14e45fceea167a5a36dedd4bea2543"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "shred",
+        "args": ["-v", "-u", "-z", "{{file_path}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "shred: /tmp/sensitive_data.txt: pass 1/1 (000000)...\nshred: /tmp/sensitive_data.txt: removing\nshred: /tmp/sensitive_data.txt: renamed to /tmp/0000000000000\nshred: /tmp/0000000000000: renamed to /tmp/000000000000\nshred: /tmp/00000: removed"
+      }
     }
   ],
   "stats": {
@@ -21,6 +76,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

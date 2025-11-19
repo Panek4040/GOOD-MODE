@@ -1,56 +1,96 @@
 {
-  "id": "episode_LNX_FS_SYNC_DIRS_002",
-  "goal": "Complete Sync directories (rsync pattern) workflow variant 2",
-  "thoughts": [
+  "topic_id": "LNX_FS_SYNC_DIRS",
+  "title": "Mirror directory with deletions and exclude patterns",
+  "goal": "Create exact mirror of source excluding node_modules and logs, removing obsolete files from destination",
+  "steps": [
     {
-      "type": "plan",
-      "content": "Planning to execute Sync directories (rsync pattern)",
-      "timestamp": 1763490734.2203481
-    },
-    {
-      "type": "analyze",
-      "content": "Analyzing requirements for filesystem task",
-      "timestamp": 1763490739.2203481
-    }
-  ],
-  "actions": [
-    {
-      "step": "Initialize Sync directories (rsync pattern)",
+      "thought": "Check what would be excluded",
       "action": {
         "type": "system_command",
-        "command": "Execute step 1 of LNX_FS_SYNC_DIRS"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find /var/www/project -name 'node_modules' -o -name '*.log' | head -10"]
       },
-      "result": {
-        "success": true,
-        "stdout": "Step 1 completed for Sync directories (rsync pattern)"
-      }
+      "observation": "/var/www/project/node_modules\n/var/www/project/frontend/node_modules\n/var/www/project/logs/app.log\n/var/www/project/logs/error.log\n/var/www/project/cache/debug.log"
     },
     {
-      "step": "Process filesystem data",
+      "thought": "Calculate size with and without exclusions",
       "action": {
-        "type": "data_processing",
-        "command": "Process data for LNX_FS_SYNC_DIRS"
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo \"Total: $(du -sh /var/www/project | cut -f1)\" && echo \"node_modules: $(du -sh /var/www/project/node_modules 2>/dev/null | cut -f1 || echo '0')\""]
       },
-      "result": {
-        "success": true,
-        "stdout": "Data processed successfully"
-      }
+      "observation": "Total: 3.2G\nnode_modules: 1.8G"
     },
     {
-      "step": "Finalize Sync directories (rsync pattern)",
+      "thought": "Dry-run with exclusions and delete flag",
       "action": {
-        "type": "validation",
-        "command": "Validate results"
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "rsync",
+        "args": ["-av", "--delete", "--exclude=node_modules", "--exclude=*.log", "--exclude=.git", "--dry-run", "--stats", "/var/www/project/", "/backup/project/"]
       },
-      "result": {
-        "success": true,
-        "stdout": "Validation passed"
-      }
+      "observation": "sending incremental file list\ndeleting old_cache.dat\ndeleting temp/obsolete_file.txt\nsrc/index.js\nsrc/config.js\npublic/index.html\n\nNumber of files: 456 (reg: 420, dir: 36)\nNumber of created files: 15\nNumber of deleted files: 8\nNumber of regular files transferred: 15\nTotal file size: 1.4G bytes\nTotal transferred file size: 45M bytes"
+    },
+    {
+      "thought": "Execute actual mirror sync",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "rsync -av --delete --exclude=node_modules --exclude='*.log' --exclude=.git --stats /var/www/project/ /backup/project/ | tail -12"]
+      },
+      "observation": "Number of files: 456 (reg: 420, dir: 36)\nNumber of created files: 15\nNumber of deleted files: 8\nNumber of regular files transferred: 15\nTotal file size: 1.4G bytes\nLiteral data: 45.2M bytes\nMatched data: 0 bytes\nFile list size: 18.5K\nFile list generation time: 0.008 seconds\nFile list transfer time: 0.000 seconds\nTotal bytes sent: 45.5M\nTotal bytes received: 892 bytes"
+    },
+    {
+      "thought": "Verify excluded directories not copied",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "test -d /backup/project/node_modules && echo 'ERROR: node_modules exists' || echo 'OK: node_modules excluded'"]
+      },
+      "observation": "OK: node_modules excluded"
+    },
+    {
+      "thought": "Verify obsolete files deleted",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "test -f /backup/project/old_cache.dat && echo 'ERROR: old file exists' || echo 'OK: obsolete files deleted'"]
+      },
+      "observation": "OK: obsolete files deleted"
+    },
+    {
+      "thought": "Compare directory structures",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "diff -r /var/www/project /backup/project --exclude=node_modules --exclude='*.log' --exclude=.git | head -5"]
+      },
+      "observation": ""
+    },
+    {
+      "thought": "Verify final backup size",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -sh /var/www/project /backup/project"]
+      },
+      "observation": "3.2G\t/var/www/project\n1.4G\t/backup/project"
     }
   ],
-  "outcome": {
-    "success": true,
-    "steps_executed": 3
-  },
-  "duration": 10.8
+  "success_condition": "Created exact mirror of 1.4G (excluded 1.8G node_modules), deleted 8 obsolete files, verified directories match"
 }

@@ -1,56 +1,62 @@
 {
-  "id": "episode_LNX_CONT_DOCKER_BUILD_RUN_003",
-  "goal": "Complete Build and run Docker image workflow variant 3",
-  "thoughts": [
+  "episode_id": "LNX_CONT_DOCKER_BUILD_RUN_EP03",
+  "title": "Container Resource Limits and Network Isolation",
+  "description": "Deploy container with memory/CPU limits on custom network, monitor performance, troubleshoot",
+  "difficulty": "advanced",
+  "steps": [
     {
-      "type": "plan",
-      "content": "Planning to execute Build and run Docker image",
-      "timestamp": 1763491734.303277
+      "step_number": 1,
+      "instruction": "Run container with strict resource limits and custom network isolation",
+      "tool": "docker_run_with_env_network_limits",
+      "parameters": {
+        "image_name": "stress-ng:latest",
+        "container_name": "resource-test",
+        "network_name": "isolated-net",
+        "memory_limit": "512m",
+        "cpu_limit": "1.5"
+      },
+      "expected_outcome": "Container running with 512MB memory limit and 1.5 CPU cores on isolated-net"
     },
     {
-      "type": "analyze",
-      "content": "Analyzing requirements for containers task",
-      "timestamp": 1763491739.303277
+      "step_number": 2,
+      "instruction": "Verify resource constraints are applied correctly",
+      "tool": "docker_inspect_logs_container_diagnostics",
+      "parameters": {
+        "container_name": "resource-test",
+        "log_lines": "15"
+      },
+      "expected_outcome": "Container stats show memory capped at 512MB, CPU usage capped at 150%"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Execute stress test inside container to verify limits",
+      "tool": "docker_exec_interactive_shell_commands",
+      "parameters": {
+        "container_name": "resource-test",
+        "shell_command": "stress-ng --vm 2 --vm-bytes 256M --timeout 10s"
+      },
+      "expected_outcome": "Stress test completes without OOM kill, memory stays under 512MB"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Check container network connectivity on isolated network",
+      "tool": "docker_exec_interactive_shell_commands",
+      "parameters": {
+        "container_name": "resource-test",
+        "shell_command": "ip addr show && ip route"
+      },
+      "expected_outcome": "Container has IP on isolated-net subnet, default route via gateway"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Stop and remove container, verify cleanup",
+      "tool": "docker_container_lifecycle_stop_remove",
+      "parameters": {
+        "container_name": "resource-test"
+      },
+      "expected_outcome": "Container stopped gracefully and removed from system"
     }
   ],
-  "actions": [
-    {
-      "step": "Initialize Build and run Docker image",
-      "action": {
-        "type": "system_command",
-        "command": "Execute step 1 of LNX_CONT_DOCKER_BUILD_RUN"
-      },
-      "result": {
-        "success": true,
-        "stdout": "Step 1 completed for Build and run Docker image"
-      }
-    },
-    {
-      "step": "Process containers data",
-      "action": {
-        "type": "data_processing",
-        "command": "Process data for LNX_CONT_DOCKER_BUILD_RUN"
-      },
-      "result": {
-        "success": true,
-        "stdout": "Data processed successfully"
-      }
-    },
-    {
-      "step": "Finalize Build and run Docker image",
-      "action": {
-        "type": "validation",
-        "command": "Validate results"
-      },
-      "result": {
-        "success": true,
-        "stdout": "Validation passed"
-      }
-    }
-  ],
-  "outcome": {
-    "success": true,
-    "steps_executed": 3
-  },
-  "duration": 13.1
+  "success_criteria": "Resource limits enforced, network isolated, stress test passed, clean removal",
+  "cleanup": "docker network rm isolated-net"
 }

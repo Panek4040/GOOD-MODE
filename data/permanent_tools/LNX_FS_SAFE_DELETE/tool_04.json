@@ -1,18 +1,73 @@
 {
-  "name": "lnx_fs_safe_delete_json_output_4",
-  "description": "Structured JSON output for Safe delete with backup",
-  "pattern": "safe delete with backup|structured json output",
-  "parameters": [
-    "path"
-  ],
+  "name": "safe_delete_by_age",
+  "description": "Delete files older than specified days with verification",
+  "pattern": "delete.*old.*files|remove.*older.*than|cleanup.*age",
+  "parameters": ["path", "days_old"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "find -printf"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -mtime +{{days_old}} | head -20"]
       },
-      "expected_output": "Result of Structured JSON output"
+      "expected_output": {
+        "type": "string",
+        "example": "/var/log/archived/app.log.2025-08-15.gz\n/var/log/archived/access.log.2025-08-20.gz\n/tmp/old_session_abc123.tmp"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -mtime +{{days_old}} -exec stat -c '%n|%s|%Y' {} \\; | awk -F'|' '{size+=$2; count++; mod=$3} END {print \"Files found: \" count \", Total size: \" size/1024/1024 \"MB, Oldest: \" strftime(\"%Y-%m-%d\", mod)}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Files found: 45, Total size: 128MB, Oldest: 2025-06-15"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -mtime +{{days_old}} -exec ls -lh {} \\; | awk '{print $9, $5, $6, $7, $8}' | head -10"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/log/archived/app.log.2025-08-15.gz 8.5M Aug 15 10:30\n/var/log/archived/access.log.2025-08-20.gz 12M Aug 20 14:22\n/tmp/old_session_abc123.tmp 4.0K Jul 10 08:15"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "cutoff_date=$(date -d '{{days_old}} days ago' '+%Y-%m-%d %H:%M:%S'); echo \"Deleting files older than: $cutoff_date\""]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Deleting files older than: 2025-09-19 14:30:22"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -mtime +{{days_old}} -delete -print | wc -l"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "45"
+      }
     }
   ],
   "stats": {
@@ -21,6 +76,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

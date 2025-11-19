@@ -1,0 +1,67 @@
+{
+  "name": "logrotate_configure_rotation_compression",
+  "description": "Configure logrotate for automatic log rotation, compression, and retention",
+  "pattern": "logrotate.*config|rotate.*logs|log.*rotation",
+  "parameters": ["log_path", "rotate_count", "rotate_period"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "ls",
+        "args": ["-lh", "{{log_path}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "-rw-r--r-- 1 root root 2.4G Nov 18 14:50 {{log_path}}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "cat > /etc/logrotate.d/custom-app <<EOF\n{{log_path}} {\n    {{rotate_period}}\n    rotate {{rotate_count}}\n    compress\n    delaycompress\n    missingok\n    notifempty\n    create 0640 root adm\n    sharedscripts\n    postrotate\n        systemctl reload app.service > /dev/null 2>&1 || true\n    endscript\n}\nEOF\ncat /etc/logrotate.d/custom-app"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{{log_path}} {\n    {{rotate_period}}\n    rotate {{rotate_count}}\n    compress\n    delaycompress\n    missingok\n    notifempty\n    create 0640 root adm\n    sharedscripts\n    postrotate\n        systemctl reload app.service > /dev/null 2>&1 || true\n    endscript\n}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "logrotate",
+        "args": ["-d", "/etc/logrotate.d/custom-app"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "reading config file /etc/logrotate.d/custom-app\nAllocating hash table for state file, size 15360 B\n\nHandling 1 logs\n\nrotating pattern: {{log_path}}  {{rotate_period}} ({{rotate_count}} rotations)\nempty log files are not rotated, old logs are removed\nconsidering log {{log_path}}\n  log needs rotating"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "logrotate",
+        "args": ["-f", "/etc/logrotate.d/custom-app"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

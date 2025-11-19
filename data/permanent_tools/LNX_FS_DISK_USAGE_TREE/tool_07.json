@@ -1,18 +1,60 @@
 {
-  "name": "lnx_fs_disk_usage_tree_list_basic_7",
-  "description": "Basic listing for Disk usage tree report",
-  "pattern": "disk usage tree report|basic listing",
-  "parameters": [
-    "path"
-  ],
+  "name": "disk_usage_compare_time",
+  "description": "Compare disk usage changes between two time periods",
+  "pattern": "compare.*usage|usage.*change|growth.*analysis",
+  "parameters": ["path"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "ls -lah"
+        "tool": "shell",
+        "operation": "run",
+        "command": "du",
+        "args": ["-sb", "{{path}}"]
       },
-      "expected_output": "Result of Basic listing"
+      "expected_output": {
+        "type": "string",
+        "example": "10737418240\t/var/lib"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -sb '{{path}}'/* | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "5368709120\t/var/lib/mysql\n2147483648\t/var/lib/postgresql\n1073741824\t/var/lib/docker\n858993459\t/var/lib/apt\n536870912\t/var/lib/dpkg"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -sb '{{path}}'/* | awk '{print $0 > \"/tmp/du_snapshot_\"systime(\".txt\")}'; echo '/tmp/du_snapshot_'$(date +%s)'.txt'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/tmp/du_snapshot_1700308890.txt"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -h --max-depth=1 --time '{{path}}' | sort -k3"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "512M\t2025-10-15 10:30\t/var/lib/apt\n1.0G\t2025-11-01 14:22\t/var/lib/docker\n2.0G\t2025-11-10 08:15\t/var/lib/postgresql\n5.0G\t2025-11-18 16:45\t/var/lib/mysql\n10G\t2025-11-18 16:45\t/var/lib"
+      }
     }
   ],
   "stats": {
@@ -21,6 +63,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

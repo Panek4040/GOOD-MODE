@@ -1,19 +1,60 @@
 {
-  "name": "lnx_fs_disk_usage_tree_find_pattern_2",
-  "description": "Find with pattern for Disk usage tree report",
-  "pattern": "disk usage tree report|find with pattern",
-  "parameters": [
-    "path",
-    "pattern"
-  ],
+  "name": "disk_usage_by_size",
+  "description": "List subdirectories sorted by size in descending order",
+  "pattern": "largest.*directories|biggest.*folders|sort.*size.*dir",
+  "parameters": ["path", "limit"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "find"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -sh '{{path}}'/* | sort -rh | head -n {{limit}}"]
       },
-      "expected_output": "Result of Find with pattern"
+      "expected_output": {
+        "type": "string",
+        "example": "5.2G\t/var/lib\n2.8G\t/var/cache\n1.5G\t/var/log\n512M\t/var/www\n256M\t/var/tmp"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -b '{{path}}'/* | sort -rn | head -n {{limit}} | numfmt --to=iec --field=1"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "5.2G\t/var/lib\n2.8G\t/var/cache\n1.5G\t/var/log\n512M\t/var/www\n256M\t/var/tmp"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du --max-depth=1 '{{path}}' | sort -rn | head -n {{limit}} | awk '{printf \"%s|%s\\n\", $1, $2}'"]}
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "5497558|/var/lib\n2936012|/var/cache\n1572864|/var/log\n524288|/var/www\n262144|/var/tmp"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -h --max-depth=1 '{{path}}' 2>/dev/null | grep -v '^[0-9.]*K' | sort -rh | head -n {{limit}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "5.2G\t/var/lib\n2.8G\t/var/cache\n1.5G\t/var/log\n512M\t/var/www\n256M\t/var/tmp"
+      }
     }
   ],
   "stats": {
@@ -22,6 +63,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

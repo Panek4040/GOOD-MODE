@@ -1,19 +1,73 @@
 {
-  "name": "lnx_automation_task_runner_create_unit_3",
-  "description": "Create unit file for Run sequence of shell tasks with checks",
-  "pattern": "run sequence of shell tasks with checks|create unit file",
-  "parameters": [
-    "service",
-    "spec"
-  ],
+  "name": "schedule_at_job",
+  "description": "Schedule one-time task execution using at command",
+  "pattern": "schedule.*once|at.*command|one.*time.*task",
+  "parameters": ["time_spec", "command"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "cat > /etc/systemd"
+        "tool": "shell",
+        "operation": "run",
+        "command": "atq",
+        "args": []
       },
-      "expected_output": "Result of Create unit file"
+      "expected_output": {
+        "type": "string",
+        "example": "5\tMon Nov 18 18:00:00 2025 a user\n7\tTue Nov 19 02:00:00 2025 a user"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo '{{command}}' | at {{time_spec}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "warning: commands will be executed using /bin/sh\njob 12 at Mon Nov 18 20:00:00 2025"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "atq",
+        "args": []
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "5\tMon Nov 18 18:00:00 2025 a user\n7\tTue Nov 19 02:00:00 2025 a user\n12\tMon Nov 18 20:00:00 2025 a user"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "at -c 12 | tail -5"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "#!/bin/sh\n# atrun uid=1000 gid=1000\n# mail user 0\numask 22\n{{command}}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo 'Scheduled job 12 for: {{time_spec}}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Scheduled job 12 for: 20:00"
+      }
     }
   ],
   "stats": {
@@ -22,6 +76,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

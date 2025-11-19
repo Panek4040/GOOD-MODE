@@ -1,0 +1,80 @@
+{
+  "name": "safe_delete_restore_from_trash",
+  "description": "Restore previously deleted files from trash directory",
+  "pattern": "restore.*trash|undelete|recover.*deleted",
+  "parameters": ["file_pattern"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find ~/.local/share/Trash/files -name '*{{file_pattern}}*' -type f"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/home/user/.local/share/Trash/files/important_doc.pdf.20251118_100000\n/home/user/.local/share/Trash/files/important_doc.pdf.20251117_143022"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find ~/.local/share/Trash/files -name '*{{file_pattern}}*' -type f -exec stat -c '%n|%s bytes|%y' {} \\;"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/home/user/.local/share/Trash/files/important_doc.pdf.20251118_100000|52428 bytes|2025-11-18 10:00:00.000000000 +0000\n/home/user/.local/share/Trash/files/important_doc.pdf.20251117_143022|52428 bytes|2025-11-17 14:30:22.000000000 +0000"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "files=$(find ~/.local/share/Trash/files -name '*{{file_pattern}}*' -type f | sort -r); latest=$(echo \"$files\" | head -1); basename \"$latest\" | sed 's/\\.20[0-9]\\{6\\}_[0-9]\\{6\\}$//'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "important_doc.pdf"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "files=$(find ~/.local/share/Trash/files -name '*{{file_pattern}}*' -type f | sort -r); latest=$(echo \"$files\" | head -1); if [ -n \"$latest\" ]; then file -b \"$latest\"; else echo 'No file found'; fi"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "PDF document, version 1.4"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "files=$(find ~/.local/share/Trash/files -name '*{{file_pattern}}*' -type f | sort -r); latest=$(echo \"$files\" | head -1); if [ -n \"$latest\" ]; then orig_name=$(basename \"$latest\" | sed 's/\\.20[0-9]\\{6\\}_[0-9]\\{6\\}$//'); mv \"$latest\" \"./$orig_name\" && echo \"Restored to: $PWD/$orig_name\"; else echo 'No file to restore'; fi"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Restored to: /home/user/important_doc.pdf"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "claude_generated"
+}

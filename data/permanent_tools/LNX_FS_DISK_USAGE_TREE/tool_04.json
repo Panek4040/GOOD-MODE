@@ -1,18 +1,60 @@
 {
-  "name": "lnx_fs_disk_usage_tree_json_output_4",
-  "description": "Structured JSON output for Disk usage tree report",
-  "pattern": "disk usage tree report|structured json output",
-  "parameters": [
-    "path"
-  ],
+  "name": "disk_usage_percentage",
+  "description": "Show disk usage with percentage of parent directory",
+  "pattern": "percentage.*usage|percent.*disk|usage.*ratio",
+  "parameters": ["path"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "find -printf"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "total=$(du -sb '{{path}}' | awk '{print $1}'); du -sb '{{path}}'/* | awk -v t=$total '{pct=$1*100/t; printf \"%d|%.2f%%|%s\\n\", $1, pct, $2}' | sort -rn"]
       },
-      "expected_output": "Result of Structured JSON output"
+      "expected_output": {
+        "type": "string",
+        "example": "5497558138|52.34%|/var/lib\n2952790016|28.12%|/var/cache\n1610612736|15.34%|/var/log\n419430400|3.99%|/var/www\n20971520|0.20%|/var/tmp"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -b '{{path}}'/* | awk '{sum+=$1; size[$2]=$1} END {for(d in size) printf \"%d|%.2f%%|%s\\n\", size[d], size[d]*100/sum, d}' | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "5497558138|52.34%|/var/lib\n2952790016|28.12%|/var/cache\n1610612736|15.34%|/var/log"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -b '{{path}}'/* | sort -rn | awk 'NR==1{total=$1} {pct=$1*100/total; printf \"%-50s %10s (%5.2f%%)\\n\", $2, $1, pct}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/lib                                            5497558138 (100.00%)\n/var/cache                                          2952790016 ( 53.71%)\n/var/log                                            1610612736 ( 29.30%)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -sb '{{path}}'/* | awk '{sum+=$1; arr[NR]=$0} END {for(i=1;i<=NR;i++) {split(arr[i],a); printf \"%s|%.1f%%|%s\\n\", a[1], a[1]*100/sum, a[2]}}' | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "5497558138|52.3%|/var/lib\n2952790016|28.1%|/var/cache\n1610612736|15.3%|/var/log\n419430400|4.0%|/var/www"
+      }
     }
   ],
   "stats": {
@@ -21,6 +63,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

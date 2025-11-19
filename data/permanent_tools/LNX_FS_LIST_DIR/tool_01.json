@@ -1,18 +1,60 @@
 {
-  "name": "lnx_fs_list_dir_list_basic_1",
-  "description": "Basic listing for List directory contents with filters",
-  "pattern": "list directory contents with filters|basic listing",
-  "parameters": [
-    "path"
-  ],
+  "name": "list_dir_detailed",
+  "description": "List directory contents with size and timestamps using ls -lah",
+  "pattern": "list.*dir|show.*files|ls.*path",
+  "parameters": ["path", "include_hidden"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "ls -lah"
+        "tool": "shell",
+        "operation": "run",
+        "command": "ls -lah",
+        "args": ["{{path}}"]
       },
-      "expected_output": "Result of Basic listing"
+      "expected_output": {
+        "type": "string",
+        "example": "total 48K\ndrwxr-xr-x 3 user user 4.0K Nov 18 10:30 .\ndrwxr-xr-x 8 user user 4.0K Nov 18 09:15 ..\n-rw-r--r-- 1 user user  12K Nov 18 10:30 data.json\n-rw-r--r-- 1 user user 8.5K Nov 17 14:22 script.py"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "find",
+        "args": ["{{path}}", "-maxdepth", "1", "-type", "f", "-printf", "%p|%s|%TY-%Tm-%Td %TH:%TM\\n"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/home/user/data.json|12288|2025-11-18 10:30\n/home/user/script.py|8704|2025-11-17 14:22"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "stat",
+        "args": ["-c", "%n|%s|%y", "{{path}}/*"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/home/user/data.json|12288|2025-11-18 10:30:45.123456789 +0000\n/home/user/script.py|8704|2025-11-17 14:22:11.987654321 +0000"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "du",
+        "args": ["-sh", "{{path}}/*"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "12K\t/home/user/data.json\n8.5K\t/home/user/script.py\n4.0K\t/home/user/config"
+      }
     }
   ],
   "stats": {
@@ -21,6 +63,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

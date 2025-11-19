@@ -1,0 +1,80 @@
+{
+  "name": "systemd_cat_log_command_output",
+  "description": "Pipe command output directly to systemd journal with identifier",
+  "pattern": "systemd.cat|pipe.*journal|log.*command.*output",
+  "parameters": ["command", "identifier", "priority"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemd-cat",
+        "args": ["--help"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "systemd-cat [OPTIONS...] COMMAND ...\n\nExecute process with stdout/stderr connected to the journal.\n\n  -h --help                 Show this help\n  -t --identifier=STRING    Set syslog identifier\n  -p --priority=PRIORITY    Set priority value"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "{{command}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Command output: Processing completed successfully\nTotal items: 1,247\nTime elapsed: 12.3 seconds"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "{{command}} | systemd-cat -t {{identifier}} -p {{priority}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "journalctl",
+        "args": ["-t", "{{identifier}}", "--since", "1 minute ago", "--no-pager"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Nov 18 14:54:23 server1 {{identifier}}[5678]: Command output: Processing completed successfully\nNov 18 14:54:23 server1 {{identifier}}[5678]: Total items: 1,247\nNov 18 14:54:23 server1 {{identifier}}[5678]: Time elapsed: 12.3 seconds"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "journalctl",
+        "args": ["-t", "{{identifier}}", "-o", "json-pretty", "--lines=1", "--no-pager"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n  \"MESSAGE\": \"Command output: Processing completed successfully\",\n  \"PRIORITY\": \"{{priority}}\",\n  \"SYSLOG_IDENTIFIER\": \"{{identifier}}\",\n  \"_PID\": \"5678\"\n}"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

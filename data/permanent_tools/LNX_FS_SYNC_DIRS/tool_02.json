@@ -1,19 +1,73 @@
 {
-  "name": "lnx_fs_sync_dirs_find_pattern_2",
-  "description": "Find with pattern for Sync directories (rsync pattern)",
-  "pattern": "sync directories (rsync pattern)|find with pattern",
-  "parameters": [
-    "path",
-    "pattern"
-  ],
+  "name": "sync_dirs_with_delete",
+  "description": "Mirror directories with rsync including deletions",
+  "pattern": "mirror.*directories|sync.*delete|exact.*copy",
+  "parameters": ["source_path", "dest_path"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "find"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{dest_path}}' -type f | wc -l"]
       },
-      "expected_output": "Result of Find with pattern"
+      "expected_output": {
+        "type": "string",
+        "example": "1247"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "rsync",
+        "args": ["-av", "--delete", "--dry-run", "{{source_path}}/", "{{dest_path}}/"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "sending incremental file list\ndeleting old_file.txt\ndeleting cache/expired.dat\nindex.php\n\nNumber of files: 1,102\nNumber of created files: 15\nNumber of deleted files: 23\nNumber of regular files transferred: 15"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "rsync -av --delete --stats '{{source_path}}/' '{{dest_path}}/' | tail -10"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Number of files: 1,102 (reg: 980, dir: 122)\nNumber of created files: 15\nNumber of deleted files: 23\nNumber of regular files transferred: 15\nTotal file size: 2.4G bytes\nLiteral data: 89.2M bytes\nMatched data: 0 bytes\nFile list size: 42.5K\nsent 89.5M bytes  received 1.2K bytes  5.97M bytes/sec\ntotal size is 2.4G  speedup is 26.82"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{dest_path}}' -type f | wc -l"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "1239"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "diff -r '{{source_path}}' '{{dest_path}}' && echo 'Directories are identical' || echo 'Differences found'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Directories are identical"
+      }
     }
   ],
   "stats": {
@@ -22,6 +76,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

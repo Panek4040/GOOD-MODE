@@ -1,0 +1,67 @@
+{
+  "name": "nmap_scan_ports_services_hosts",
+  "description": "Scan network hosts for open ports, running services, OS detection using nmap",
+  "pattern": "nmap.*scan|port.*scan|service.*detection|network.*discovery",
+  "parameters": ["target", "scan_type"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "ping -c 3 {{target}} | tail -2"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "3 packets transmitted, 3 received, 0% packet loss, time 2003ms\nrtt min/avg/max/mdev = 0.234/0.567/0.891/0.234 ms"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "if [ '{{scan_type}}' = 'quick' ]; then nmap -F {{target}}; elif [ '{{scan_type}}' = 'full' ]; then nmap -p- {{target}}; elif [ '{{scan_type}}' = 'version' ]; then nmap -sV {{target}}; elif [ '{{scan_type}}' = 'os' ]; then nmap -O {{target}}; elif [ '{{scan_type}}' = 'stealth' ]; then nmap -sS {{target}}; fi"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Starting Nmap 7.94 ( https://nmap.org )\nNmap scan report for {{target}}\nHost is up (0.0012s latency).\nNot shown: 996 closed ports\nPORT     STATE SERVICE\n22/tcp   open  ssh\n80/tcp   open  http\n443/tcp  open  https\n3306/tcp open  mysql\n\nNmap done: 1 IP address (1 host up) scanned in 2.34 seconds"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "nmap",
+        "args": ["-sV", "-p", "22,80,443", "{{target}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Starting Nmap 7.94\nNmap scan report for {{target}}\nPORT    STATE SERVICE VERSION\n22/tcp  open  ssh     OpenSSH 8.9p1 Ubuntu 3ubuntu0.4 (Ubuntu Linux; protocol 2.0)\n80/tcp  open  http    nginx 1.18.0 (Ubuntu)\n443/tcp open  ssl/http nginx 1.18.0 (Ubuntu)\nService Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "nmap -p 22,80,443,3306,5432,6379,8080 {{target}} | grep -E 'open|closed|filtered'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "22/tcp   open     ssh\n80/tcp   open     http\n443/tcp  open     https\n3306/tcp closed   mysql\n5432/tcp filtered postgresql\n6379/tcp open     redis\n8080/tcp open     http-proxy"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

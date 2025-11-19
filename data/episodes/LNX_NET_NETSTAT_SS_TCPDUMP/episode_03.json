@@ -1,0 +1,90 @@
+{
+  "episode_id": "LNX_NET_NETSTAT_SS_TCPDUMP_EP03",
+  "title": "Investigate Network Performance Issues",
+  "description": "High latency complaints from users, analyze connections, packet loss, routing problems",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Get network interface statistics to check for errors",
+      "tool": "netstat_show_routing_statistics",
+      "parameters": {
+        "info_type": "stats"
+      },
+      "expected_outcome": "TCP stats show 234 failed connections, 567 retransmits - network issues"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Trace route to external API server users complain about",
+      "tool": "traceroute_mtr_network_path_analysis",
+      "parameters": {
+        "destination": "api.example.com",
+        "tool_type": "mtr"
+      },
+      "expected_outcome": "Hop 3 (ISP router 172.16.0.1) showing 25% packet loss and 150ms latency"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Check all established connections and their states",
+      "tool": "ss_list_socket_connections_filter",
+      "parameters": {
+        "protocol": "all",
+        "state": "all"
+      },
+      "expected_outcome": "78 connections, 23 in TIME_WAIT, 12 in CLOSE_WAIT (connection pool issues)"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Find which applications have most connections open",
+      "tool": "lsof_list_network_connections_files",
+      "parameters": {
+        "filter_type": "tcp",
+        "filter_value": ""
+      },
+      "expected_outcome": "App server PID 5678 has 156 connections (connection leak suspected)"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Capture packets to analyze retransmission patterns",
+      "tool": "tcpdump_capture_filter_packets",
+      "parameters": {
+        "interface": "eth0",
+        "filter": "tcp[tcpflags] & tcp-syn != 0",
+        "count": "50"
+      },
+      "expected_outcome": "Many SYN retransmissions to api.example.com - confirming network issues"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Run detailed port scan on internal database server",
+      "tool": "nmap_scan_ports_services_hosts",
+      "parameters": {
+        "target": "192.168.1.50",
+        "scan_type": "version"
+      },
+      "expected_outcome": "PostgreSQL 14.5 on port 5432, high connection count detected"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Check NAT table rules for potential issues",
+      "tool": "iptables_show_firewall_rules_chains",
+      "parameters": {
+        "chain": "POSTROUTING",
+        "table": "nat"
+      },
+      "expected_outcome": "NAT conntrack table 89% full - may be dropping connections"
+    },
+    {
+      "step_number": 8,
+      "instruction": "Do continuous trace to track packet loss over time",
+      "tool": "traceroute_mtr_network_path_analysis",
+      "parameters": {
+        "destination": "8.8.8.8",
+        "tool_type": "mtr"
+      },
+      "expected_outcome": "Packet loss occurs at ISP router hop, no loss beyond - ISP problem confirmed"
+    }
+  ],
+  "success_criteria": "Multiple issues found: ISP packet loss, connection pool leak, conntrack table full",
+  "cleanup": "Contact ISP about packet loss, fix app connection leak, increase conntrack max"
+}

@@ -1,18 +1,73 @@
 {
-  "name": "lnx_fs_sync_dirs_sorted_time_5",
-  "description": "Sort by modification time for Sync directories (rsync pattern)",
-  "pattern": "sync directories (rsync pattern)|sort by modification time",
-  "parameters": [
-    "path"
-  ],
+  "name": "sync_dirs_compressed",
+  "description": "Sync directories with compression for faster transfer",
+  "pattern": "sync.*compress|compressed.*sync|fast.*sync",
+  "parameters": ["source_path", "dest_path"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "ls -lt"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -sb '{{source_path}}' | awk '{print \"Source size: \" $1/1024/1024 \"MB\"}'"]
       },
-      "expected_output": "Result of Sort by modification time"
+      "expected_output": {
+        "type": "string",
+        "example": "Source size: 2457.6MB"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo 'Starting compressed sync at: '$(date +'%Y-%m-%d %H:%M:%S')"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Starting compressed sync at: 2025-11-18 15:00:00"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "rsync",
+        "args": ["-avz", "--stats", "{{source_path}}/", "{{dest_path}}/"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "sending incremental file list\n\nNumber of files: 1,247 (reg: 1,102, dir: 145)\nNumber of created files: 23\nNumber of regular files transferred: 23\nTotal file size: 2.4G bytes\nLiteral data: 156M bytes\nMatched data: 0 bytes\nFile list size: 42.5K\nFile list generation time: 0.012 seconds\nFile list transfer time: 0.000 seconds\nTotal bytes sent: 89.2M\nTotal bytes received: 1.5K\n\nsent 89.2M bytes  received 1.5K bytes  5.95M bytes/sec\ntotal size is 2.4G  speedup is 26.91"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo 'Completed at: '$(date +'%Y-%m-%d %H:%M:%S')"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Completed at: 2025-11-18 15:02:30"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "diff -rq '{{source_path}}' '{{dest_path}}' | wc -l"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "0"
+      }
     }
   ],
   "stats": {
@@ -21,6 +76,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

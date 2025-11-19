@@ -1,19 +1,60 @@
 {
-  "name": "lnx_fs_disk_usage_tree_filtered_type_6",
-  "description": "Filter by type for Disk usage tree report",
-  "pattern": "disk usage tree report|filter by type",
-  "parameters": [
-    "path",
-    "filter"
-  ],
+  "name": "disk_usage_exclude_patterns",
+  "description": "Calculate disk usage excluding specific patterns or directories",
+  "pattern": "exclude.*usage|ignore.*dirs|skip.*patterns",
+  "parameters": ["path", "exclude_pattern"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "find -name"
+        "tool": "shell",
+        "operation": "run",
+        "command": "du",
+        "args": ["-h", "--exclude={{exclude_pattern}}", "{{path}}"]
       },
-      "expected_output": "Result of Filter by type"
+      "expected_output": {
+        "type": "string",
+        "example": "4.0K\t/var/www/html/css\n8.0K\t/var/www/html/js\n128K\t/var/www/html\n128K\t/var/www"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -sh --exclude='{{exclude_pattern}}' '{{path}}'/*"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "128K\t/var/www/html\n64K\t/var/www/config\n32K\t/var/www/uploads"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type d -name '{{exclude_pattern}}' -prune -o -type d -exec du -sh {} \\; | grep -v '/{{exclude_pattern}}$'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "256K\t/var/www\n128K\t/var/www/html\n64K\t/var/www/config"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -h --max-depth=2 --exclude='{{exclude_pattern}}' '{{path}}' | sort -rh"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "256K\t/var/www\n128K\t/var/www/html\n64K\t/var/www/config\n32K\t/var/www/uploads\n8.0K\t/var/www/html/js\n4.0K\t/var/www/html/css"
+      }
     }
   ],
   "stats": {
@@ -22,6 +63,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

@@ -1,0 +1,67 @@
+{
+  "name": "ss_list_socket_connections_filter",
+  "description": "List all network connections with filtering by TCP/UDP, state, ports using modern ss command",
+  "pattern": "list.*connections|show.*sockets|active.*network|ss.*command",
+  "parameters": ["protocol", "state"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "ss",
+        "args": ["-s"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Total: 423\nTCP: 12 (estab 8, closed 2, listen 2)\nUDP: 15\nRAW: 0"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "if [ '{{protocol}}' = 'tcp' ]; then ss -tn state {{state}}; elif [ '{{protocol}}' = 'udp' ]; then ss -un; elif [ '{{protocol}}' = 'all' ]; then ss -tunap; fi"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "State      Recv-Q Send-Q Local Address:Port   Peer Address:Port\nESTAB      0      0      192.168.1.100:22     192.168.1.50:54321\nESTAB      0      0      192.168.1.100:443    203.0.113.45:44556\nLISTEN     0      128    0.0.0.0:80           0.0.0.0:*"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "ss -tunap | grep -E 'LISTEN|ESTAB' | wc -l"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "47"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "ss -tunap | awk '{print $5}' | cut -d: -f1 | sort | uniq -c | sort -rn | head -10"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "     12 192.168.1.50\n      8 203.0.113.45\n      5 10.0.0.15\n      3 172.16.0.22"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

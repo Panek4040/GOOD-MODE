@@ -1,0 +1,67 @@
+{
+  "name": "iptables_show_firewall_rules_chains",
+  "description": "Display iptables firewall rules, chains, packet counters for INPUT/OUTPUT/FORWARD",
+  "pattern": "iptables.*rules|firewall.*config|show.*chains|packet.*filter",
+  "parameters": ["chain", "table"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "iptables",
+        "args": ["-L", "-v", "-n"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Chain INPUT (policy ACCEPT 1234 packets, 567K bytes)\n pkts bytes target     prot opt in     out     source               destination\n  892 45K ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:22\n  456 23K ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:80\n   12  678 DROP       all  --  *      *       192.168.100.0/24     0.0.0.0/0\n\nChain FORWARD (policy DROP 0 packets, 0 bytes)\n pkts bytes target     prot opt in     out     source               destination\n\nChain OUTPUT (policy ACCEPT 2345 packets, 1234K bytes)\n pkts bytes target     prot opt in     out     source               destination"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "if [ '{{table}}' = 'nat' ]; then iptables -t nat -L -v -n; elif [ '{{table}}' = 'mangle' ]; then iptables -t mangle -L -v -n; else iptables -t filter -L {{chain}} -v -n; fi"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Chain {{chain}} (policy ACCEPT 1234 packets, 567K bytes)\n pkts bytes target     prot opt in     out     source               destination\n  100 5000  ACCEPT     tcp  --  eth0   *       192.168.1.0/24       0.0.0.0/0            tcp dpt:443\n   50 2500  REJECT     icmp --  *      *       0.0.0.0/0            0.0.0.0/0            reject-with icmp-port-unreachable"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "iptables -S"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "-P INPUT ACCEPT\n-P FORWARD DROP\n-P OUTPUT ACCEPT\n-A INPUT -p tcp -m tcp --dport 22 -j ACCEPT\n-A INPUT -p tcp -m tcp --dport 80 -j ACCEPT\n-A INPUT -p tcp -m tcp --dport 443 -j ACCEPT\n-A INPUT -s 192.168.100.0/24 -j DROP"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "iptables -L -v -n --line-numbers | grep -A 20 'Chain INPUT'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Chain INPUT (policy ACCEPT 1234 packets, 567K bytes)\nnum   pkts bytes target     prot opt in     out     source               destination\n1      892 45K   ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:22\n2      456 23K   ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:80\n3       12  678  DROP       all  --  *      *       192.168.100.0/24     0.0.0.0/0"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

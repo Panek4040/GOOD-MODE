@@ -1,0 +1,67 @@
+{
+  "name": "journalctl_query_system_logs_time_range",
+  "description": "Query systemd journal logs with time range filters and priority levels",
+  "pattern": "journalctl.*logs|systemd.*journal|query.*system.*logs",
+  "parameters": ["time_since", "priority"],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "journalctl",
+        "args": ["--version"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "systemd 249 (249.11-0ubuntu3.12)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "journalctl",
+        "args": ["--since", "{{time_since}}", "-p", "{{priority}}", "--no-pager"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Nov 18 14:23:45 server1 systemd[1]: Started Session 42 of user admin.\nNov 18 14:24:12 server1 sshd[1234]: Accepted publickey for admin from 192.168.1.100 port 52341\nNov 18 14:25:03 server1 kernel: [UFW BLOCK] IN=eth0 OUT= SRC=10.0.0.15 DST=10.0.0.1"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "journalctl",
+        "args": ["--since", "{{time_since}}", "-p", "{{priority}}", "--output=json-pretty", "--lines=1"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n  \"_HOSTNAME\": \"server1\",\n  \"_TRANSPORT\": \"syslog\",\n  \"PRIORITY\": \"6\",\n  \"MESSAGE\": \"Started Session 42 of user admin.\",\n  \"_PID\": \"1\",\n  \"_COMM\": \"systemd\",\n  \"SYSLOG_IDENTIFIER\": \"systemd\"\n}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "journalctl --since '{{time_since}}' -p {{priority}} --no-pager | wc -l"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "1247"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

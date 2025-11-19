@@ -1,56 +1,118 @@
 {
-  "id": "episode_LNX_FS_SAFE_DELETE_003",
-  "goal": "Complete Safe delete with backup workflow variant 3",
-  "thoughts": [
+  "topic_id": "LNX_FS_SAFE_DELETE",
+  "title": "Clean temporary files with trash and restore capability",
+  "goal": "Remove old temporary files to free disk space while maintaining ability to restore if needed",
+  "steps": [
     {
-      "type": "plan",
-      "content": "Planning to execute Safe delete with backup",
-      "timestamp": 1763491734.2165399
-    },
-    {
-      "type": "analyze",
-      "content": "Analyzing requirements for filesystem task",
-      "timestamp": 1763491739.2165399
-    }
-  ],
-  "actions": [
-    {
-      "step": "Initialize Safe delete with backup",
+      "thought": "Check current disk usage in /tmp",
       "action": {
         "type": "system_command",
-        "command": "Execute step 1 of LNX_FS_SAFE_DELETE"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -sh /tmp && df -h /tmp | tail -1"]
       },
-      "result": {
-        "success": true,
-        "stdout": "Step 1 completed for Safe delete with backup"
-      }
+      "observation": "2.8G\t/tmp\ntmpfs           4.0G  2.8G  1.2G  70% /tmp"
     },
     {
-      "step": "Process filesystem data",
+      "thought": "Find temp files older than 7 days",
       "action": {
-        "type": "data_processing",
-        "command": "Process data for LNX_FS_SAFE_DELETE"
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find /tmp -type f -mtime +7 -user $(whoami) | head -20"]
       },
-      "result": {
-        "success": true,
-        "stdout": "Data processed successfully"
-      }
+      "observation": "/tmp/session_abc123.tmp\n/tmp/cache_def456.tmp\n/tmp/download_ghi789.part\n/tmp/temp_data_jkl012.csv"
     },
     {
-      "step": "Finalize Safe delete with backup",
+      "thought": "Calculate size of old temp files",
       "action": {
-        "type": "validation",
-        "command": "Validate results"
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "count=$(find /tmp -type f -mtime +7 -user $(whoami) | wc -l); size=$(find /tmp -type f -mtime +7 -user $(whoami) -exec stat -c %s {} \\; | awk '{sum+=$1} END {print sum/1024/1024}'); echo \"Old temp files: $count files, ${size}MB\""]
       },
-      "result": {
-        "success": true,
-        "stdout": "Validation passed"
-      }
+      "observation": "Old temp files: 89 files, 1024MB"
+    },
+    {
+      "thought": "Move largest files to trash first",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "mkdir -p ~/.local/share/Trash/files && timestamp=$(date +%Y%m%d_%H%M%S); find /tmp -type f -mtime +7 -user $(whoami) -size +10M -exec sh -c 'base=$(basename \"$1\"); mv \"$1\" ~/.local/share/Trash/files/\"${base}.$timestamp\"' _ {} \\; && echo \"Large files moved to trash\""]
+      },
+      "observation": "Large files moved to trash"
+    },
+    {
+      "thought": "List what's in trash",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find ~/.local/share/Trash/files -type f -name '*.20*' -exec stat -c '%n|%s|%y' {} \\; | head -5"]
+      },
+      "observation": "/home/user/.local/share/Trash/files/download_ghi789.part.20251118_143500|52428800|2025-11-10 08:30:00.000000000 +0000\n/home/user/.local/share/Trash/files/temp_data_jkl012.csv.20251118_143500|41943040|2025-11-09 14:20:00.000000000 +0000"
+    },
+    {
+      "thought": "Delete remaining small temp files directly",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "deleted=$(find /tmp -type f -mtime +7 -user $(whoami) -size -10M -delete -print | wc -l); echo \"Deleted $deleted small temp files\""]
+      },
+      "observation": "Deleted 87 small temp files"
+    },
+    {
+      "thought": "Verify disk space freed",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -sh /tmp && df -h /tmp | tail -1"]
+      },
+      "observation": "1.8G\t/tmp\ntmpfs           4.0G  1.8G  2.2G  45% /tmp"
+    },
+    {
+      "thought": "Simulate needing to restore a file",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find ~/.local/share/Trash/files -name 'temp_data*.csv*' -type f"]
+      },
+      "observation": "/home/user/.local/share/Trash/files/temp_data_jkl012.csv.20251118_143500"
+    },
+    {
+      "thought": "Restore file from trash",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "trashed='/home/user/.local/share/Trash/files/temp_data_jkl012.csv.20251118_143500'; orig_name=$(basename \"$trashed\" | sed 's/\\.20[0-9]\\{6\\}_[0-9]\\{6\\}$//'); cp \"$trashed\" \"/tmp/$orig_name\" && echo \"Restored to: /tmp/$orig_name\""]
+      },
+      "observation": "Restored to: /tmp/temp_data_jkl012.csv"
+    },
+    {
+      "thought": "Verify restored file integrity",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "stat -c 'File: %n\nSize: %s bytes\nRestored: %y' /tmp/temp_data_jkl012.csv"]
+      },
+      "observation": "File: /tmp/temp_data_jkl012.csv\nSize: 41943040 bytes\nRestored: 2025-11-18 14:35:45.000000000 +0000"
     }
   ],
-  "outcome": {
-    "success": true,
-    "steps_executed": 3
-  },
-  "duration": 13.1
+  "success_condition": "Freed 1GB disk space (70% to 45% usage), moved 2 large files to trash for recovery, deleted 87 small temp files, successfully restored 1 file from trash"
 }

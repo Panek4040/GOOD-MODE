@@ -1,19 +1,60 @@
 {
-  "name": "lnx_fs_find_large_files_filtered_type_6",
-  "description": "Filter by type for Find largest files in path",
-  "pattern": "find largest files in path|filter by type",
-  "parameters": [
-    "path",
-    "filter"
-  ],
+  "name": "find_large_with_owner",
+  "description": "Find large files and show owner/group information",
+  "pattern": "large.*owner|large.*files.*user|size.*ownership",
+  "parameters": ["path", "min_size_mb"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "find -name"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%s|%u|%g|%p\\n' | sort -rn"]
       },
-      "expected_output": "Result of Filter by type"
+      "expected_output": {
+        "type": "string",
+        "example": "2147483648|mysql|mysql|/var/lib/mysql/ibdata1\n1073741824|user|user|/home/user/backup.tar.gz\n524288000|root|root|/var/log/syslog.1"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -exec stat -c '%s|%U|%G|%n' {} \\; | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "2147483648|mysql|mysql|/var/lib/mysql/ibdata1\n1073741824|user|user|/home/user/backup.tar.gz\n524288000|root|root|/var/log/syslog.1"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%u\\n' | sort | uniq -c | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "     15 root\n      8 mysql\n      5 www-data\n      3 user"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%u|%s\\n' | awk -F'|' '{owner=$1; size=$2; sum[owner]+=size; count[owner]++} END {for (o in sum) print sum[o]\"|\"count[o]\"|\"o}' | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "5368709120|8|mysql\n2147483648|15|root\n1073741824|5|www-data\n536870912|3|user"
+      }
     }
   ],
   "stats": {
@@ -22,6 +63,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

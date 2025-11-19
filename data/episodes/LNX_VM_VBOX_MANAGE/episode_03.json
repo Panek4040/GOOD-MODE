@@ -1,0 +1,88 @@
+{
+  "episode_id": "LNX_VM_VBOX_MANAGE_EP03",
+  "title": "Backup and Restore VM Using OVA Export",
+  "description": "Export production VM to OVA for backup, simulate disaster, restore from OVA",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Check production VM status before backup",
+      "tool": "vbox_list_vms_status_info",
+      "parameters": {},
+      "expected_outcome": "Production-Web-Server VM: 8GB RAM, 4 CPUs, state=poweroff, ready for export"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Stop VM if running before export",
+      "tool": "vbox_control_vm_power_state",
+      "parameters": {
+        "vm_name": "Production-Web-Server",
+        "action": "poweroff"
+      },
+      "expected_outcome": "VM powered off successfully, ready for safe export"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Export VM to OVA appliance format",
+      "tool": "vbox_export_import_ova_appliance",
+      "parameters": {
+        "vm_name": "Production-Web-Server",
+        "operation": "export",
+        "file_path": "/backup/vms/Production-Web-Server-2024-11-18.ova"
+      },
+      "expected_output": "OVA exported successfully: 24GB file with SHA256 checksum"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Create snapshot of current VM state",
+      "tool": "vbox_snapshot_create_restore_delete",
+      "parameters": {
+        "vm_name": "Production-Web-Server",
+        "snapshot_name": "Before Disaster Simulation",
+        "operation": "create"
+      },
+      "expected_outcome": "Snapshot created as safety checkpoint"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Simulate disaster by restoring to earlier broken snapshot",
+      "tool": "vbox_snapshot_create_restore_delete",
+      "parameters": {
+        "vm_name": "Production-Web-Server",
+        "snapshot_name": "Corrupted State",
+        "operation": "restore"
+      },
+      "expected_outcome": "VM restored to simulated corrupted state"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Import backup OVA as recovery VM",
+      "tool": "vbox_export_import_ova_appliance",
+      "parameters": {
+        "vm_name": "Production-Web-Server-Recovered",
+        "operation": "import",
+        "file_path": "/backup/vms/Production-Web-Server-2024-11-18.ova"
+      },
+      "expected_outcome": "VM imported successfully from OVA backup"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Verify recovered VM configuration",
+      "tool": "vbox_list_vms_status_info",
+      "parameters": {},
+      "expected_outcome": "Recovered VM has correct 8GB RAM, 4 CPUs, all settings preserved"
+    },
+    {
+      "step_number": 8,
+      "instruction": "Start recovered VM to verify functionality",
+      "tool": "vbox_control_vm_power_state",
+      "parameters": {
+        "vm_name": "Production-Web-Server-Recovered",
+        "action": "start"
+      },
+      "expected_outcome": "Recovered VM boots successfully from OVA backup"
+    }
+  ],
+  "success_criteria": "VM exported to OVA, disaster simulated and recovered, functionality verified",
+  "cleanup": "Remove simulation VMs, keep OVA backup offsite for real disaster recovery"
+}

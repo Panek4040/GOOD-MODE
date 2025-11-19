@@ -1,0 +1,65 @@
+{
+  "episode_id": "LNX_LOG_SYSLOG_JOURNALCTL_EP02",
+  "title": "Configure Centralized Logging and Rotation",
+  "description": "Set up rsyslog remote forwarding, configure logrotate for large log files",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Configure rsyslog to forward auth logs to remote syslog server",
+      "tool": "syslog_rsyslog_config_remote_logging",
+      "parameters": {
+        "remote_host": "syslog-collector.internal",
+        "remote_port": "514",
+        "facility": "authpriv"
+      },
+      "expected_outcome": "Rsyslog configured to forward auth logs to syslog-collector.internal:514"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Verify rsyslog is forwarding by checking recent auth logs",
+      "tool": "journalctl_filter_by_service_unit",
+      "parameters": {
+        "unit_name": "rsyslog.service",
+        "lines": "30"
+      },
+      "expected_outcome": "Rsyslog service running, no errors in forwarding"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Configure logrotate for large application log file with daily rotation",
+      "tool": "logrotate_configure_rotation_compression",
+      "parameters": {
+        "log_path": "/var/log/web-app/app.log",
+        "rotate_count": "30",
+        "rotate_period": "daily"
+      },
+      "expected_outcome": "Logrotate configured: daily rotation, keep 30 days, compress old logs"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Test log rotation manually to verify configuration",
+      "tool": "logrotate_configure_rotation_compression",
+      "parameters": {
+        "log_path": "/var/log/web-app/app.log",
+        "rotate_count": "30",
+        "rotate_period": "daily"
+      },
+      "expected_outcome": "Log rotated successfully, app.log.1 created and compressed"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Log rotation completion message to syslog",
+      "tool": "logger_write_to_syslog_facility",
+      "parameters": {
+        "message": "Logrotate configured for /var/log/web-app/app.log - daily rotation with 30 day retention",
+        "facility": "local1",
+        "priority": "notice",
+        "tag": "log-management"
+      },
+      "expected_outcome": "Configuration change logged to syslog"
+    }
+  ],
+  "success_criteria": "Centralized logging active, log rotation configured and tested",
+  "cleanup": "None - configuration persists"
+}

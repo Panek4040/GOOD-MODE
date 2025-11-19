@@ -1,18 +1,86 @@
 {
-  "name": "lnx_automation_task_runner_systemctl_enable_2",
-  "description": "Enable service for Run sequence of shell tasks with checks",
-  "pattern": "run sequence of shell tasks with checks|enable service",
-  "parameters": [
-    "service"
-  ],
+  "name": "create_systemd_timer",
+  "description": "Create systemd timer unit for scheduled task execution",
+  "pattern": "systemd.*timer|schedule.*service|timer.*unit",
+  "parameters": ["service_name", "timer_schedule"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "systemctl enable"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "cat > /etc/systemd/system/{{service_name}}.service <<'EOF'\n[Unit]\nDescription={{service_name}} automated task\n\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/{{service_name}}.sh\nEOF\ncat /etc/systemd/system/{{service_name}}.service"]
       },
-      "expected_output": "Result of Enable service"
+      "expected_output": {
+        "type": "string",
+        "example": "[Unit]\nDescription=backup automated task\n\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/backup.sh"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "cat > /etc/systemd/system/{{service_name}}.timer <<'EOF'\n[Unit]\nDescription={{service_name}} timer\n\n[Timer]\nOnCalendar={{timer_schedule}}\nPersistent=true\n\n[Install]\nWantedBy=timers.target\nEOF\ncat /etc/systemd/system/{{service_name}}.timer"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[Unit]\nDescription=backup timer\n\n[Timer]\nOnCalendar=daily\nPersistent=true\n\n[Install]\nWantedBy=timers.target"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": ["daemon-reload"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": ["enable", "{{service_name}}.timer"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Created symlink /etc/systemd/system/timers.target.wants/backup.timer → /etc/systemd/system/backup.timer."
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": ["start", "{{service_name}}.timer"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": ["status", "{{service_name}}.timer"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "● backup.timer - backup timer\n     Loaded: loaded (/etc/systemd/system/backup.timer; enabled; vendor preset: enabled)\n     Active: active (waiting) since Mon 2025-11-18 15:30:00 UTC; 5s ago\n    Trigger: Tue 2025-11-19 00:00:00 UTC; 8h 29min left\n   Triggers: ● backup.service"
+      }
     }
   ],
   "stats": {
@@ -21,6 +89,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

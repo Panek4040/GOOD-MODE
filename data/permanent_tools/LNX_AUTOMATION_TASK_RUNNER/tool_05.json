@@ -1,18 +1,73 @@
 {
-  "name": "lnx_automation_task_runner_view_logs_5",
-  "description": "View service logs for Run sequence of shell tasks with checks",
-  "pattern": "run sequence of shell tasks with checks|view service logs",
-  "parameters": [
-    "service"
-  ],
+  "name": "remove_scheduled_task",
+  "description": "Remove scheduled task from cron, systemd timer or at queue",
+  "pattern": "remove.*task|delete.*cron|cancel.*job",
+  "parameters": ["task_type", "task_id"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "journalctl -u"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "if [ '{{task_type}}' = 'cron' ]; then crontab -l | grep -v '{{task_id}}'; elif [ '{{task_type}}' = 'timer' ]; then systemctl status {{task_id}}.timer; elif [ '{{task_type}}' = 'at' ]; then at -c {{task_id}} | tail -3; fi"]
       },
-      "expected_output": "Result of View service logs"
+      "expected_output": {
+        "type": "string",
+        "example": "0 2 * * * /usr/local/bin/backup.sh\n30 */6 * * * /usr/local/bin/cleanup.sh"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "if [ '{{task_type}}' = 'cron' ]; then crontab -l | grep -v '{{task_id}}' | crontab - && echo 'Cron job removed'; elif [ '{{task_type}}' = 'timer' ]; then systemctl stop {{task_id}}.timer && echo 'Timer stopped'; elif [ '{{task_type}}' = 'at' ]; then atrm {{task_id}} && echo 'At job {{task_id}} removed'; fi"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Cron job removed"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "if [ '{{task_type}}' = 'cron' ]; then crontab -l; elif [ '{{task_type}}' = 'timer' ]; then systemctl status {{task_id}}.timer; elif [ '{{task_type}}' = 'at' ]; then atq; fi"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "0 2 * * * /usr/local/bin/backup.sh\n30 */6 * * * /usr/local/bin/cleanup.sh"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "if [ '{{task_type}}' = 'timer' ]; then systemctl disable {{task_id}}.timer && echo 'Timer disabled'; else echo 'Task removed successfully'; fi"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Task removed successfully"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo 'Removed {{task_type}} task: {{task_id}}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Removed cron task: /usr/local/bin/old_task.sh"
+      }
     }
   ],
   "stats": {
@@ -21,6 +76,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

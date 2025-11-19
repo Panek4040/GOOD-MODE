@@ -1,18 +1,60 @@
 {
-  "name": "lnx_fs_search_text_sorted_time_5",
-  "description": "Sort by modification time for Search text pattern in files",
-  "pattern": "search text pattern in files|sort by modification time",
-  "parameters": [
-    "path"
-  ],
+  "name": "text_search_binary_and_fixed",
+  "description": "Search in binary files and use fixed string matching",
+  "pattern": "search.*binary|fixed.*string|literal.*search",
+  "parameters": ["path", "pattern"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "ls -lt"
+        "tool": "shell",
+        "operation": "run",
+        "command": "grep",
+        "args": ["-r", "-a", "-n", "{{pattern}}", "{{path}}"]
       },
-      "expected_output": "Result of Sort by modification time"
+      "expected_output": {
+        "type": "string",
+        "example": "/usr/bin/python3.8:4523:Binary file matches\n/lib/systemd/systemd:8912:Binary file matches\n/var/cache/app.db:156:username='admin'"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "grep",
+        "args": ["-r", "-F", "-n", "{{pattern}}", "{{path}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/config.php:15:$password = 'p@$$w0rd!';\n/etc/app/settings.conf:42:secret_key=p@$$w0rd!\n/home/user/.bashrc:89:alias grep='grep --color=auto'"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -I -l '{{pattern}}' '{{path}}' | sort"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/etc/app/settings.conf\n/home/user/.bashrc\n/var/www/config.php"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "strings '{{path}}' | grep '{{pattern}}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "password=secret123\napi_key=sk_live_abc123xyz\ndb_connection_string=mysql://user:pass@localhost"
+      }
     }
   ],
   "stats": {
@@ -21,6 +63,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

@@ -1,0 +1,52 @@
+{
+  "episode_id": "LNX_LOG_SYSLOG_JOURNALCTL_EP01",
+  "title": "Debug Application Failures Using System Logs",
+  "description": "Query journalctl for service errors, analyze logs, identify root cause",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Query system logs from the last hour for errors and critical messages",
+      "tool": "journalctl_query_system_logs_time_range",
+      "parameters": {
+        "time_since": "1 hour ago",
+        "priority": "err"
+      },
+      "expected_outcome": "Found 23 error messages including database connection failures"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Filter logs specifically for the web-app.service to see detailed errors",
+      "tool": "journalctl_filter_by_service_unit",
+      "parameters": {
+        "unit_name": "web-app.service",
+        "lines": "100"
+      },
+      "expected_outcome": "Service logs show repeated connection timeout to Redis at localhost:6379"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Monitor web-app logs in real-time for ERROR patterns",
+      "tool": "tail_grep_realtime_log_monitoring",
+      "parameters": {
+        "log_file": "/var/log/web-app/application.log",
+        "grep_pattern": "ERROR|CRITICAL"
+      },
+      "expected_outcome": "7 errors in last 100 lines, all Redis connection related"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Write diagnostic message to syslog marking investigation start",
+      "tool": "logger_write_to_syslog_facility",
+      "parameters": {
+        "message": "Investigation started: Redis connection failures in web-app",
+        "facility": "local0",
+        "priority": "info",
+        "tag": "web-app-debug"
+      },
+      "expected_outcome": "Message logged to syslog with tag web-app-debug"
+    }
+  ],
+  "success_criteria": "Root cause identified: Redis service down, investigation logged",
+  "cleanup": "systemctl restart redis && systemctl restart web-app"
+}

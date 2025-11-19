@@ -1,0 +1,35 @@
+{"instruction":"Install nginx web server on Ubuntu","input":{},"output":{"tool":"apt_install_update_packages","action":"apt-get install -y nginx","result":"nginx 1.18.0 installed"}}
+{"instruction":"Update all package lists from repositories","input":{},"output":{"tool":"apt_install_update_packages","action":"apt-get update","result":"Package lists updated, 234 packages can be upgraded"}}
+{"instruction":"Upgrade all installed packages to latest versions","input":{},"output":{"tool":"apt_install_update_packages","action":"apt-get upgrade -y","result":"47 upgraded, 0 newly installed, 234MB downloaded"}}
+{"instruction":"Search for Python packages in apt","input":{},"output":{"tool":"apt_search_show_package_info","action":"apt-cache search python3","result":"python3 - interactive high-level language, python3-pip - package installer"}}
+{"instruction":"Show detailed information about docker package","input":{},"output":{"tool":"apt_search_show_package_info","action":"apt-cache show docker.io","result":"Version: 20.10.21, Description: Linux container runtime"}}
+{"instruction":"Remove old Apache server no longer needed","input":{},"output":{"tool":"apt_remove_purge_cleanup","action":"apt-get remove apache2","result":"apache2 removed, config files retained"}}
+{"instruction":"Completely purge MySQL including all configs","input":{},"output":{"tool":"apt_remove_purge_cleanup","action":"apt-get purge mysql-server","result":"mysql-server and configs completely removed"}}
+{"instruction":"Install package from downloaded .deb file","input":{},"output":{"tool":"dpkg_rpm_package_file_management","action":"dpkg -i /tmp/app.deb","result":"app_1.0_amd64.deb installed successfully"}}
+{"instruction":"Add PHP PPA repository for newer versions","input":{},"output":{"tool":"apt_repository_management","action":"add-apt-repository ppa:ondrej/php","result":"PPA added, apt update required"}}
+{"instruction":"Hold kernel package to prevent auto-upgrade","input":{},"output":{"tool":"package_hold_pin_version_lock","action":"apt-mark hold linux-image-generic","result":"linux-image-generic set on hold"}}
+{"instruction":"Install git for version control","input":{},"output":{"tool":"apt_install_update_packages","action":"apt-get install git","result":"git 2.34.1 installed"}}
+{"instruction":"List all installed packages matching 'lib'","input":{},"output":{"tool":"apt_search_show_package_info","action":"dpkg -l | grep lib","result":"234 library packages installed"}}
+{"instruction":"Remove unused dependencies automatically","input":{},"output":{"tool":"apt_remove_purge_cleanup","action":"apt-get autoremove","result":"12 packages removed, 156MB freed"}}
+{"instruction":"Install PostgreSQL database server","input":{},"output":{"tool":"apt_install_update_packages","action":"apt-get install postgresql","result":"PostgreSQL 14.5 installed and configured"}}
+{"instruction":"Check package dependencies for nginx","input":{},"output":{"tool":"apt_search_show_package_info","action":"apt-cache depends nginx","result":"Depends: libc6, libpcre3, zlib1g"}}
+{"instruction":"Install Redis from .deb package file","input":{},"output":{"tool":"dpkg_rpm_package_file_management","action":"dpkg -i redis_6.2.deb","result":"redis-server 6.2 installed"}}
+{"instruction":"Add Docker official repository","input":{},"output":{"tool":"apt_repository_management","action":"add-apt-repository 'deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable'","result":"Docker repo added successfully"}}
+{"instruction":"Unhold package to allow upgrades","input":{},"output":{"tool":"package_hold_pin_version_lock","action":"apt-mark unhold nginx","result":"nginx released from hold"}}
+{"instruction":"Install monitoring tools: htop iotop","input":{},"output":{"tool":"apt_install_update_packages","action":"apt-get install htop iotop","result":"htop 3.2.1, iotop 0.6 installed"}}
+{"instruction":"Show package version and candidate for upgrade","input":{},"output":{"tool":"apt_search_show_package_info","action":"apt-cache policy openssh-server","result":"Installed: 1:8.9p1, Candidate: 1:9.0p1"}}
+{"instruction":"Clean apt cache to free disk space","input":{},"output":{"tool":"apt_remove_purge_cleanup","action":"apt-get clean","result":"1.2GB freed from /var/cache/apt"}}
+{"instruction":"Install Node.js from downloaded package","input":{},"output":{"tool":"dpkg_rpm_package_file_management","action":"dpkg -i nodejs_18.deb && apt-get install -f","result":"Node.js 18.12 installed, dependencies fixed"}}
+{"instruction":"Remove outdated repository from sources","input":{},"output":{"tool":"apt_repository_management","action":"add-apt-repository -r ppa:old/repo","result":"Repository removed from sources.list.d"}}
+{"instruction":"Show all held packages","input":{},"output":{"tool":"package_hold_pin_version_lock","action":"apt-mark showhold","result":"linux-image-generic, nvidia-driver-525"}}
+{"instruction":"Install build tools for compiling software","input":{},"output":{"tool":"apt_install_update_packages","action":"apt-get install build-essential","result":"gcc, g++, make installed"}}
+{"instruction":"List files installed by nginx package","input":{},"output":{"tool":"apt_search_show_package_info","action":"dpkg -L nginx","result":"/usr/sbin/nginx, /etc/nginx/nginx.conf, /var/www/html"}}
+{"instruction":"Remove package and dependencies not needed","input":{},"output":{"tool":"apt_remove_purge_cleanup","action":"apt-get purge --auto-remove apache2","result":"apache2 and 8 dependencies removed"}}
+{"instruction":"Inspect RPM package before installing","input":{},"output":{"tool":"dpkg_rpm_package_file_management","action":"rpm -qip app.rpm","result":"Name: app, Version: 2.0, Architecture: x86_64"}}
+{"instruction":"Update repository cache after adding new source","input":{},"output":{"tool":"apt_repository_management","action":"apt-get update","result":"New packages available from added repository"}}
+{"instruction":"Prevent package from being upgraded","input":{},"output":{"tool":"package_hold_pin_version_lock","action":"apt-mark hold postgresql","result":"postgresql held at 14.5"}}
+{"instruction":"Install Ansible automation tool","input":{},"output":{"tool":"apt_install_update_packages","action":"apt-get install ansible","result":"ansible 2.14.2 installed with dependencies"}}
+{"instruction":"Search for all Docker related packages","input":{},"output":{"tool":"apt_search_show_package_info","action":"apt-cache search docker","result":"docker.io, docker-compose, containerd found"}}
+{"instruction":"Remove old kernels to free boot space","input":{},"output":{"tool":"apt_remove_purge_cleanup","action":"apt-get autoremove --purge","result":"3 old kernel versions removed, 450MB freed"}}
+{"instruction":"Install from local .deb with dependencies","input":{},"output":{"tool":"dpkg_rpm_package_file_management","action":"apt install ./local_package.deb","result":"Package and dependencies installed"}}
+{"instruction":"List all available repositories and priorities","input":{},"output":{"tool":"apt_repository_management","action":"apt-cache policy","result":"500 ubuntu main, 500 ubuntu universe, 100 PPA"}}

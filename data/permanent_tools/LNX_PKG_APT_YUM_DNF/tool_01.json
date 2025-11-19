@@ -1,0 +1,14 @@
+{
+  "name": "apt_install_update_packages",
+  "description": "Install, update, upgrade packages using apt on Debian/Ubuntu systems",
+  "pattern": "install.*package|apt.*install|update.*system|upgrade.*packages",
+  "parameters": ["package_name", "operation"],
+  "sequence": [
+    {"action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "apt-cache policy {{package_name}} | head -5"]}, "expected_output": {"type": "string", "example": "{{package_name}}:\n  Installed: (none)\n  Candidate: 1.18.0-1ubuntu1"}},
+    {"action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "if [ '{{operation}}' = 'install' ]; then apt-get install -y {{package_name}}; elif [ '{{operation}}' = 'update' ]; then apt-get update; elif [ '{{operation}}' = 'upgrade' ]; then apt-get upgrade -y; fi"]}, "expected_output": {"type": "string", "example": "Reading package lists... Done\nBuilding dependency tree... Done\n{{package_name}} is already the newest version"}},
+    {"action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "dpkg", "args": ["-l", "{{package_name}}"]}, "expected_output": {"type": "string", "example": "ii  {{package_name}}  1.18.0-1ubuntu1  amd64  High-performance web server"}},
+    {"action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "dpkg -L {{package_name}} | head -10"]}, "expected_output": {"type": "string", "example": "/usr/bin/{{package_name}}\n/usr/share/doc/{{package_name}}\n/etc/{{package_name}}"}}
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

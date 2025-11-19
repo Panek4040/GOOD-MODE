@@ -1,19 +1,73 @@
 {
-  "name": "lnx_fs_safe_delete_recursive_scan_3",
-  "description": "Recursive scan for Safe delete with backup",
-  "pattern": "safe delete with backup|recursive scan",
-  "parameters": [
-    "path",
-    "depth"
-  ],
+  "name": "safe_delete_batch_with_log",
+  "description": "Delete multiple files matching pattern with detailed logging",
+  "pattern": "batch.*delete|delete.*multiple|remove.*pattern",
+  "parameters": ["path", "pattern"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "find -type f"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -name '{{pattern}}' -type f | head -20"]
       },
-      "expected_output": "Result of Recursive scan"
+      "expected_output": {
+        "type": "string",
+        "example": "/tmp/cache/session_abc123.tmp\n/tmp/cache/session_def456.tmp\n/tmp/cache/session_ghi789.tmp"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -name '{{pattern}}' -type f -exec stat -c '%n|%s|%y' {} \\; | head -10"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/tmp/cache/session_abc123.tmp|4096|2025-11-17 08:30:15.000000000 +0000\n/tmp/cache/session_def456.tmp|8192|2025-11-17 09:15:22.000000000 +0000"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "count=$(find '{{path}}' -name '{{pattern}}' -type f | wc -l); total_size=$(find '{{path}}' -name '{{pattern}}' -type f -exec stat -c %s {} \\; | awk '{sum+=$1} END {print sum}'); size_mb=$((total_size / 1024 / 1024)); echo \"Files to delete: $count (Total: ${size_mb}MB)\""]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Files to delete: 127 (Total: 42MB)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "log_file=\"/tmp/delete_log_$(date +%Y%m%d_%H%M%S).txt\"; find '{{path}}' -name '{{pattern}}' -type f -exec sh -c 'echo \"$(date +\\\"%Y-%m-%d %H:%M:%S\\\") DELETE $(stat -c \\\"%n %s bytes\\\" \\\"$1\\\")\" >> \"'$log_file'\"' _ {} \\; && echo \"Log created: $log_file\""]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Log created: /tmp/delete_log_20251118_143022.txt"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "deleted=0; find '{{path}}' -name '{{pattern}}' -type f | while read f; do rm \"$f\" && ((deleted++)); done; echo \"Deleted $deleted files\""]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Deleted 127 files"
+      }
     }
   ],
   "stats": {
@@ -22,6 +76,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

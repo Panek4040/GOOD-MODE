@@ -1,56 +1,50 @@
 {
-  "id": "episode_LNX_FS_DISK_USAGE_TREE_002",
-  "goal": "Complete Disk usage tree report workflow variant 2",
-  "thoughts": [
+  "topic_id": "LNX_FS_DISK_USAGE_TREE",
+  "title": "Analyze user home directory usage",
+  "goal": "Determine which users are consuming most space and what types of data",
+  "steps": [
     {
-      "type": "plan",
-      "content": "Planning to execute Disk usage tree report",
-      "timestamp": 1763490734.209181
-    },
-    {
-      "type": "analyze",
-      "content": "Analyzing requirements for filesystem task",
-      "timestamp": 1763490739.209181
-    }
-  ],
-  "actions": [
-    {
-      "step": "Initialize Disk usage tree report",
+      "thought": "Check total /home size",
       "action": {
         "type": "system_command",
-        "command": "Execute step 1 of LNX_FS_DISK_USAGE_TREE"
+        "tool": "shell",
+        "operation": "run",
+        "command": "du",
+        "args": [
+          "-sh",
+          "/home"
+        ]
       },
-      "result": {
-        "success": true,
-        "stdout": "Step 1 completed for Disk usage tree report"
-      }
+      "observation": "285G\t/home"
     },
     {
-      "step": "Process filesystem data",
+      "thought": "List users by size",
       "action": {
-        "type": "data_processing",
-        "command": "Process data for LNX_FS_DISK_USAGE_TREE"
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "du -sh /home/* | sort -rh"
+        ]
       },
-      "result": {
-        "success": true,
-        "stdout": "Data processed successfully"
-      }
+      "observation": "156G\t/home/alice\n89G\t/home/bob\n45G\t/home/carol"
     },
     {
-      "step": "Finalize Disk usage tree report",
+      "thought": "Check percentage breakdown",
       "action": {
-        "type": "validation",
-        "command": "Validate results"
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "total=$(du -sb /home | awk '{print $1}'); du -sb /home/* | awk -v t=$total '{pct=$1*100/t; printf \"%d|%.2f%%|%s\\n\", $1, pct, $2}' | sort -rn"
+        ]
       },
-      "result": {
-        "success": true,
-        "stdout": "Validation passed"
-      }
+      "observation": "167503724544|54.7%|/home/alice\n95443717734|31.2%|/home/bob\n48318382080|15.8%|/home/carol"
     }
   ],
-  "outcome": {
-    "success": true,
-    "steps_executed": 3
-  },
-  "duration": 10.8
+  "success_condition": "alice uses 156GB (54.7%), bob 89GB (31.2%), carol 45GB (15.8%)"
 }

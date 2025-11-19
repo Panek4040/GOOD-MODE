@@ -1,56 +1,50 @@
 {
-  "id": "episode_LNX_FS_DISK_USAGE_TREE_001",
-  "goal": "Complete Disk usage tree report workflow variant 1",
-  "thoughts": [
+  "topic_id": "LNX_FS_DISK_USAGE_TREE",
+  "title": "Identify space-consuming directories in /var",
+  "goal": "Find which subdirectories in /var are consuming the most disk space and identify cleanup opportunities",
+  "steps": [
     {
-      "type": "plan",
-      "content": "Planning to execute Disk usage tree report",
-      "timestamp": 1763489734.209181
-    },
-    {
-      "type": "analyze",
-      "content": "Analyzing requirements for filesystem task",
-      "timestamp": 1763489739.209181
-    }
-  ],
-  "actions": [
-    {
-      "step": "Initialize Disk usage tree report",
+      "thought": "First check overall /var size",
       "action": {
         "type": "system_command",
-        "command": "Execute step 1 of LNX_FS_DISK_USAGE_TREE"
+        "tool": "shell",
+        "operation": "run",
+        "command": "du",
+        "args": [
+          "-sh",
+          "/var"
+        ]
       },
-      "result": {
-        "success": true,
-        "stdout": "Step 1 completed for Disk usage tree report"
-      }
+      "observation": "45G\t/var"
     },
     {
-      "step": "Process filesystem data",
+      "thought": "Get breakdown of subdirectories",
       "action": {
-        "type": "data_processing",
-        "command": "Process data for LNX_FS_DISK_USAGE_TREE"
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "du -sh /var/* | sort -rh"
+        ]
       },
-      "result": {
-        "success": true,
-        "stdout": "Data processed successfully"
-      }
+      "observation": "18G\t/var/lib\n12G\t/var/log\n8.5G\t/var/cache\n4.2G\t/var/www"
     },
     {
-      "step": "Finalize Disk usage tree report",
+      "thought": "Drill down into /var/lib",
       "action": {
-        "type": "validation",
-        "command": "Validate results"
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "du -h --max-depth=2 /var/lib | sort -rh | head -15"
+        ]
       },
-      "result": {
-        "success": true,
-        "stdout": "Validation passed"
-      }
+      "observation": "18G\t/var/lib\n8.5G\t/var/lib/mysql\n4.2G\t/var/lib/docker\n2.8G\t/var/lib/postgresql"
     }
   ],
-  "outcome": {
-    "success": true,
-    "steps_executed": 3
-  },
-  "duration": 8.5
+  "success_condition": "Identified top consumers: /var/lib (18GB), /var/log (12GB), /var/cache (8.5GB)"
 }

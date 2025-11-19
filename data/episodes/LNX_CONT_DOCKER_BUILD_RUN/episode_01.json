@@ -1,56 +1,54 @@
 {
-  "id": "episode_LNX_CONT_DOCKER_BUILD_RUN_001",
-  "goal": "Complete Build and run Docker image workflow variant 1",
-  "thoughts": [
+  "episode_id": "LNX_CONT_DOCKER_BUILD_RUN_EP01",
+  "title": "Build and Deploy Python Web Application",
+  "description": "Complete workflow: build Python Flask app image, run with port mapping and volumes, verify deployment",
+  "difficulty": "intermediate",
+  "steps": [
     {
-      "type": "plan",
-      "content": "Planning to execute Build and run Docker image",
-      "timestamp": 1763489734.303277
+      "step_number": 1,
+      "instruction": "Build Docker image from Flask application Dockerfile",
+      "tool": "docker_build_image_from_dockerfile",
+      "parameters": {
+        "dockerfile_path": "/home/user/flask-app/Dockerfile",
+        "image_tag": "flask-app:v1.0",
+        "build_context": "/home/user/flask-app"
+      },
+      "expected_outcome": "Image flask-app:v1.0 built successfully with size ~150MB"
     },
     {
-      "type": "analyze",
-      "content": "Analyzing requirements for containers task",
-      "timestamp": 1763489739.303277
+      "step_number": 2,
+      "instruction": "Run Flask container with port 5000 mapped to host 8080 and mount logs directory",
+      "tool": "docker_run_container_with_ports_volumes",
+      "parameters": {
+        "image_name": "flask-app:v1.0",
+        "container_name": "flask-web",
+        "host_port": "8080",
+        "container_port": "5000",
+        "volume_mount": "/var/log/flask:/app/logs"
+      },
+      "expected_outcome": "Container flask-web running on port 8080 with logs mounted"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Inspect container logs to verify Flask application started correctly",
+      "tool": "docker_inspect_logs_container_diagnostics",
+      "parameters": {
+        "container_name": "flask-web",
+        "log_lines": "50"
+      },
+      "expected_outcome": "Logs show Flask server running on 0.0.0.0:5000"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Execute health check command inside running container",
+      "tool": "docker_exec_interactive_shell_commands",
+      "parameters": {
+        "container_name": "flask-web",
+        "shell_command": "curl -f http://localhost:5000/health || exit 1"
+      },
+      "expected_outcome": "Health check returns 200 OK"
     }
   ],
-  "actions": [
-    {
-      "step": "Initialize Build and run Docker image",
-      "action": {
-        "type": "system_command",
-        "command": "Execute step 1 of LNX_CONT_DOCKER_BUILD_RUN"
-      },
-      "result": {
-        "success": true,
-        "stdout": "Step 1 completed for Build and run Docker image"
-      }
-    },
-    {
-      "step": "Process containers data",
-      "action": {
-        "type": "data_processing",
-        "command": "Process data for LNX_CONT_DOCKER_BUILD_RUN"
-      },
-      "result": {
-        "success": true,
-        "stdout": "Data processed successfully"
-      }
-    },
-    {
-      "step": "Finalize Build and run Docker image",
-      "action": {
-        "type": "validation",
-        "command": "Validate results"
-      },
-      "result": {
-        "success": true,
-        "stdout": "Validation passed"
-      }
-    }
-  ],
-  "outcome": {
-    "success": true,
-    "steps_executed": 3
-  },
-  "duration": 8.5
+  "success_criteria": "Flask application accessible on host:8080, health check passing, logs visible",
+  "cleanup": "docker stop flask-web && docker rm flask-web"
 }

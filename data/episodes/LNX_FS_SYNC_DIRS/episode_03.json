@@ -1,56 +1,107 @@
 {
-  "id": "episode_LNX_FS_SYNC_DIRS_003",
-  "goal": "Complete Sync directories (rsync pattern) workflow variant 3",
-  "thoughts": [
+  "topic_id": "LNX_FS_SYNC_DIRS",
+  "title": "Incremental backup with changed file preservation",
+  "goal": "Perform incremental sync while backing up any changed files to timestamped directory",
+  "steps": [
     {
-      "type": "plan",
-      "content": "Planning to execute Sync directories (rsync pattern)",
-      "timestamp": 1763491734.2203481
-    },
-    {
-      "type": "analyze",
-      "content": "Analyzing requirements for filesystem task",
-      "timestamp": 1763491739.2203481
-    }
-  ],
-  "actions": [
-    {
-      "step": "Initialize Sync directories (rsync pattern)",
+      "thought": "Create backup directory structure",
       "action": {
         "type": "system_command",
-        "command": "Execute step 1 of LNX_FS_SYNC_DIRS"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "mkdir -p /backup/incremental && timestamp=$(date +%Y%m%d_%H%M%S) && echo \"Backup timestamp: $timestamp\""]
       },
-      "result": {
-        "success": true,
-        "stdout": "Step 1 completed for Sync directories (rsync pattern)"
-      }
+      "observation": "Backup timestamp: 20251118_150000"
     },
     {
-      "step": "Process filesystem data",
+      "thought": "Check which files will be backed up",
       "action": {
-        "type": "data_processing",
-        "command": "Process data for LNX_FS_SYNC_DIRS"
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "rsync -av --backup --backup-dir=/backup/incremental/backup_$(date +%Y%m%d_%H%M%S) --dry-run --stats /var/www/data/ /var/www/data_sync/ | grep -E '(Number of|Total)'"]
       },
-      "result": {
-        "success": true,
-        "stdout": "Data processed successfully"
-      }
+      "observation": "Number of files: 847 (reg: 789, dir: 58)\nNumber of created files: 8\nNumber of regular files transferred: 23\nTotal file size: 4.2G bytes\nTotal transferred file size: 89M bytes"
     },
     {
-      "step": "Finalize Sync directories (rsync pattern)",
+      "thought": "List some files that will change",
       "action": {
-        "type": "validation",
-        "command": "Validate results"
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "rsync -av --dry-run --itemize-changes /var/www/data/ /var/www/data_sync/ | grep '^>' | head -10"]
       },
-      "result": {
-        "success": true,
-        "stdout": "Validation passed"
-      }
+      "observation": ">f+++++++ database.sql\n>f+++++++ exports/report_2025.csv\n>f.st.... config.json\n>f.st.... users.db\n>f+++++++ logs/app_20251118.log"
+    },
+    {
+      "thought": "Execute incremental sync with backup",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "rsync -av --backup --backup-dir=/backup/incremental/backup_$(date +%Y%m%d_%H%M%S) /var/www/data/ /var/www/data_sync/"]
+      },
+      "observation": "sending incremental file list\ndatabase.sql\nexports/report_2025.csv\nconfig.json\nusers.db\nlogs/app_20251118.log\n\nsent 89.4M bytes  received 1.2K bytes  5.96M bytes/sec\ntotal size is 4.2G  speedup is 47.04"
+    },
+    {
+      "thought": "Verify backup directory contents",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find /backup/incremental -type f | head -10"]
+      },
+      "observation": "/backup/incremental/backup_20251118_150000/config.json\n/backup/incremental/backup_20251118_150000/users.db\n/backup/incremental/backup_20251118_150000/database.sql"
+    },
+    {
+      "thought": "Count backed up files",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find /backup/incremental -type f | wc -l"]
+      },
+      "observation": "23"
+    },
+    {
+      "thought": "Check backup directory size",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -sh /backup/incremental"]
+      },
+      "observation": "89M\t/backup/incremental"
+    },
+    {
+      "thought": "Verify sync destination matches source",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "diff -rq /var/www/data /var/www/data_sync | wc -l"]
+      },
+      "observation": "0"
+    },
+    {
+      "thought": "Sample verification of backed up file",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "ls -lh /backup/incremental/backup_20251118_150000/config.json && md5sum /backup/incremental/backup_20251118_150000/config.json"]
+      },
+      "observation": "-rw-r--r-- 1 www-data www-data 4.2K Nov 18 10:30 /backup/incremental/backup_20251118_150000/config.json\nd8e8fca2dc0f896fd7cb4cb0031ba249  /backup/incremental/backup_20251118_150000/config.json"
     }
   ],
-  "outcome": {
-    "success": true,
-    "steps_executed": 3
-  },
-  "duration": 13.1
+  "success_condition": "Synced 4.2G data transferring 89M of changes, backed up 23 changed files to timestamped directory, verified directories match"
 }

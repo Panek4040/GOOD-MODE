@@ -1,19 +1,73 @@
 {
-  "name": "lnx_fs_sync_dirs_recursive_scan_3",
-  "description": "Recursive scan for Sync directories (rsync pattern)",
-  "pattern": "sync directories (rsync pattern)|recursive scan",
-  "parameters": [
-    "path",
-    "depth"
-  ],
+  "name": "sync_dirs_with_exclude",
+  "description": "Sync directories excluding specific patterns",
+  "pattern": "sync.*exclude|rsync.*ignore|sync.*skip",
+  "parameters": ["source_path", "dest_path", "exclude_pattern"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "find -type f"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{source_path}}' -name '{{exclude_pattern}}' | head -10"]
       },
-      "expected_output": "Result of Recursive scan"
+      "expected_output": {
+        "type": "string",
+        "example": "/var/www/html/node_modules/package1\n/var/www/html/node_modules/package2\n/var/www/html/cache/session.tmp"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "rsync",
+        "args": ["-av", "--exclude={{exclude_pattern}}", "--dry-run", "--stats", "{{source_path}}/", "{{dest_path}}/"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "sending incremental file list\nindex.php\nconfig.php\nassets/style.css\n\nNumber of files: 456 (reg: 420, dir: 36)\nNumber of files transferred: 23\nTotal file size: 842M bytes\nTotal transferred file size: 45M bytes"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "rsync",
+        "args": ["-av", "--exclude={{exclude_pattern}}", "--exclude=.git", "--exclude=*.log", "{{source_path}}/", "{{dest_path}}/"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "sending incremental file list\nindex.php\nconfig.php\nassets/\nassets/style.css\n\nsent 45.2M bytes  received 892 bytes  3.01M bytes/sec\ntotal size is 842M  speedup is 18.62"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -sh '{{source_path}}' '{{dest_path}}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "2.4G\t/var/www/html\n842M\t/backup/www_html"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "test -d '{{dest_path}}/node_modules' && echo 'Excluded dir exists in dest' || echo 'Excluded dir not copied'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Excluded dir not copied"
+      }
     }
   ],
   "stats": {
@@ -22,6 +76,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

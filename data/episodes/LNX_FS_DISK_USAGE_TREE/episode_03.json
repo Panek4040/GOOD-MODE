@@ -1,56 +1,50 @@
 {
-  "id": "episode_LNX_FS_DISK_USAGE_TREE_003",
-  "goal": "Complete Disk usage tree report workflow variant 3",
-  "thoughts": [
+  "topic_id": "LNX_FS_DISK_USAGE_TREE",
+  "title": "Find cache and temporary directories to clean",
+  "goal": "Locate cache directories exceeding 500MB that can be safely cleaned",
+  "steps": [
     {
-      "type": "plan",
-      "content": "Planning to execute Disk usage tree report",
-      "timestamp": 1763491734.209181
-    },
-    {
-      "type": "analyze",
-      "content": "Analyzing requirements for filesystem task",
-      "timestamp": 1763491739.209181
-    }
-  ],
-  "actions": [
-    {
-      "step": "Initialize Disk usage tree report",
+      "thought": "Find large cache dirs",
       "action": {
         "type": "system_command",
-        "command": "Execute step 1 of LNX_FS_DISK_USAGE_TREE"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "du -m --max-depth=4 / 2>/dev/null | awk '$1 > 500 && $2 ~ /cache|tmp/ {printf \"%dM|%s\\n\", $1, $2}' | sort -rn | head -10"
+        ]
       },
-      "result": {
-        "success": true,
-        "stdout": "Step 1 completed for Disk usage tree report"
-      }
+      "observation": "6656M|/var/cache/apt\n2048M|/tmp\n1536M|/home/alice/.cache\n1024M|/var/tmp"
     },
     {
-      "step": "Process filesystem data",
+      "thought": "Check what's in apt cache",
       "action": {
-        "type": "data_processing",
-        "command": "Process data for LNX_FS_DISK_USAGE_TREE"
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "du -sh /var/cache/apt/*"
+        ]
       },
-      "result": {
-        "success": true,
-        "stdout": "Data processed successfully"
-      }
+      "observation": "6.2G\t/var/cache/apt/archives\n512M\t/var/cache/apt/pkgcache.bin"
     },
     {
-      "step": "Finalize Disk usage tree report",
+      "thought": "Find directories over 500MB threshold",
       "action": {
-        "type": "validation",
-        "command": "Validate results"
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "find / -maxdepth 3 -type d -exec du -sm {} \\; 2>/dev/null | awk '$1 > 500' | sort -rn | head -15"
+        ]
       },
-      "result": {
-        "success": true,
-        "stdout": "Validation passed"
-      }
+      "observation": "45120\t/var\n28672\t/home\n18432\t/var/lib\n12288\t/var/log\n8704\t/var/cache\n6656\t/var/cache/apt\n5120\t/var/lib/mysql"
     }
   ],
-  "outcome": {
-    "success": true,
-    "steps_executed": 3
-  },
-  "duration": 13.1
+  "success_condition": "Found apt cache (6.6GB), /tmp (2GB), user caches (1.5GB) as cleanable"
 }

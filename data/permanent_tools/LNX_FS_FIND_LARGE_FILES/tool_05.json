@@ -1,18 +1,60 @@
 {
-  "name": "lnx_fs_find_large_files_sorted_time_5",
-  "description": "Sort by modification time for Find largest files in path",
-  "pattern": "find largest files in path|sort by modification time",
-  "parameters": [
-    "path"
-  ],
+  "name": "find_large_group_by_dir",
+  "description": "Find large files and group results by parent directory",
+  "pattern": "large.*per.*dir|group.*large.*directory",
+  "parameters": ["path", "min_size_mb"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "ls -lt"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%h\\n' | sort | uniq -c | sort -rn"]
       },
-      "expected_output": "Result of Sort by modification time"
+      "expected_output": {
+        "type": "string",
+        "example": "     15 /var/log\n      8 /var/lib/mysql\n      5 /home/user/videos\n      3 /opt/backups"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -exec dirname {} \\; | sort | uniq"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/home/user/videos\n/opt/backups\n/var/lib/mysql\n/var/log"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "for dir in $(find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%h\\n' | sort -u); do echo \"$dir:\"; find \"$dir\" -maxdepth 1 -type f -size +{{min_size_mb}}M -printf '  %s|%f\\n'; done"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/var/log:\n  524288000|syslog.1\n  314572800|apache2.log\n/var/lib/mysql:\n  2147483648|ibdata1\n  1073741824|mysql.ibd"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%h|%s\\n' | awk -F'|' '{dir=$1; size=$2; sum[dir]+=size; count[dir]++} END {for (d in sum) print sum[d]\"|\"count[d]\"|\"d}' | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "3221225472|2|/var/lib/mysql\n838860800|2|/var/log\n536870912|1|/opt/backups"
+      }
     }
   ],
   "stats": {
@@ -21,6 +63,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

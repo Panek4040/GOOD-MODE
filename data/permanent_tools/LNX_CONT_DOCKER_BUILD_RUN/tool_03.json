@@ -1,19 +1,73 @@
 {
-  "name": "lnx_cont_docker_build_run_create_unit_3",
-  "description": "Create unit file for Build and run Docker image",
-  "pattern": "build and run docker image|create unit file",
-  "parameters": [
-    "service",
-    "spec"
-  ],
+  "name": "docker_run_with_env_network_limits",
+  "description": "Run container with environment variables, custom network, and resource constraints",
+  "pattern": "docker.*environment.*variables|container.*resource.*limits|docker.*network.*create",
+  "parameters": ["image_name", "container_name", "network_name", "memory_limit", "cpu_limit"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "cat > /etc/systemd"
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker",
+        "args": ["network", "create", "{{network_name}}"]
       },
-      "expected_output": "Result of Create unit file"
+      "expected_output": {
+        "type": "string",
+        "example": "f1e2d3c4b5a69788990011223344556677889900aabbccddeeff00112233"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker",
+        "args": ["network", "inspect", "{{network_name}}", "--format", "{{.Driver}} - {{.Scope}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "bridge - local"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker",
+        "args": ["run", "-d", "--name", "{{container_name}}", "--network", "{{network_name}}", "-e", "APP_ENV=production", "-e", "DB_HOST=postgres", "--memory", "{{memory_limit}}", "--cpus", "{{cpu_limit}}", "{{image_name}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "9f8e7d6c5b4a3210fedcba9876543210abcdef0123456789"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker",
+        "args": ["inspect", "{{container_name}}", "--format", "Memory: {{.HostConfig.Memory}} | CPUs: {{.HostConfig.NanoCpus}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Memory: 536870912 | CPUs: 1000000000"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker",
+        "args": ["exec", "{{container_name}}", "env"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\nHOSTNAME=9f8e7d6c5b4a\nAPP_ENV=production\nDB_HOST=postgres\nHOME=/root"
+      }
     }
   ],
   "stats": {
@@ -22,6 +76,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "neural_mesh_v5.2_generator"
 }

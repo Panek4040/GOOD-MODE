@@ -1,18 +1,73 @@
 {
-  "name": "lnx_fs_sync_dirs_list_basic_1",
-  "description": "Basic listing for Sync directories (rsync pattern)",
-  "pattern": "sync directories (rsync pattern)|basic listing",
-  "parameters": [
-    "path"
-  ],
+  "name": "sync_dirs_basic_rsync",
+  "description": "Synchronize directories using rsync with dry-run verification",
+  "pattern": "sync.*directories|rsync.*folders|copy.*sync",
+  "parameters": ["source_path", "dest_path"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "ls -lah"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -sh '{{source_path}}' && du -sh '{{dest_path}}' 2>/dev/null || echo '{{dest_path}}: does not exist'"]
       },
-      "expected_output": "Result of Basic listing"
+      "expected_output": {
+        "type": "string",
+        "example": "2.4G\t/var/www/html\n2.1G\t/backup/www_html"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "rsync",
+        "args": ["-av", "--dry-run", "--stats", "{{source_path}}/", "{{dest_path}}/"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "sending incremental file list\nindex.php\nconfig.php\nassets/\nassets/style.css\n\nNumber of files: 1,247 (reg: 1,102, dir: 145)\nNumber of created files: 23\nNumber of deleted files: 0\nNumber of regular files transferred: 23\nTotal file size: 2.4G bytes\nTotal transferred file size: 156M bytes"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo 'Starting sync at: '$(date +'%Y-%m-%d %H:%M:%S')"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Starting sync at: 2025-11-18 14:45:00"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "rsync",
+        "args": ["-av", "--progress", "{{source_path}}/", "{{dest_path}}/"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "sending incremental file list\nindex.php\n      12,288 100%    0.00kB/s    0:00:00\nconfig.php\n       4,096 100%    3.91MB/s    0:00:00\n\nsent 156.23M bytes  received 1.42K bytes  10.41M bytes/sec\ntotal size is 2.42G  speedup is 15.49"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo 'Completed at: '$(date +'%Y-%m-%d %H:%M:%S') && du -sh '{{dest_path}}'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Completed at: 2025-11-18 14:47:32\n2.4G\t/backup/www_html"
+      }
     }
   ],
   "stats": {
@@ -21,6 +76,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

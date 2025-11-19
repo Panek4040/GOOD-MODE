@@ -1,0 +1,1 @@
+{"episode_id":"LNX_SVC_SYSTEMD_SERVICE_EP02","title":"Episode 02","description":"Task 02","difficulty":"intermediate","steps":[{"step_number":1,"instruction":"Do task","tool":"tool1","parameters":{},"expected_outcome":"Success"}],"success_criteria":"Complete","cleanup":"None"}

@@ -1,18 +1,60 @@
 {
-  "name": "lnx_fs_list_dir_json_output_4",
-  "description": "Structured JSON output for List directory contents with filters",
-  "pattern": "list directory contents with filters|structured json output",
-  "parameters": [
-    "path"
-  ],
+  "name": "list_by_modification_time",
+  "description": "List files sorted by modification time with detailed timestamps",
+  "pattern": "recent.*files|sort.*time|newest.*files|modified.*last",
+  "parameters": ["path", "limit"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "find -printf"
+        "tool": "shell",
+        "operation": "run",
+        "command": "find",
+        "args": ["{{path}}", "-type", "f", "-printf", "%T@|%p|%s|%TY-%Tm-%Td %TH:%TM:%TS\\n"]
       },
-      "expected_output": "Result of Structured JSON output"
+      "expected_output": {
+        "type": "string",
+        "example": "1700308245.4567890120|/var/log/syslog|2048576|2025-11-18 14:30:45.4567890120\n1700308122.1234567890|/var/log/auth.log|524288|2025-11-18 14:28:42.1234567890"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -printf '%T@|%p|%s|%TY-%Tm-%Td %TH:%TM:%TS\\n' | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "1700308245.4567890120|/var/log/syslog|2048576|2025-11-18 14:30:45.4567890120\n1700308122.1234567890|/var/log/auth.log|524288|2025-11-18 14:28:42.1234567890\n1700307891.9876543210|/var/log/kern.log|1048576|2025-11-18 14:24:51.9876543210"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -printf '%T@|%p|%s|%TY-%Tm-%Td %TH:%TM:%TS\\n' | sort -rn | head -n {{limit}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "1700308245.4567890120|/var/log/syslog|2048576|2025-11-18 14:30:45.4567890120\n1700308122.1234567890|/var/log/auth.log|524288|2025-11-18 14:28:42.1234567890\n1700307891.9876543210|/var/log/kern.log|1048576|2025-11-18 14:24:51.9876543210"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "ls -lt '{{path}}' | head -n {{limit}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "total 3584\n-rw-r--r-- 1 root root 2048576 Nov 18 14:30 syslog\n-rw-r--r-- 1 root root  524288 Nov 18 14:28 auth.log\n-rw-r--r-- 1 root root 1048576 Nov 18 14:24 kern.log"
+      }
     }
   ],
   "stats": {
@@ -21,6 +63,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

@@ -1,56 +1,107 @@
 {
-  "id": "episode_LNX_FS_SEARCH_TEXT_003",
-  "goal": "Complete Search text pattern in files workflow variant 3",
-  "thoughts": [
+  "topic_id": "LNX_FS_SEARCH_TEXT",
+  "title": "Audit codebase for TODO comments and technical debt",
+  "goal": "Search through source code to identify unfinished work, deprecated functions, and technical debt markers",
+  "steps": [
     {
-      "type": "plan",
-      "content": "Planning to execute Search text pattern in files",
-      "timestamp": 1763491734.213241
-    },
-    {
-      "type": "analyze",
-      "content": "Analyzing requirements for filesystem task",
-      "timestamp": 1763491739.213241
-    }
-  ],
-  "actions": [
-    {
-      "step": "Initialize Search text pattern in files",
+      "thought": "Search for TODO comments across the codebase",
       "action": {
         "type": "system_command",
-        "command": "Execute step 1 of LNX_FS_SEARCH_TEXT"
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -n -E '(TODO|FIXME|HACK|XXX):' /var/www/html --include='*.php' --include='*.js' --include='*.py' | head -20"]
       },
-      "result": {
-        "success": true,
-        "stdout": "Step 1 completed for Search text pattern in files"
-      }
+      "observation": "/var/www/html/api/v1/users.php:45:// TODO: Add input validation\n/var/www/html/lib/cache.php:89:// FIXME: Memory leak in long-running processes\n/var/www/html/admin/dashboard.php:156:// HACK: Temporary workaround for timezone issue\n/var/www/html/js/app.js:234:// XXX: This function is deprecated, use newAPI instead"
     },
     {
-      "step": "Process filesystem data",
+      "thought": "Count TODO markers by type",
       "action": {
-        "type": "data_processing",
-        "command": "Process data for LNX_FS_SEARCH_TEXT"
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -h -o -E '(TODO|FIXME|HACK|XXX|BUG)' /var/www/html --include='*.php' --include='*.js' --include='*.py' | sort | uniq -c | sort -rn"]
       },
-      "result": {
-        "success": true,
-        "stdout": "Data processed successfully"
-      }
+      "observation": "     89 TODO\n     42 FIXME\n     23 HACK\n     15 XXX\n      8 BUG"
     },
     {
-      "step": "Finalize Search text pattern in files",
+      "thought": "Find files with the most technical debt markers",
       "action": {
-        "type": "validation",
-        "command": "Validate results"
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -c -E '(TODO|FIXME|HACK)' /var/www/html --include='*.php' | grep -v ':0$' | sort -t: -k2 -rn | head -10"]
       },
-      "result": {
-        "success": true,
-        "stdout": "Validation passed"
-      }
+      "observation": "/var/www/html/legacy/old_api.php:18\n/var/www/html/lib/database.php:12\n/var/www/html/api/v1/users.php:9\n/var/www/html/includes/auth.php:7\n/var/www/html/admin/reports.php:6"
+    },
+    {
+      "thought": "Search for deprecated function usage",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -n -E '@deprecated|@deprecated|deprecated.*function' /var/www/html --include='*.php'"]
+      },
+      "observation": "/var/www/html/lib/utils.php:42:* @deprecated Use sanitizeInput() instead\n/var/www/html/includes/legacy.php:15:* @deprecated This function will be removed in v3.0\n/var/www/html/api/v1/auth.php:89:// deprecated function - migrate to OAuth2"
+    },
+    {
+      "thought": "Find references to deprecated functions still being used",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -n 'mysql_connect\\|ereg\\|split(' /var/www/html --include='*.php'"]
+      },
+      "observation": "/var/www/html/legacy/db_connect.php:23:$conn = mysql_connect($host, $user, $pass);\n/var/www/html/legacy/validator.php:67:if (ereg('^[a-zA-Z0-9]+$', $input)) {\n/var/www/html/utils/string_helper.php:34:$parts = split(',', $csv_line);"
+    },
+    {
+      "thought": "Search for hardcoded test/debug code",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -n -i -E '(var_dump|print_r|console\\.log|debugger|die\\(|exit\\()' /var/www/html --include='*.php' --include='*.js' | grep -v 'vendor\\|node_modules' | head -15"]
+      },
+      "observation": "/var/www/html/api/v1/debug.php:12:var_dump($request);\n/var/www/html/admin/test.php:45:print_r($user_data);\n/var/www/html/js/app.js:156:console.log('DEBUG: User object:', user);\n/var/www/html/includes/error_handler.php:89:die('Fatal error: ' . $error);"
+    },
+    {
+      "thought": "Look for security-related TODOs",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -n -i 'TODO.*\\(security\\|sanitize\\|validate\\|escape\\|auth\\)' /var/www/html --include='*.php' --include='*.js'"]
+      },
+      "observation": "/var/www/html/api/v1/users.php:45:// TODO: Add input validation and sanitization\n/var/www/html/includes/form_handler.php:78:// TODO: Implement CSRF token validation\n/var/www/html/admin/upload.php:23:// TODO: Add file type validation for security"
+    },
+    {
+      "thought": "Find comments about performance issues",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "grep -r -n -i -E '(slow|performance|optimize|bottleneck|inefficient)' /var/www/html --include='*.php' | grep -E '(/\\*|//|#)' | head -10"]
+      },
+      "observation": "/var/www/html/api/v1/reports.php:123:// FIXME: This query is slow with large datasets\n/var/www/html/lib/search.php:67:// TODO: Optimize this loop - current O(n²) complexity\n/var/www/html/includes/cache.php:45:// Known bottleneck - refactor to use Redis"
+    },
+    {
+      "thought": "Generate summary report of technical debt",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "echo 'Technical Debt Summary:' && echo '===================' && echo \"Total TODO: $(grep -r 'TODO' /var/www/html --include='*.php' --include='*.js' | wc -l)\" && echo \"Total FIXME: $(grep -r 'FIXME' /var/www/html --include='*.php' --include='*.js' | wc -l)\" && echo \"Deprecated functions: $(grep -r -c '@deprecated' /var/www/html --include='*.php' | grep -v ':0$' | wc -l)\" && echo \"Debug statements: $(grep -r -E '(var_dump|console\\.log)' /var/www/html --include='*.php' --include='*.js' | wc -l)\""]
+      },
+      "observation": "Technical Debt Summary:\n===================\nTotal TODO: 89\nTotal FIXME: 42\nDeprecated functions: 7\nDebug statements: 34"
     }
   ],
-  "outcome": {
-    "success": true,
-    "steps_executed": 3
-  },
-  "duration": 13.1
+  "success_condition": "Identified 177 technical debt markers (89 TODO, 42 FIXME, 23 HACK), 7 deprecated functions still in use, and 34 debug statements left in code"
 }

@@ -1,0 +1,1 @@
+{"episode_id":"LNX_DISK_FDISK_LVM_MOUNT_EP01","title":"Episode 01","description":"Task 01","difficulty":"intermediate","steps":[{"step_number":1,"instruction":"Do task","tool":"tool1","parameters":{},"expected_outcome":"Success"}],"success_criteria":"Complete","cleanup":"None"}

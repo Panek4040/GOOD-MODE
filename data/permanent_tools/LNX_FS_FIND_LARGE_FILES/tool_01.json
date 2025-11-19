@@ -1,18 +1,60 @@
 {
-  "name": "lnx_fs_find_large_files_list_basic_1",
-  "description": "Basic listing for Find largest files in path",
-  "pattern": "find largest files in path|basic listing",
-  "parameters": [
-    "path"
-  ],
+  "name": "find_files_above_size",
+  "description": "Find all files larger than specified size threshold in MB",
+  "pattern": "find.*large|files.*bigger.*than|size.*greater",
+  "parameters": ["path", "min_size_mb"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "ls -lah"
+        "tool": "shell",
+        "operation": "run",
+        "command": "find",
+        "args": ["{{path}}", "-type", "f", "-size", "+{{min_size_mb}}M"]
       },
-      "expected_output": "Result of Basic listing"
+      "expected_output": {
+        "type": "string",
+        "example": "/var/log/syslog.1\n/home/user/backup.tar.gz\n/opt/database/data.db"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%s|%p|%TY-%Tm-%Td\\n'"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "524288000|/var/log/syslog.1|2025-11-17\n314572800|/home/user/backup.tar.gz|2025-11-16\n209715200|/opt/database/data.db|2025-11-15"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "524288000|/var/log/syslog.1|2025-11-17\n314572800|/home/user/backup.tar.gz|2025-11-16\n209715200|/opt/database/data.db|2025-11-15"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -exec ls -lh {} \\;"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "-rw-r--r-- 1 root root 500M Nov 17 14:30 /var/log/syslog.1\n-rw-r--r-- 1 user user 300M Nov 16 10:22 /home/user/backup.tar.gz\n-rw-r--r-- 1 mysql mysql 200M Nov 15 08:15 /opt/database/data.db"
+      }
     }
   ],
   "stats": {
@@ -21,6 +63,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }

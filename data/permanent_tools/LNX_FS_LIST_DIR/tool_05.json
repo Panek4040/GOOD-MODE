@@ -1,18 +1,73 @@
 {
-  "name": "lnx_fs_list_dir_sorted_time_5",
-  "description": "Sort by modification time for List directory contents with filters",
-  "pattern": "list directory contents with filters|sort by modification time",
-  "parameters": [
-    "path"
-  ],
+  "name": "list_by_size_descending",
+  "description": "List files sorted by size in descending order with human-readable format",
+  "pattern": "largest.*files|sort.*size|biggest.*files|size.*descending",
+  "parameters": ["path", "limit"],
   "sequence": [
     {
       "action": {
         "type": "system_command",
-        "tool": "system_command",
-        "command": "ls -lt"
+        "tool": "shell",
+        "operation": "run",
+        "command": "find",
+        "args": ["{{path}}", "-type", "f", "-printf", "%s|%p|%TY-%Tm-%Td\\n"]
       },
-      "expected_output": "Result of Sort by modification time"
+      "expected_output": {
+        "type": "string",
+        "example": "104857600|/home/user/backup.tar.gz|2025-11-18\n52428800|/home/user/video.mp4|2025-11-17\n10485760|/home/user/database.sql|2025-11-16"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "104857600|/home/user/backup.tar.gz|2025-11-18\n52428800|/home/user/video.mp4|2025-11-17\n10485760|/home/user/database.sql|2025-11-16\n1048576|/home/user/data.json|2025-11-15"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "find '{{path}}' -type f -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn | head -n {{limit}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "104857600|/home/user/backup.tar.gz|2025-11-18\n52428800|/home/user/video.mp4|2025-11-17\n10485760|/home/user/database.sql|2025-11-16"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "du -ah '{{path}}' | grep -v '/$$' | sort -rh | head -n {{limit}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "100M\t/home/user/backup.tar.gz\n50M\t/home/user/video.mp4\n10M\t/home/user/database.sql"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": ["-c", "ls -lhS '{{path}}' | grep '^-' | head -n {{limit}}"]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "-rw-r--r-- 1 user user 100M Nov 18 10:30 backup.tar.gz\n-rw-r--r-- 1 user user  50M Nov 17 14:22 video.mp4\n-rw-r--r-- 1 user user  10M Nov 16 09:45 database.sql"
+      }
     }
   ],
   "stats": {
@@ -21,6 +76,5 @@
     "failures": 0,
     "success_rate": 0.0
   },
-  "created_by": "claude_generated",
-  "last_used": null
+  "created_by": "claude_generated"
 }
