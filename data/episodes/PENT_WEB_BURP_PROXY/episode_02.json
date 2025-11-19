@@ -1,0 +1,83 @@
+{
+  "title": "Automated Web Vulnerability Scanning with OWASP ZAP",
+  "description": "Comprehensive automated security scanning of e-commerce platform using OWASP ZAP spider and active scanner to identify XSS, SQL injection, and configuration issues.",
+  "difficulty": "intermediate",
+  "scenario": "OnlineShop hired penetration testers for pre-launch security audit. Goal: Use OWASP ZAP to perform automated discovery and vulnerability scanning, identify high-risk issues, generate comprehensive security report.",
+  "steps": [
+    {
+      "step_number": 1,
+      "tool": "owasp_zap_proxy_scanner",
+      "action": "Start ZAP in daemon mode for automated scanning",
+      "parameters": {"target_url": "https://shop.onlineshop.com"},
+      "expected_result": "ZAP daemon running on port 8090, API accessible, ready for automated commands",
+      "explanation": "Daemon mode enables scriptable, headless operation for CI/CD integration"
+    },
+    {
+      "step_number": 2,
+      "tool": "owasp_zap_proxy_scanner",
+      "action": "Run ZAP spider to discover all pages and endpoints",
+      "parameters": {"target_url": "https://shop.onlineshop.com", "scan_type": "spider"},
+      "expected_result": "Spider discovered 127 URLs including /products, /cart, /checkout, /admin, /api/orders, identified forms and parameters",
+      "explanation": "Spider crawls application to build complete site map before vulnerability testing"
+    },
+    {
+      "step_number": 3,
+      "tool": "owasp_zap_proxy_scanner",
+      "action": "Execute active scan for vulnerability detection",
+      "parameters": {"target_url": "https://shop.onlineshop.com", "scan_type": "active"},
+      "expected_result": "Active scan found: 3 High (SQLi in search, XSS in product review, path traversal in download), 8 Medium (CSRF, insecure cookies), 15 Low (missing headers)",
+      "explanation": "Active scanning injects payloads to confirm exploitable vulnerabilities"
+    },
+    {
+      "step_number": 4,
+      "tool": "owasp_zap_proxy_scanner",
+      "action": "Review alerts and extract high-risk findings",
+      "parameters": {},
+      "expected_result": "SQL injection in /search?q= parameter confirmed with error-based payload, XSS in /product/review?comment= reflects unfiltered HTML, path traversal reads /etc/passwd",
+      "explanation": "Alert analysis prioritizes critical vulnerabilities requiring immediate remediation"
+    },
+    {
+      "step_number": 5,
+      "tool": "curl_advanced_web_testing",
+      "action": "Manually verify SQL injection finding from ZAP",
+      "parameters": {"url": "https://shop.onlineshop.com/search", "method": "GET"},
+      "expected_result": "curl with SQLi payload (q=test' OR 1=1--) returns all products, confirms ZAP finding, database error exposed",
+      "explanation": "Manual verification eliminates false positives and confirms exploitability"
+    },
+    {
+      "step_number": 6,
+      "tool": "curl_advanced_web_testing",
+      "action": "Verify XSS vulnerability in product reviews",
+      "parameters": {"url": "https://shop.onlineshop.com/product/review", "data": "comment=<script>alert(document.cookie)</script>"},
+      "expected_result": "XSS payload reflected in page source without encoding, executed in browser, session cookies accessible",
+      "explanation": "XSS confirmation demonstrates session hijacking risk"
+    },
+    {
+      "step_number": 7,
+      "tool": "owasp_zap_proxy_scanner",
+      "action": "Generate HTML security report with findings",
+      "parameters": {},
+      "expected_result": "Comprehensive 2.4 MB HTML report with 26 total findings: 3 High, 8 Medium, 15 Low, includes remediation guidance and evidence",
+      "explanation": "Professional reports communicate findings effectively to stakeholders"
+    }
+  ],
+  "outcome": "Automated scanning identified 26 security issues including 3 critical vulnerabilities. SQL injection in search allows database access and potential data breach. Stored XSS in product reviews enables session hijacking. Path traversal exposes sensitive files. Manual verification confirmed all high-risk findings are exploitable. Recommendations: Implement parameterized queries for SQL injection, encode all user input for XSS prevention, validate and sanitize file paths, enable CSRF tokens, set HttpOnly/Secure flags on cookies, add security headers (CSP, X-Frame-Options), conduct secure code review of user input handling.",
+  "learning_objectives": [
+    "Deploy OWASP ZAP in daemon mode for automation",
+    "Use ZAP spider for comprehensive site discovery",
+    "Execute active scans to identify vulnerabilities",
+    "Analyze and prioritize security alerts",
+    "Manually verify automated findings",
+    "Generate professional security reports",
+    "Integrate ZAP into security testing workflow"
+  ],
+  "metadata": {
+    "created_by": "neural_mesh_v5.2_generator",
+    "category": "pentesting",
+    "subcategory": "automated_web_scanning",
+    "tools_used": ["owasp_zap_proxy_scanner", "curl_advanced_web_testing"],
+    "estimated_time": "30-45 minutes",
+    "authorization_required": true,
+    "severity": "high"
+  }
+}

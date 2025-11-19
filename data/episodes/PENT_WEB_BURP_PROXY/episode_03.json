@@ -1,0 +1,101 @@
+{
+  "title": "Advanced Request Manipulation with Mitmproxy and Header Injection",
+  "description": "Advanced web security testing using mitmproxy for automated request modification, header injection attacks including Host header poisoning, XXE, and access control bypasses.",
+  "difficulty": "advanced",
+  "scenario": "FinTech application Red Team engagement requires sophisticated testing including automated request manipulation, header injection for access control bypass, and XML-based attacks. Goal: Use mitmproxy scripting and advanced HTTP techniques to identify complex security flaws.",
+  "steps": [
+    {
+      "step_number": 1,
+      "tool": "mitmproxy_intercept",
+      "action": "Start mitmweb with browser interface for traffic analysis",
+      "parameters": {"port": "8888"},
+      "expected_result": "Mitmweb interface at http://127.0.0.1:8081, proxy listening on 8888, capturing all HTTP/HTTPS traffic with browser-based inspection",
+      "explanation": "Mitmweb provides user-friendly interface for complex traffic analysis"
+    },
+    {
+      "step_number": 2,
+      "tool": "mitmproxy_intercept",
+      "action": "Capture application traffic and identify authentication flow",
+      "parameters": {"target": "https://fintech.example.com"},
+      "expected_result": "Captured OAuth2 flow: POST /oauth/token returns JWT, subsequent API calls use Authorization: Bearer header",
+      "explanation": "Understanding authentication is prerequisite for authorization testing"
+    },
+    {
+      "step_number": 3,
+      "tool": "mitmproxy_intercept",
+      "action": "Create Python script for automatic header injection",
+      "parameters": {"script": "modify_request.py"},
+      "expected_result": "Script automatically adds X-Admin: true and X-Forwarded-For: 127.0.0.1 to all API requests, enabling systematic access control testing",
+      "explanation": "Automated modification enables efficient testing of header-based bypasses"
+    },
+    {
+      "step_number": 4,
+      "tool": "http_request_manipulation_fuzzing",
+      "action": "Test Host header injection for password reset poisoning",
+      "parameters": {"target_url": "https://fintech.example.com/api/password-reset", "fuzzing_type": "host_header"},
+      "expected_result": "Host: evil.com injection causes reset link to point to attacker domain, enables account takeover via poisoned reset emails",
+      "explanation": "Host header poisoning redirects password resets to attacker-controlled servers"
+    },
+    {
+      "step_number": 5,
+      "tool": "http_request_manipulation_fuzzing",
+      "action": "Test XXE vulnerability in XML API endpoint",
+      "parameters": {"target_url": "https://fintech.example.com/api/import", "fuzzing_type": "xxe"},
+      "expected_result": "XXE payload read /etc/passwd: root:x:0:0:root:/root:/bin/bash, confirmed external entity processing enabled",
+      "explanation": "XXE allows arbitrary file read and potential SSRF attacks"
+    },
+    {
+      "step_number": 6,
+      "tool": "http_request_manipulation_fuzzing",
+      "action": "Fuzz HTTP methods for method tampering vulnerabilities",
+      "parameters": {"target_url": "https://fintech.example.com/api/transactions", "fuzzing_type": "method"},
+      "expected_result": "DELETE method works on GET endpoint, PUT creates admin users, TRACE reflects headers (XST vulnerability)",
+      "explanation": "Method tampering bypasses application logic assumptions"
+    },
+    {
+      "step_number": 7,
+      "tool": "curl_advanced_web_testing",
+      "action": "Test path traversal in file download function",
+      "parameters": {"url": "https://fintech.example.com/download?file=../../../../../../etc/passwd"},
+      "expected_result": "Successfully downloaded /etc/passwd, /var/www/html/config.php with database credentials exposed",
+      "explanation": "Path traversal provides access to sensitive configuration files"
+    },
+    {
+      "step_number": 8,
+      "tool": "curl_advanced_web_testing",
+      "action": "Test CORS misconfiguration with cross-origin requests",
+      "parameters": {"url": "https://fintech.example.com/api/account"},
+      "expected_result": "Access-Control-Allow-Origin: * with credentials enabled, allows any domain to make authenticated requests via CSRF",
+      "explanation": "CORS misconfiguration enables cross-site attacks on authenticated endpoints"
+    },
+    {
+      "step_number": 9,
+      "tool": "mitmproxy_intercept",
+      "action": "Export captured traffic to file for offline analysis",
+      "parameters": {"output_file": "traffic.dump"},
+      "expected_result": "Saved 2,847 HTTP flows to traffic.dump including all requests, responses, credentials, JWT tokens for comprehensive analysis",
+      "explanation": "Traffic dumps enable detailed post-engagement analysis and evidence collection"
+    }
+  ],
+  "outcome": "Comprehensive advanced web security assessment identified multiple critical vulnerabilities. Host header injection enables account takeover via password reset poisoning. XXE vulnerability allows arbitrary file read including credentials. HTTP method tampering permits unauthorized deletion and privilege escalation. Path traversal exposes configuration files. CORS misconfiguration enables CSRF attacks. Recommendations: Validate Host header against whitelist, disable XML external entity processing, restrict HTTP methods per endpoint, implement path sanitization with whitelisting, configure strict CORS policies, conduct comprehensive security code review, implement Web Application Firewall with proper ruleset.",
+  "learning_objectives": [
+    "Use mitmproxy for advanced traffic interception",
+    "Implement Python scripts for automated request modification",
+    "Exploit Host header injection for account takeover",
+    "Test and exploit XXE vulnerabilities",
+    "Perform HTTP method tampering attacks",
+    "Identify path traversal and file disclosure issues",
+    "Test CORS configurations for security flaws",
+    "Document findings with captured traffic evidence"
+  ],
+  "metadata": {
+    "created_by": "neural_mesh_v5.2_generator",
+    "category": "pentesting",
+    "subcategory": "advanced_web_testing",
+    "tools_used": ["mitmproxy_intercept", "http_request_manipulation_fuzzing", "curl_advanced_web_testing"],
+    "estimated_time": "60-90 minutes",
+    "authorization_required": true,
+    "severity": "critical",
+    "risk_level": "high"
+  }
+}

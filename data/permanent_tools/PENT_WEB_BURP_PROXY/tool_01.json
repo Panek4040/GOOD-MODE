@@ -1,0 +1,30 @@
+{
+  "name": "burp_suite_proxy_intercept",
+  "description": "HTTP/HTTPS traffic interception and manipulation using Burp Suite proxy",
+  "pattern": "burp.*proxy|burp.*intercept|web.*proxy|http.*intercept",
+  "parameters": ["target_url", "browser"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "java -jar burpsuite.jar &"]},
+      "expected_output": {"type": "string", "example": "Burp Suite Professional v2023.11.1\nStarting proxy on 127.0.0.1:8080\nBurp is now running and ready to intercept traffic\n\nProxy listener active:\n  Interface: 127.0.0.1:8080\n  Running: yes\n  Invisible proxying: disabled"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "curl -x http://127.0.0.1:8080 -k http://{{target_url}} 2>&1 | head -20"]},
+      "expected_output": {"type": "string", "example": "HTTP request intercepted by Burp Suite:\n\nGET /login.php HTTP/1.1\nHost: testsite.com\nUser-Agent: curl/7.68.0\nAccept: */*\n\nBurp Proxy displays:\n  Target: testsite.com\n  Method: GET\n  URL: /login.php\n  Parameters: none\n  Cookies: none\n\nRequest is held in proxy - forward, drop, or modify"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "curl -x http://127.0.0.1:8080 -k -X POST http://{{target_url}}/login -d 'username=admin&password=test123'"]},
+      "expected_output": {"type": "string", "example": "POST request intercepted in Burp:\n\nPOST /login HTTP/1.1\nHost: testsite.com\nContent-Type: application/x-www-form-urlencoded\nContent-Length: 34\n\nusername=admin&password=test123\n\nIn Burp Proxy, you can:\n1. Modify username to: username=admin' OR '1'='1\n2. Change password to SQL injection payload\n3. Add/modify headers (X-Forwarded-For, etc)\n4. Forward modified request to server"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "export http_proxy=http://127.0.0.1:8080 && export https_proxy=http://127.0.0.1:8080 && firefox {{target_url}} &"]},
+      "expected_output": {"type": "string", "example": "Firefox configured to use Burp proxy\nBrowser traffic now flowing through 127.0.0.1:8080\n\nBurp Proxy shows:\n  GET / HTTP/1.1\n  GET /static/css/style.css HTTP/1.1\n  GET /static/js/main.js HTTP/1.1\n  POST /api/login HTTP/1.1\n\nAll browser requests captured - can intercept, modify, replay"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Burp Suite intercept controls:' && echo 'Forward: Send request to server' && echo 'Drop: Discard request' && echo 'Intercept is on/off: Toggle interception' && echo 'Action > Send to Repeater: Manual replay' && echo 'Action > Send to Intruder: Automated fuzzing'"]},
+      "expected_output": {"type": "string", "example": "Burp Suite intercept controls:\nForward: Send request to server\nDrop: Discard request\nIntercept is on/off: Toggle interception\nAction > Send to Repeater: Manual replay\nAction > Send to Intruder: Automated fuzzing\n\nHTTP history shows all requests:\n  #1 GET /login.php - 200 OK - 2.4 KB\n  #2 POST /login.php - 302 Found - 0.3 KB\n  #3 GET /dashboard.php - 200 OK - 45.2 KB\n\nTarget site map automatically built from traffic"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

