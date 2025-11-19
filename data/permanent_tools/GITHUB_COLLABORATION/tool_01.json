@@ -1,0 +1,22 @@
+{
+  "name": "github_cli_operations",
+  "description": "GitHub CLI for repository and workflow management",
+  "pattern": "gh.*repo|gh.*pr|gh.*issue|gh.*workflow",
+  "parameters": ["repo_name"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gh", "args": ["repo", "view", "--web"]},
+      "expected_output": {"type": "string", "example": "Opening github.com/user/repo in your browser"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gh", "args": ["repo", "list", "--limit", "5"]},
+      "expected_output": {"type": "string", "example": "Showing 5 of 42 repositories\n\nuser/project1\nuser/project2"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gh", "args": ["repo", "create", "test-repo", "--public", "--clone", "false"]},
+      "expected_output": {"type": "string", "example": "✓ Created repository user/test-repo on GitHub"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}
