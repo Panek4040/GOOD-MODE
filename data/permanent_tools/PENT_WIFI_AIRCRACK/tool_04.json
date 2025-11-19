@@ -1,0 +1,30 @@
+{
+  "name": "aircrack_ng_wpa_crack",
+  "description": "Crack WPA/WPA2 pre-shared keys from captured handshakes using aircrack-ng",
+  "pattern": "aircrack.*crack|wpa.*crack|psk.*crack|password.*crack",
+  "parameters": ["capture_file", "wordlist", "bssid"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aircrack-ng", "args": ["-w", "{{wordlist}}", "{{capture_file}}"]},
+      "expected_output": {"type": "string", "example": "Opening {{capture_file}}\nRead 12345 packets.\n\n   #  BSSID              ESSID                     Encryption\n   1  AA:BB:CC:DD:EE:FF  MyNetwork                 WPA (1 handshake)\n\nChoosing first network as target.\n\nAircrack-ng 1.7\n\n      [00:02:34] 123456/9876543 keys tested (852.34 k/s)\n\n      KEY FOUND! [ password123 ]\n\n      Master Key     : AB CD EF 01 23 45 67 89 AB CD EF 01 23 45 67 89\n      Transient Key  : 12 34 56 78 90 AB CD EF 12 34 56 78 90 AB CD EF"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aircrack-ng", "args": ["-w", "{{wordlist}}", "-b", "{{bssid}}", "{{capture_file}}"]},
+      "expected_output": {"type": "string", "example": "Targeting BSSID: {{bssid}}\nTesting passwords from {{wordlist}}\n[00:01:45] 67890/9876543 keys tested (641.25 k/s)\nKEY FOUND! [ MyWiFiPass2024 ]"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "aircrack-ng -w {{wordlist}} {{capture_file}} | grep -E 'handshake|KEY FOUND'"]},
+      "expected_output": {"type": "string", "example": "1 handshake\nKEY FOUND! [ password123 ]"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aircrack-ng", "args": ["-w", "{{wordlist}}", "-l", "cracked_key.txt", "{{capture_file}}"]},
+      "expected_output": {"type": "string", "example": "Cracking in progress...\nKEY FOUND! [ SecurePass456 ]\nKey saved to cracked_key.txt"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "wc -l {{wordlist}} && aircrack-ng -w {{wordlist}} {{capture_file}} 2>&1 | grep 'keys tested'"]},
+      "expected_output": {"type": "string", "example": "14344391 lines in rockyou.txt\n[00:15:23] 14344391/14344391 keys tested (15634.12 k/s) - completed in 15 minutes"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

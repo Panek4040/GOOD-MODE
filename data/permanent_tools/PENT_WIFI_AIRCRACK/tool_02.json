@@ -1,0 +1,30 @@
+{
+  "name": "airodump_ng_capture_scan",
+  "description": "Scan WiFi networks and capture WPA handshakes using airodump-ng",
+  "pattern": "airodump.*scan|wifi.*scan|capture.*handshake|airodump.*ng",
+  "parameters": ["interface", "channel", "bssid"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "airodump-ng", "args": ["{{interface}}mon"]},
+      "expected_output": {"type": "string", "example": "CH  6 ][ Elapsed: 1 min ][ 2025-11-19 15:00\n\n BSSID              PWR  Beacons    #Data, #/s  CH   MB   ENC CIPHER  AUTH ESSID\n AA:BB:CC:DD:EE:FF  -45      234     1523   10   6  54e  WPA2 CCMP   PSK  MyNetwork\n 11:22:33:44:55:66  -67      156      234    3  11  54e  WPA2 CCMP   PSK  Office_WiFi\n 22:33:44:55:66:77  -82       45       12    0   1  54e  WPA2 CCMP   PSK  Home_Router"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "airodump-ng", "args": ["--bssid", "{{bssid}}", "-c", "{{channel}}", "-w", "capture", "{{interface}}mon"]},
+      "expected_output": {"type": "string", "example": "CH  6 ][ Elapsed: 5 min ][ 2025-11-19 15:05 ][ WPA handshake: AA:BB:CC:DD:EE:FF\n\n BSSID              PWR RXQ  Beacons    #Data, #/s  CH   MB   ENC CIPHER  AUTH ESSID\n AA:BB:CC:DD:EE:FF  -45  75     1234     4567   45   6  54e  WPA2 CCMP   PSK  MyNetwork\n\n BSSID              STATION            PWR   Rate    Lost    Frames  Notes  Probes\n AA:BB:CC:DD:EE:FF  12:34:56:78:90:AB  -52   54e-54e    0     2345   EAPOL  MyNetwork"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "ls -lh capture*.cap && echo 'Handshake status:' && aircrack-ng capture-01.cap | grep handshake"]},
+      "expected_output": {"type": "string", "example": "-rw-r--r-- 1 root root 12M Nov 19 15:05 capture-01.cap\nHandshake status:\n1 handshake: AA:BB:CC:DD:EE:FF - MyNetwork"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "airodump-ng", "args": ["-c", "{{channel}}", "--bssid", "{{bssid}}", "--write", "targeted_capture", "--output-format", "pcap", "{{interface}}mon"]},
+      "expected_output": {"type": "string", "example": "Capturing on channel {{channel}} for BSSID {{bssid}}\nSaving to targeted_capture.pcap\nCapture running..."}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "airodump-ng {{interface}}mon --band abg | grep -E 'BSSID|WPA'"]},
+      "expected_output": {"type": "string", "example": "Scanning all bands (2.4GHz + 5GHz)\nFound 45 networks: 23 WPA2, 12 WPA3, 10 WPA/WPA2"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

@@ -1,0 +1,98 @@
+{
+  "title": "Advanced WiFi Attack - Evil Twin and Traffic Interception",
+  "description": "Advanced red team engagement demonstrating evil twin access point attack combined with traffic interception using bettercap. Shows how attackers can create fake WiFi networks to capture credentials and intercept traffic.",
+  "difficulty": "advanced",
+  "scenario": "Red team engagement at conference venue to test attendee security awareness. Goal is to set up convincing evil twin access point mimicking venue WiFi, capture credentials from connecting devices, and demonstrate traffic interception capabilities. All activities authorized by venue management.",
+  "steps": [
+    {
+      "step_number": 1,
+      "tool": "airmon_ng_monitor_mode",
+      "action": "Enable monitor mode for advanced WiFi reconnaissance and attack preparation",
+      "parameters": {"interface": "wlan0"},
+      "expected_result": "Monitor mode enabled on wlan0mon - ready for reconnaissance and rogue AP creation",
+      "explanation": "Monitor mode required for both recon and creating fake access point"
+    },
+    {
+      "step_number": 2,
+      "tool": "bettercap_wifi_attacks",
+      "action": "Scan WiFi environment to identify target network characteristics",
+      "parameters": {"interface": "wlan0"},
+      "expected_result": "Discovered 'ConferenceVenue-Guest' on channel 6, WPA2, BSSID AA:BB:CC:DD:EE:FF with 47 connected clients",
+      "explanation": "Understanding target network helps create convincing evil twin with similar characteristics"
+    },
+    {
+      "step_number": 3,
+      "tool": "aireplay_ng_deauth_attack",
+      "action": "Deauthenticate clients from legitimate AP to encourage evil twin connection",
+      "parameters": {"interface": "wlan0", "bssid": "AA:BB:CC:DD:EE:FF"},
+      "expected_result": "Mass deauth attack sent 320 frames - 47 clients disconnected from legitimate AP",
+      "explanation": "Deauth disrupts legitimate connections, forcing clients to search for network and potentially connect to evil twin"
+    },
+    {
+      "step_number": 4,
+      "tool": "bettercap_wifi_attacks",
+      "action": "Create evil twin access point with identical SSID",
+      "parameters": {"interface": "wlan0", "ssid": "ConferenceVenue-Guest", "mode": "evil_twin"},
+      "expected_result": "Rogue AP 'ConferenceVenue-Guest' started on channel 6 - appears identical to legitimate network",
+      "explanation": "Evil twin mimics legitimate network name, making it difficult for users to distinguish fake from real"
+    },
+    {
+      "step_number": 5,
+      "tool": "bettercap_wifi_attacks",
+      "action": "Capture WPA handshakes from clients connecting to evil twin",
+      "parameters": {"interface": "wlan0", "capture_mode": "handshakes"},
+      "expected_result": "Captured 12 WPA handshakes in 3 minutes - 12 devices attempted connection to evil twin",
+      "explanation": "Handshakes captured can be cracked offline - demonstrates credential harvesting capability"
+    },
+    {
+      "step_number": 6,
+      "tool": "bettercap_wifi_attacks",
+      "action": "Enable MITM attack on connected clients to intercept HTTP traffic",
+      "parameters": {"interface": "wlan0", "attack_type": "mitm"},
+      "expected_result": "MITM active - intercepted credentials from 5 clients accessing HTTP sites (non-HTTPS), captured 3 clear-text passwords",
+      "explanation": "Traffic interception demonstrates danger of connecting to untrusted networks and using unencrypted protocols"
+    },
+    {
+      "step_number": 7,
+      "tool": "airodump_ng_capture_scan",
+      "action": "Monitor client activity and connection patterns on evil twin",
+      "parameters": {"interface": "wlan0", "bssid": "fake_ap_bssid", "channel": "6"},
+      "expected_result": "12 clients connected to evil twin AP - captured 2.4 GB traffic including credentials, session cookies, unencrypted data",
+      "explanation": "Full traffic capture provides comprehensive view of client behavior on compromised network"
+    },
+    {
+      "step_number": 8,
+      "tool": "aircrack_ng_wpa_crack",
+      "action": "Crack captured handshakes to demonstrate credential recovery",
+      "parameters": {"capture_file": "evil_twin_handshakes.cap", "wordlist": "/usr/share/wordlists/rockyou.txt"},
+      "expected_result": "3 of 12 passwords cracked: 'Conference2024', 'Welcome123', 'guest@venue' - demonstrates weak password prevalence",
+      "explanation": "Post-attack analysis shows percentage of users with weak passwords vulnerable to dictionary attacks"
+    },
+    {
+      "step_number": 9,
+      "tool": "airmon_ng_monitor_mode",
+      "action": "Disable rogue AP and restore normal operation",
+      "parameters": {"interface": "wlan0", "mode": "stop"},
+      "expected_result": "Rogue AP stopped, monitor mode disabled - attack infrastructure cleaned up",
+      "explanation": "Cleanup ensures attack infrastructure is properly shut down after assessment complete"
+    }
+  ],
+  "outcome": "Successfully demonstrated sophisticated WiFi attack chain combining evil twin AP, deauthentication, handshake capture, and traffic interception. Captured credentials from 12 devices, cracked 3 passwords, intercepted sensitive data from 5 clients. Findings revealed: 25% of users had weak passwords, 40% transmitted sensitive data over HTTP, 100% connected to fake network without verification. Recommendations: implement 802.1X enterprise authentication, mandatory VPN for sensitive work, security awareness training emphasizing risks of public WiFi, HTTPS-only policy for all applications.",
+  "learning_objectives": [
+    "Create convincing evil twin access points",
+    "Combine multiple attack techniques (deauth + evil twin + MITM)",
+    "Capture and analyze WiFi handshakes from rogue AP",
+    "Intercept unencrypted traffic from compromised clients",
+    "Understand complete attack chain from reconnaissance to exploitation",
+    "Provide comprehensive remediation strategy for WiFi security"
+  ],
+  "metadata": {
+    "created_by": "neural_mesh_v5.2_generator",
+    "category": "pentesting",
+    "subcategory": "wifi_security",
+    "tools_used": ["airmon_ng_monitor_mode", "bettercap_wifi_attacks", "aireplay_ng_deauth_attack", "airodump_ng_capture_scan", "aircrack_ng_wpa_crack"],
+    "estimated_time": "30-60 minutes",
+    "authorization_required": true,
+    "risk_level": "high"
+  }
+}
