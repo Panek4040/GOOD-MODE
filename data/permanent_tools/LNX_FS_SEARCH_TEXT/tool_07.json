@@ -2,7 +2,10 @@
   "name": "text_search_with_metadata",
   "description": "Search for text and show file metadata like size and modification time",
   "pattern": "search.*metadata|search.*show.*size|search.*modified",
-  "parameters": ["path", "pattern"],
+  "parameters": [
+    "path",
+    "pattern"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -l '{{pattern}}' '{{path}}' | xargs ls -lh"]
+        "args": [
+          "-c",
+          "grep -r -l '{{pattern}}' '{{path}}' | xargs ls -lh"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -l '{{pattern}}' '{{path}}' | xargs stat -c '%n|%s|%y' | sort -t'|' -k2 -rn"]
+        "args": [
+          "-c",
+          "grep -r -l '{{pattern}}' '{{path}}' | xargs stat -c '%n|%s|%y' | sort -t'|' -k2 -rn"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -exec grep -l '{{pattern}}' {} \\; -exec stat -c '%n %s bytes, modified: %y' {} \\;"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -exec grep -l '{{pattern}}' {} \\; -exec stat -c '%n %s bytes, modified: %y' {} \\;"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +61,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -c '{{pattern}}' '{{path}}' | grep -v ':0$' | while IFS=: read -r file count; do size=$(stat -c %s \"$file\" 2>/dev/null); echo \"$file|$count matches|$size bytes\"; done | sort -t'|' -k2 -rn | head -10"]
+        "args": [
+          "-c",
+          "grep -r -c '{{pattern}}' '{{path}}' | grep -v ':0$' | while IFS=: read -r file count; do size=$(stat -c %s \"$file\" 2>/dev/null); echo \"$file|$count matches|$size bytes\"; done | sort -t'|' -k2 -rn | head -10"
+        ]
       },
       "expected_output": {
         "type": "string",

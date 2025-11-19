@@ -2,7 +2,11 @@
   "name": "kubectl_scale_deployment_replicas",
   "description": "Scale Kubernetes deployment up or down by adjusting replica count",
   "pattern": "scale.*deployment|kubectl.*scale|k8s.*replicas",
-  "parameters": ["deployment_name", "replicas", "namespace"],
+  "parameters": [
+    "deployment_name",
+    "replicas",
+    "namespace"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,15 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["get", "deployment", "{{deployment_name}}", "-n", "{{namespace}}", "-o", "jsonpath={.spec.replicas}"]
+        "args": [
+          "get",
+          "deployment",
+          "{{deployment_name}}",
+          "-n",
+          "{{namespace}}",
+          "-o",
+          "jsonpath={.spec.replicas}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +35,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["scale", "deployment/{{deployment_name}}", "--replicas={{replicas}}", "-n", "{{namespace}}"]
+        "args": [
+          "scale",
+          "deployment/{{deployment_name}}",
+          "--replicas={{replicas}}",
+          "-n",
+          "{{namespace}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +54,14 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["rollout", "status", "deployment/{{deployment_name}}", "-n", "{{namespace}}", "--timeout=60s"]
+        "args": [
+          "rollout",
+          "status",
+          "deployment/{{deployment_name}}",
+          "-n",
+          "{{namespace}}",
+          "--timeout=60s"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +74,15 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["get", "pods", "-n", "{{namespace}}", "-l", "app={{deployment_name}}", "--no-headers"]
+        "args": [
+          "get",
+          "pods",
+          "-n",
+          "{{namespace}}",
+          "-l",
+          "app={{deployment_name}}",
+          "--no-headers"
+        ]
       },
       "expected_output": {
         "type": "string",

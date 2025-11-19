@@ -10,7 +10,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo '=== Cron Jobs ===' && crontab -l 2>/dev/null | grep -v '^#' | grep -v '^$'"]
+        "args": [
+          "-c",
+          "echo '=== Cron Jobs ===' && crontab -l 2>/dev/null | grep -v '^#' | grep -v '^$'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +26,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo '=== System Cron ===' && ls -1 /etc/cron.{hourly,daily,weekly,monthly} 2>/dev/null | head -10"]
+        "args": [
+          "-c",
+          "echo '=== System Cron ===' && ls -1 /etc/cron.{hourly,daily,weekly,monthly} 2>/dev/null | head -10"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +42,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo '=== Systemd Timers ===' && systemctl list-timers --no-pager | head -10"]
+        "args": [
+          "-c",
+          "echo '=== Systemd Timers ===' && systemctl list-timers --no-pager | head -10"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +58,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo '=== At Queue ===' && atq"]
+        "args": [
+          "-c",
+          "echo '=== At Queue ===' && atq"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +74,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "total_cron=$(crontab -l 2>/dev/null | grep -v '^#' | grep -v '^$' | wc -l); total_timers=$(systemctl list-timers --no-pager --no-legend | wc -l); total_at=$(atq | wc -l); echo \"Total scheduled tasks: Cron=$total_cron, Timers=$total_timers, At=$total_at\""]
+        "args": [
+          "-c",
+          "total_cron=$(crontab -l 2>/dev/null | grep -v '^#' | grep -v '^$' | wc -l); total_timers=$(systemctl list-timers --no-pager --no-legend | wc -l); total_at=$(atq | wc -l); echo \"Total scheduled tasks: Cron=$total_cron, Timers=$total_timers, At=$total_at\""
+        ]
       },
       "expected_output": {
         "type": "string",

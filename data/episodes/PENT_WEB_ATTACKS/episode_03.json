@@ -3,7 +3,14 @@
   "description": "Sophisticated attack leveraging JWT vulnerabilities, SSRF for AWS metadata access, and XXE for credential extraction leading to full cloud infrastructure takeover",
   "difficulty": "advanced",
   "estimated_time": "75 minutes",
-  "tools_used": ["jwt_tool", "hashcat", "curl", "aws-cli", "burp", "sqlmap"],
+  "tools_used": [
+    "jwt_tool",
+    "hashcat",
+    "curl",
+    "aws-cli",
+    "burp",
+    "sqlmap"
+  ],
   "attack_chain": [
     {
       "step": 1,
@@ -194,5 +201,14 @@
     "Implement VPC security groups to restrict database access to specific IPs",
     "Monitor for unusual API calls and data exfiltration patterns"
   ],
-  "tags": ["jwt", "authentication_bypass", "ssrf", "xxe", "aws", "cloud_security", "privilege_escalation", "persistence"]
+  "tags": [
+    "jwt",
+    "authentication_bypass",
+    "ssrf",
+    "xxe",
+    "aws",
+    "cloud_security",
+    "privilege_escalation",
+    "persistence"
+  ]
 }

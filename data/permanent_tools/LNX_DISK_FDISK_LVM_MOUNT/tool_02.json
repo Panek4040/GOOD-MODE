@@ -2,29 +2,93 @@
   "name": "lvm_physical_volume_group_logical",
   "description": "Manage LVM storage - create/extend physical volumes, volume groups, logical volumes",
   "pattern": "lvm.*create|logical.*volume|volume.*group|pvcreate|vgcreate|lvcreate",
-  "parameters": ["vg_name", "lv_name", "size"],
+  "parameters": [
+    "vg_name",
+    "lv_name",
+    "size"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "pvdisplay", "args": []},
-      "expected_output": {"type": "string", "example": "  --- Physical volume ---\n  PV Name               /dev/sda2\n  VG Name               vg-system\n  PV Size               237.88 GiB / not usable 4.00 MiB\n  Allocatable           yes\n  PE Size               4.00 MiB\n  Total PE              60929\n  Free PE               5120\n  Allocated PE          55809"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "pvdisplay",
+        "args": []
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "  --- Physical volume ---\n  PV Name               /dev/sda2\n  VG Name               vg-system\n  PV Size               237.88 GiB / not usable 4.00 MiB\n  Allocatable           yes\n  PE Size               4.00 MiB\n  Total PE              60929\n  Free PE               5120\n  Allocated PE          55809"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "vgdisplay", "args": ["{{vg_name}}"]},
-      "expected_output": {"type": "string", "example": "  --- Volume group ---\n  VG Name               vg-system\n  System ID\n  Format                lvm2\n  VG Size               237.88 GiB\n  PE Size               4.00 MiB\n  Total PE              60929\n  Alloc PE / Size       55809 / 217.97 GiB\n  Free  PE / Size       5120 / 20.00 GiB"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "vgdisplay",
+        "args": [
+          "{{vg_name}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "  --- Volume group ---\n  VG Name               vg-system\n  System ID\n  Format                lvm2\n  VG Size               237.88 GiB\n  PE Size               4.00 MiB\n  Total PE              60929\n  Alloc PE / Size       55809 / 217.97 GiB\n  Free  PE / Size       5120 / 20.00 GiB"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "lvdisplay", "args": ["{{vg_name}}/{{lv_name}}"]},
-      "expected_output": {"type": "string", "example": "  --- Logical volume ---\n  LV Path                /dev/vg-system/root\n  LV Name                root\n  VG Name                vg-system\n  LV Size                50.00 GiB\n  Current LE             12800\n  Segments               1\n  Allocation             inherit\n  Read ahead sectors     auto"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "lvdisplay",
+        "args": [
+          "{{vg_name}}/{{lv_name}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "  --- Logical volume ---\n  LV Path                /dev/vg-system/root\n  LV Name                root\n  VG Name                vg-system\n  LV Size                50.00 GiB\n  Current LE             12800\n  Segments               1\n  Allocation             inherit\n  Read ahead sectors     auto"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "pvs && vgs && lvs"]},
-      "expected_output": {"type": "string", "example": "PV         VG        Fmt  Attr PSize   PFree\n/dev/sda2  vg-system lvm2 a--  237.88g 20.00g\n\nVG        #PV #LV #SN Attr   VSize   VFree\nvg-system   1   3   0 wz--n- 237.88g 20.00g\n\nLV   VG        Attr       LSize  Pool Origin\nroot vg-system -wi-ao---- 50.00g\nhome vg-system -wi-ao---- 100.00g\nswap vg-system -wi-ao---- 8.00g"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "pvs && vgs && lvs"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "PV         VG        Fmt  Attr PSize   PFree\n/dev/sda2  vg-system lvm2 a--  237.88g 20.00g\n\nVG        #PV #LV #SN Attr   VSize   VFree\nvg-system   1   3   0 wz--n- 237.88g 20.00g\n\nLV   VG        Attr       LSize  Pool Origin\nroot vg-system -wi-ao---- 50.00g\nhome vg-system -wi-ao---- 100.00g\nswap vg-system -wi-ao---- 8.00g"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "vgs --units g {{vg_name}} -o vg_name,vg_size,vg_free,vg_extent_count,vg_free_count"]},
-      "expected_output": {"type": "string", "example": "VG        VSize   VFree   #Ext  #Free\nvg-system 237.88g 20.00g  60929  5120"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "vgs --units g {{vg_name}} -o vg_name,vg_size,vg_free,vg_extent_count,vg_free_count"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "VG        VSize   VFree   #Ext  #Free\nvg-system 237.88g 20.00g  60929  5120"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

@@ -2,7 +2,10 @@
   "name": "list_hidden_files_recursive",
   "description": "Recursively find and list all hidden files and directories including their sizes",
   "pattern": "show.*hidden|find.*dotfiles|list.*hidden.*recursive",
-  "parameters": ["path", "max_depth"],
+  "parameters": [
+    "path",
+    "max_depth"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,16 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["{{path}}", "-maxdepth", "{{max_depth}}", "-name", ".*", "-not", "-path", "{{path}}"]
+        "args": [
+          "{{path}}",
+          "-maxdepth",
+          "{{max_depth}}",
+          "-name",
+          ".*",
+          "-not",
+          "-path",
+          "{{path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +35,21 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["{{path}}", "-maxdepth", "{{max_depth}}", "-name", ".*", "-not", "-path", "{{path}}", "-exec", "ls", "-ldh", "{}", ";"]
+        "args": [
+          "{{path}}",
+          "-maxdepth",
+          "{{max_depth}}",
+          "-name",
+          ".*",
+          "-not",
+          "-path",
+          "{{path}}",
+          "-exec",
+          "ls",
+          "-ldh",
+          "{}",
+          ";"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -ah '{{path}}' | grep '/\\.'"]
+        "args": [
+          "-c",
+          "du -ah '{{path}}' | grep '/\\.'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +78,17 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["{{path}}", "-maxdepth", "{{max_depth}}", "-name", ".*", "-type", "f", "-printf", "%p|%s|%TY-%Tm-%Td|%u|%g\\n"]
+        "args": [
+          "{{path}}",
+          "-maxdepth",
+          "{{max_depth}}",
+          "-name",
+          ".*",
+          "-type",
+          "f",
+          "-printf",
+          "%p|%s|%TY-%Tm-%Td|%u|%g\\n"
+        ]
       },
       "expected_output": {
         "type": "string",

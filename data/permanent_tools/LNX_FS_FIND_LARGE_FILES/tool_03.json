@@ -2,7 +2,11 @@
   "name": "find_large_by_extension",
   "description": "Find large files filtered by extension or file type",
   "pattern": "large.*type|big.*files.*extension|size.*filter.*type",
-  "parameters": ["path", "extension", "min_size_mb"],
+  "parameters": [
+    "path",
+    "extension",
+    "min_size_mb"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -name '*.{{extension}}' -size +{{min_size_mb}}M"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -name '*.{{extension}}' -size +{{min_size_mb}}M"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -name '*.{{extension}}' -size +{{min_size_mb}}M -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -name '*.{{extension}}' -size +{{min_size_mb}}M -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -name '*.{{extension}}' -size +{{min_size_mb}}M -exec ls -lh {} \\; | awk '{print $5\"|\"$9}'"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -name '*.{{extension}}' -size +{{min_size_mb}}M -exec ls -lh {} \\; | awk '{print $5\"|\"$9}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -name '*.{{extension}}' -size +{{min_size_mb}}M -printf '%s %p\\n' | awk '{sum+=$1; print} END {print \"Total: \"sum}'"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -name '*.{{extension}}' -size +{{min_size_mb}}M -printf '%s %p\\n' | awk '{sum+=$1; print} END {print \"Total: \"sum}'"
+        ]
       },
       "expected_output": {
         "type": "string",

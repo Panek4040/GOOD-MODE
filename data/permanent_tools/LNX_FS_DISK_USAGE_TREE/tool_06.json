@@ -2,7 +2,10 @@
   "name": "disk_usage_exclude_patterns",
   "description": "Calculate disk usage excluding specific patterns or directories",
   "pattern": "exclude.*usage|ignore.*dirs|skip.*patterns",
-  "parameters": ["path", "exclude_pattern"],
+  "parameters": [
+    "path",
+    "exclude_pattern"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "du",
-        "args": ["-h", "--exclude={{exclude_pattern}}", "{{path}}"]
+        "args": [
+          "-h",
+          "--exclude={{exclude_pattern}}",
+          "{{path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sh --exclude='{{exclude_pattern}}' '{{path}}'/*"]
+        "args": [
+          "-c",
+          "du -sh --exclude='{{exclude_pattern}}' '{{path}}'/*"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type d -name '{{exclude_pattern}}' -prune -o -type d -exec du -sh {} \\; | grep -v '/{{exclude_pattern}}$'"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type d -name '{{exclude_pattern}}' -prune -o -type d -exec du -sh {} \\; | grep -v '/{{exclude_pattern}}$'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -h --max-depth=2 --exclude='{{exclude_pattern}}' '{{path}}' | sort -rh"]
+        "args": [
+          "-c",
+          "du -h --max-depth=2 --exclude='{{exclude_pattern}}' '{{path}}' | sort -rh"
+        ]
       },
       "expected_output": {
         "type": "string",

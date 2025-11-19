@@ -2,7 +2,11 @@
   "name": "dd_disk_image_clone_backup",
   "description": "Create disk images, clone partitions, backup MBR using dd command",
   "pattern": "dd.*image|clone.*disk|disk.*backup|dd.*command",
-  "parameters": ["input_device", "output_file", "block_size"],
+  "parameters": [
+    "input_device",
+    "output_file",
+    "block_size"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "lsblk | grep -E '{{input_device}}|NAME'"]
+        "args": [
+          "-c",
+          "lsblk | grep -E '{{input_device}}|NAME'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "blockdev --getsize64 {{input_device}} 2>/dev/null || stat -c%s {{input_device}}"]
+        "args": [
+          "-c",
+          "blockdev --getsize64 {{input_device}} 2>/dev/null || stat -c%s {{input_device}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "dd if={{input_device}} of={{output_file}} bs={{block_size}} status=progress 2>&1 | tail -5"]
+        "args": [
+          "-c",
+          "dd if={{input_device}} of={{output_file}} bs={{block_size}} status=progress 2>&1 | tail -5"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "ls -lh {{output_file}}"]
+        "args": [
+          "-c",
+          "ls -lh {{output_file}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +78,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "file {{output_file}}"]
+        "args": [
+          "-c",
+          "file {{output_file}}"
+        ]
       },
       "expected_output": {
         "type": "string",

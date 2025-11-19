@@ -2,7 +2,11 @@
   "name": "systemd_cat_log_command_output",
   "description": "Pipe command output directly to systemd journal with identifier",
   "pattern": "systemd.cat|pipe.*journal|log.*command.*output",
-  "parameters": ["command", "identifier", "priority"],
+  "parameters": [
+    "command",
+    "identifier",
+    "priority"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemd-cat",
-        "args": ["--help"]
+        "args": [
+          "--help"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "{{command}}"]
+        "args": [
+          "-c",
+          "{{command}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "{{command}} | systemd-cat -t {{identifier}} -p {{priority}}"]
+        "args": [
+          "-c",
+          "{{command}} | systemd-cat -t {{identifier}} -p {{priority}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +61,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "journalctl",
-        "args": ["-t", "{{identifier}}", "--since", "1 minute ago", "--no-pager"]
+        "args": [
+          "-t",
+          "{{identifier}}",
+          "--since",
+          "1 minute ago",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +80,14 @@
         "tool": "shell",
         "operation": "run",
         "command": "journalctl",
-        "args": ["-t", "{{identifier}}", "-o", "json-pretty", "--lines=1", "--no-pager"]
+        "args": [
+          "-t",
+          "{{identifier}}",
+          "-o",
+          "json-pretty",
+          "--lines=1",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",

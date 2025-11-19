@@ -2,7 +2,12 @@
   "name": "logger_write_to_syslog_facility",
   "description": "Write custom messages to syslog with specified facility and priority",
   "pattern": "logger.*syslog|write.*syslog|send.*log.*message",
-  "parameters": ["message", "facility", "priority", "tag"],
+  "parameters": [
+    "message",
+    "facility",
+    "priority",
+    "tag"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +15,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "logger",
-        "args": ["--help"]
+        "args": [
+          "--help"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "logger",
-        "args": ["-p", "{{facility}}.{{priority}}", "-t", "{{tag}}", "{{message}}"]
+        "args": [
+          "-p",
+          "{{facility}}.{{priority}}",
+          "-t",
+          "{{tag}}",
+          "{{message}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +49,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "journalctl",
-        "args": ["-t", "{{tag}}", "--since", "1 minute ago", "--no-pager"]
+        "args": [
+          "-t",
+          "{{tag}}",
+          "--since",
+          "1 minute ago",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +68,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "tail -20 /var/log/syslog | grep {{tag}}"]
+        "args": [
+          "-c",
+          "tail -20 /var/log/syslog | grep {{tag}}"
+        ]
       },
       "expected_output": {
         "type": "string",

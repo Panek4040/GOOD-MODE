@@ -9,7 +9,9 @@
         {
           "action": {
             "command": "npm",
-            "args": ["login"]
+            "args": [
+              "login"
+            ]
           },
           "expected_output": "npm notice Log in on https://registry.npmjs.org/\nLogged in as username on https://registry.npmjs.org/",
           "explanation": "Authenticates with npm registry for publishing"
@@ -17,7 +19,10 @@
         {
           "action": {
             "command": "npm",
-            "args": ["pack", "--dry-run"]
+            "args": [
+              "pack",
+              "--dry-run"
+            ]
           },
           "expected_output": "npm notice package: my-package@1.0.0\nnpm notice === Tarball Contents ===\nnpm notice 234B  index.js\nnpm notice 567B  package.json\nnpm notice === Tarball Details ===\nnpm notice size: 801B",
           "explanation": "Previews what will be included in published package"
@@ -25,7 +30,10 @@
         {
           "action": {
             "command": "npm",
-            "args": ["publish", "--dry-run"]
+            "args": [
+              "publish",
+              "--dry-run"
+            ]
           },
           "expected_output": "npm notice Publishing to https://registry.npmjs.org/\nnpm notice package: my-package@1.0.0",
           "explanation": "Validates package can be published without actually publishing"
@@ -39,7 +47,10 @@
         {
           "action": {
             "command": "npm",
-            "args": ["version", "patch"]
+            "args": [
+              "version",
+              "patch"
+            ]
           },
           "expected_output": "v1.0.1",
           "explanation": "Increments patch version in package.json and creates git tag"
@@ -47,7 +58,9 @@
         {
           "action": {
             "command": "npm",
-            "args": ["publish"]
+            "args": [
+              "publish"
+            ]
           },
           "expected_output": "+ my-package@1.0.1",
           "explanation": "Publishes package to npm registry"
@@ -55,7 +68,11 @@
         {
           "action": {
             "command": "npm",
-            "args": ["view", "my-package", "versions"]
+            "args": [
+              "view",
+              "my-package",
+              "versions"
+            ]
           },
           "expected_output": "[ '1.0.0', '1.0.1' ]",
           "explanation": "Lists all published versions of the package"
@@ -69,7 +86,10 @@
         {
           "action": {
             "command": "npm",
-            "args": ["init", "--scope=@myorg"]
+            "args": [
+              "init",
+              "--scope=@myorg"
+            ]
           },
           "expected_output": "package name: @myorg/my-package",
           "explanation": "Creates scoped package under organization namespace"
@@ -77,7 +97,10 @@
         {
           "action": {
             "command": "npm",
-            "args": ["publish", "--access=public"]
+            "args": [
+              "publish",
+              "--access=public"
+            ]
           },
           "expected_output": "+ @myorg/my-package@1.0.0",
           "explanation": "Publishes scoped package with public access"
@@ -85,7 +108,10 @@
         {
           "action": {
             "command": "npm",
-            "args": ["unpublish", "my-package@1.0.0"]
+            "args": [
+              "unpublish",
+              "my-package@1.0.0"
+            ]
           },
           "expected_output": "- my-package@1.0.0",
           "explanation": "Removes specific version from registry (use cautiously)"

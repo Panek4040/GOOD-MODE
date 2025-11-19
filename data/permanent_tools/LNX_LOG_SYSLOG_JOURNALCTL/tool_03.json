@@ -2,7 +2,11 @@
   "name": "syslog_rsyslog_config_remote_logging",
   "description": "Configure rsyslog for local and remote log forwarding with filters",
   "pattern": "rsyslog.*config|syslog.*forward|remote.*logging",
-  "parameters": ["remote_host", "remote_port", "facility"],
+  "parameters": [
+    "remote_host",
+    "remote_port",
+    "facility"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "cat",
-        "args": ["/etc/rsyslog.conf"]
+        "args": [
+          "/etc/rsyslog.conf"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo '{{facility}}.* @@{{remote_host}}:{{remote_port}}' >> /etc/rsyslog.d/50-remote.conf && cat /etc/rsyslog.d/50-remote.conf"]
+        "args": [
+          "-c",
+          "echo '{{facility}}.* @@{{remote_host}}:{{remote_port}}' >> /etc/rsyslog.d/50-remote.conf && cat /etc/rsyslog.d/50-remote.conf"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "rsyslogd",
-        "args": ["-N1"]
+        "args": [
+          "-N1"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +60,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["restart", "rsyslog"]
+        "args": [
+          "restart",
+          "rsyslog"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +76,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["status", "rsyslog", "--no-pager"]
+        "args": [
+          "status",
+          "rsyslog",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",

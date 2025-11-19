@@ -10,7 +10,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -i -n 'password' /var/www/html | head -20"]
+        "args": [
+          "-c",
+          "grep -r -i -n 'password' /var/www/html | head -20"
+        ]
       },
       "observation": "/var/www/html/config.php:15:$db_password = 'prodPass123!';\n/var/www/html/admin/login.php:42:if ($password == $stored_password) {\n/var/www/html/includes/auth.php:89:define('ADMIN_PASSWORD', 'admin2025');\n/var/www/html/api/v1/auth.php:23:$api_password = 'sk_live_abc123xyz';"
     },
@@ -21,7 +24,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find /var/www/html -type f -name 'config.php' -exec grep -n -E '(DB_|database|mysql)' {} +"]
+        "args": [
+          "-c",
+          "find /var/www/html -type f -name 'config.php' -exec grep -n -E '(DB_|database|mysql)' {} +"
+        ]
       },
       "observation": "/var/www/html/config.php:12:define('DB_HOST', 'localhost');\n/var/www/html/config.php:13:define('DB_USER', 'webapp_user');\n/var/www/html/config.php:14:define('DB_NAME', 'production_db');\n/var/www/html/config.php:15:define('DB_PASSWORD', 'prodPass123!');"
     },
@@ -32,7 +38,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -i -E '(api_key|secret|token).*=.*['\"]' /var/www/html --exclude-dir=node_modules --exclude-dir=vendor"]
+        "args": [
+          "-c",
+          "grep -r -i -E '(api_key|secret|token).*=.*['\"]' /var/www/html --exclude-dir=node_modules --exclude-dir=vendor"
+        ]
       },
       "observation": "/var/www/html/api/v1/auth.php:18:$secret_key = 'sk_live_abc123xyz';\n/var/www/html/config.php:42:define('JWT_SECRET', 'myJWT$ecret2025!');\n/var/www/html/includes/payment.php:15:$stripe_api_key = 'sk_live_stripe_abc123';"
     },
@@ -43,7 +52,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find /var/www/html -type f -name '*.js' -exec grep -n -E '(password|apiKey|token).*[:=]' {} + | grep -v '.min.js'"]
+        "args": [
+          "-c",
+          "find /var/www/html -type f -name '*.js' -exec grep -n -E '(password|apiKey|token).*[:=]' {} + | grep -v '.min.js'"
+        ]
       },
       "observation": "/var/www/html/js/app.js:89:const apiKey = 'AIzaSyDemoKey123456789';\n/var/www/html/admin/js/admin.js:142:let adminPassword = 'tempAdmin123';"
     },
@@ -54,7 +66,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -i 'connection.*string\\|mysql://\\|postgresql://' /var/www/html"]
+        "args": [
+          "-c",
+          "grep -r -i 'connection.*string\\|mysql://\\|postgresql://' /var/www/html"
+        ]
       },
       "observation": "/var/www/html/config.php:52:// Connection string for legacy system\n/var/www/html/legacy/db.php:8:$conn_str = 'mysql://webapp_user:prodPass123!@localhost/production_db';"
     },
@@ -65,7 +80,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -i -E '(password|api_key|secret|token).*=.*['\\\"]' /var/www/html --exclude-dir=node_modules | wc -l"]
+        "args": [
+          "-c",
+          "grep -r -i -E '(password|api_key|secret|token).*=.*['\\\"]' /var/www/html --exclude-dir=node_modules | wc -l"
+        ]
       },
       "observation": "47"
     },
@@ -76,7 +94,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -l -i -E '(password|api_key|secret).*=.*['\\\"]' /var/www/html --exclude-dir=node_modules --exclude-dir=vendor | sort"]
+        "args": [
+          "-c",
+          "grep -r -l -i -E '(password|api_key|secret).*=.*['\\\"]' /var/www/html --exclude-dir=node_modules --exclude-dir=vendor | sort"
+        ]
       },
       "observation": "/var/www/html/admin/js/admin.js\n/var/www/html/api/v1/auth.php\n/var/www/html/config.php\n/var/www/html/includes/auth.php\n/var/www/html/includes/payment.php\n/var/www/html/js/app.js\n/var/www/html/legacy/db.php"
     }

@@ -3,7 +3,12 @@
   "description": "Exploiting WPS vulnerabilities for instant password recovery via Pixie Dust and PIN brute force",
   "difficulty": "beginner",
   "estimated_time": "45 minutes",
-  "tools_used": ["wash", "reaver", "pixiewps", "bully"],
+  "tools_used": [
+    "wash",
+    "reaver",
+    "pixiewps",
+    "bully"
+  ],
   "attack_chain": [
     {
       "step": 1,
@@ -130,5 +135,12 @@
     "Replace routers known to be Pixie Dust vulnerable",
     "Use network segmentation to limit damage from WiFi compromise"
   ],
-  "tags": ["wps", "pixie_dust", "reaver", "bully", "pin_brute_force", "wifi_cracking"]
+  "tags": [
+    "wps",
+    "pixie_dust",
+    "reaver",
+    "bully",
+    "pin_brute_force",
+    "wifi_cracking"
+  ]
 }

@@ -2,7 +2,10 @@
   "name": "list_dir_detailed",
   "description": "List directory contents with size and timestamps using ls -lah",
   "pattern": "list.*dir|show.*files|ls.*path",
-  "parameters": ["path", "include_hidden"],
+  "parameters": [
+    "path",
+    "include_hidden"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "ls -lah",
-        "args": ["{{path}}"]
+        "args": [
+          "{{path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +28,15 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["{{path}}", "-maxdepth", "1", "-type", "f", "-printf", "%p|%s|%TY-%Tm-%Td %TH:%TM\\n"]
+        "args": [
+          "{{path}}",
+          "-maxdepth",
+          "1",
+          "-type",
+          "f",
+          "-printf",
+          "%p|%s|%TY-%Tm-%Td %TH:%TM\\n"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +49,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "stat",
-        "args": ["-c", "%n|%s|%y", "{{path}}/*"]
+        "args": [
+          "-c",
+          "%n|%s|%y",
+          "{{path}}/*"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +66,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "du",
-        "args": ["-sh", "{{path}}/*"]
+        "args": [
+          "-sh",
+          "{{path}}/*"
+        ]
       },
       "expected_output": {
         "type": "string",

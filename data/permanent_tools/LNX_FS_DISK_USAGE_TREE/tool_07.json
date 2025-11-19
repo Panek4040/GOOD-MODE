@@ -2,7 +2,9 @@
   "name": "disk_usage_compare_time",
   "description": "Compare disk usage changes between two time periods",
   "pattern": "compare.*usage|usage.*change|growth.*analysis",
-  "parameters": ["path"],
+  "parameters": [
+    "path"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +12,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "du",
-        "args": ["-sb", "{{path}}"]
+        "args": [
+          "-sb",
+          "{{path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +28,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sb '{{path}}'/* | sort -rn"]
+        "args": [
+          "-c",
+          "du -sb '{{path}}'/* | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +44,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sb '{{path}}'/* | awk '{print $0 > \"/tmp/du_snapshot_\"systime(\".txt\")}'; echo '/tmp/du_snapshot_'$(date +%s)'.txt'"]
+        "args": [
+          "-c",
+          "du -sb '{{path}}'/* | awk '{print $0 > \"/tmp/du_snapshot_\"systime(\".txt\")}'; echo '/tmp/du_snapshot_'$(date +%s)'.txt'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +60,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -h --max-depth=1 --time '{{path}}' | sort -k3"]
+        "args": [
+          "-c",
+          "du -h --max-depth=1 --time '{{path}}' | sort -k3"
+        ]
       },
       "expected_output": {
         "type": "string",

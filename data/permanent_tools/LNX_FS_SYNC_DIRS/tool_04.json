@@ -2,7 +2,11 @@
   "name": "sync_dirs_incremental_backup",
   "description": "Incremental sync with backup of changed files",
   "pattern": "incremental.*sync|backup.*changes|sync.*backup",
-  "parameters": ["source_path", "dest_path", "backup_dir"],
+  "parameters": [
+    "source_path",
+    "dest_path",
+    "backup_dir"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "mkdir -p '{{backup_dir}}' && echo 'Backup directory ready'"]
+        "args": [
+          "-c",
+          "mkdir -p '{{backup_dir}}' && echo 'Backup directory ready'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "backup_timestamp=$(date +%Y%m%d_%H%M%S); echo \"Backup timestamp: $backup_timestamp\""]
+        "args": [
+          "-c",
+          "backup_timestamp=$(date +%Y%m%d_%H%M%S); echo \"Backup timestamp: $backup_timestamp\""
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "rsync -av --backup --backup-dir='{{backup_dir}}/backup_$(date +%Y%m%d_%H%M%S)' --dry-run --stats '{{source_path}}/' '{{dest_path}}/' | grep -E '(Number of|Total)'"]
+        "args": [
+          "-c",
+          "rsync -av --backup --backup-dir='{{backup_dir}}/backup_$(date +%Y%m%d_%H%M%S)' --dry-run --stats '{{source_path}}/' '{{dest_path}}/' | grep -E '(Number of|Total)'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "rsync -av --backup --backup-dir='{{backup_dir}}/backup_$(date +%Y%m%d_%H%M%S)' '{{source_path}}/' '{{dest_path}}/'"]
+        "args": [
+          "-c",
+          "rsync -av --backup --backup-dir='{{backup_dir}}/backup_$(date +%Y%m%d_%H%M%S)' '{{source_path}}/' '{{dest_path}}/'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +78,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{backup_dir}}' -type f | head -5 && echo '...' && find '{{backup_dir}}' -type f | wc -l"]
+        "args": [
+          "-c",
+          "find '{{backup_dir}}' -type f | head -5 && echo '...' && find '{{backup_dir}}' -type f | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",

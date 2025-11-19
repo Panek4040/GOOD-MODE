@@ -2,7 +2,10 @@
   "name": "create_systemd_timer",
   "description": "Create systemd timer unit for scheduled task execution",
   "pattern": "systemd.*timer|schedule.*service|timer.*unit",
-  "parameters": ["service_name", "timer_schedule"],
+  "parameters": [
+    "service_name",
+    "timer_schedule"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "cat > /etc/systemd/system/{{service_name}}.service <<'EOF'\n[Unit]\nDescription={{service_name}} automated task\n\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/{{service_name}}.sh\nEOF\ncat /etc/systemd/system/{{service_name}}.service"]
+        "args": [
+          "-c",
+          "cat > /etc/systemd/system/{{service_name}}.service <<'EOF'\n[Unit]\nDescription={{service_name}} automated task\n\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/{{service_name}}.sh\nEOF\ncat /etc/systemd/system/{{service_name}}.service"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "cat > /etc/systemd/system/{{service_name}}.timer <<'EOF'\n[Unit]\nDescription={{service_name}} timer\n\n[Timer]\nOnCalendar={{timer_schedule}}\nPersistent=true\n\n[Install]\nWantedBy=timers.target\nEOF\ncat /etc/systemd/system/{{service_name}}.timer"]
+        "args": [
+          "-c",
+          "cat > /etc/systemd/system/{{service_name}}.timer <<'EOF'\n[Unit]\nDescription={{service_name}} timer\n\n[Timer]\nOnCalendar={{timer_schedule}}\nPersistent=true\n\n[Install]\nWantedBy=timers.target\nEOF\ncat /etc/systemd/system/{{service_name}}.timer"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["daemon-reload"]
+        "args": [
+          "daemon-reload"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +60,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["enable", "{{service_name}}.timer"]
+        "args": [
+          "enable",
+          "{{service_name}}.timer"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +76,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["start", "{{service_name}}.timer"]
+        "args": [
+          "start",
+          "{{service_name}}.timer"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -75,7 +92,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["status", "{{service_name}}.timer"]
+        "args": [
+          "status",
+          "{{service_name}}.timer"
+        ]
       },
       "expected_output": {
         "type": "string",

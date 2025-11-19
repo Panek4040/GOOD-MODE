@@ -2,29 +2,98 @@
   "name": "paste_join_combine_files",
   "description": "Combine files line-by-line or join on common fields using paste and join commands",
   "pattern": "paste.*files|join.*files|combine.*columns|merge.*files",
-  "parameters": ["file1", "file2", "delimiter"],
+  "parameters": [
+    "file1",
+    "file2",
+    "delimiter"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "paste {{file1}} {{file2}}"]},
-      "expected_output": {"type": "string", "example": "Files combined line-by-line with tab separator:\nfile1_line1\tfile2_line1\nfile1_line2\tfile2_line2"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "paste {{file1}} {{file2}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Files combined line-by-line with tab separator:\nfile1_line1\tfile2_line1\nfile1_line2\tfile2_line2"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "paste -d'{{delimiter}}' {{file1}} {{file2}}"]},
-      "expected_output": {"type": "string", "example": "Files combined using '{{delimiter}}' as separator"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "paste -d'{{delimiter}}' {{file1}} {{file2}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Files combined using '{{delimiter}}' as separator"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "paste -s {{file1}}"]},
-      "expected_output": {"type": "string", "example": "All lines from file1 merged into single line (serial paste)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "paste -s {{file1}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "All lines from file1 merged into single line (serial paste)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "join {{file1}} {{file2}}"]},
-      "expected_output": {"type": "string", "example": "Files joined on first field (like SQL inner join):\nkey1 value1_from_file1 value1_from_file2\nkey2 value2_from_file1 value2_from_file2"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "join {{file1}} {{file2}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Files joined on first field (like SQL inner join):\nkey1 value1_from_file1 value1_from_file2\nkey2 value2_from_file1 value2_from_file2"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "join -t'{{delimiter}}' -1 1 -2 1 {{file1}} {{file2}}"]},
-      "expected_output": {"type": "string", "example": "Files joined on field 1 from both files using '{{delimiter}}' separator"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "join -t'{{delimiter}}' -1 1 -2 1 {{file1}} {{file2}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Files joined on field 1 from both files using '{{delimiter}}' separator"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

@@ -3,20 +3,112 @@
   "description": "Use Playwright trace viewer, video recording, and debugging tools for test analysis",
   "difficulty": "expert",
   "estimated_time": "85 minutes",
-  "tools_used": ["playwright", "trace_viewer", "video_recording", "debugger"],
-  "attack_chain": [
-    {"step": 1, "title": "Start Tracing with Full Options", "command": "const { chromium } = require('playwright'); const browser = await chromium.launch(); const context = await browser.newContext({recordVideo: {dir: '/tmp/videos/', size: {width: 1280, height: 720}}}); await context.tracing.start({screenshots: true, snapshots: true, sources: true}); const page = await context.newPage();", "explanation": "Enable comprehensive trace recording", "expected_output": "Tracing started with screenshots and snapshots", "success_criteria": "Trace active"},
-    {"step": 2, "title": "Execute Multi-Step Workflow", "command": "await page.goto('https://the-internet.herokuapp.com/login'); await page.screenshot({path: '/tmp/step1_login_page.png'}); await page.locator('#username').fill('tomsmith'); await page.locator('#password').fill('SuperSecretPassword!'); await page.screenshot({path: '/tmp/step2_filled_form.png'}); await page.click('button[type=\"submit\"]'); await page.waitForURL('**/secure'); await page.screenshot({path: '/tmp/step3_logged_in.png'}); console.log('Workflow completed');", "explanation": "Perform actions with step-by-step screenshots", "expected_output": "Workflow completed", "success_criteria": "3 screenshots saved"},
-    {"step": 3, "title": "Interact with Dynamic Content", "command": "await page.goto('https://the-internet.herokuapp.com/dynamic_loading/2'); await page.click('#start button'); await page.locator('#finish h4').waitFor({state: 'visible'}); const text = await page.locator('#finish h4').textContent(); console.log('Dynamic content:', text);", "explanation": "Trace captures AJAX loading sequence", "expected_output": "Dynamic content: Hello World!", "success_criteria": "Content loaded"},
-    {"step": 4, "title": "Test File Upload", "command": "await page.goto('https://the-internet.herokuapp.com/upload'); const fileInput = page.locator('#file-upload'); await fileInput.setInputFiles({name: 'test.txt', mimeType: 'text/plain', buffer: Buffer.from('Playwright test file')}); await page.click('#file-submit'); await page.waitForSelector('#uploaded-files'); console.log('File uploaded');", "explanation": "Upload virtual file and verify", "expected_output": "File uploaded", "success_criteria": "Upload successful"},
-    {"step": 5, "title": "Handle Frames and Nested Content", "command": "await page.goto('https://the-internet.herokuapp.com/nested_frames'); const topFrame = page.frameLocator('frame[name=\"frame-top\"]'); const leftFrame = topFrame.frameLocator('frame[name=\"frame-left\"]'); const content = await leftFrame.locator('body').textContent(); console.log('Nested frame content:', content);", "explanation": "Navigate nested iframe structure", "expected_output": "Nested frame content: LEFT", "success_criteria": "Frame accessed"},
-    {"step": 6, "title": "Test Drag and Drop", "command": "await page.goto('https://the-internet.herokuapp.com/drag_and_drop'); const source = page.locator('#column-a'); const target = page.locator('#column-b'); await source.dragTo(target); await page.waitForTimeout(500); const headerA = await page.locator('#column-a header').textContent(); console.log('After drag:', headerA);", "explanation": "Perform drag and drop interaction", "expected_output": "After drag: B", "success_criteria": "Elements swapped"},
-    {"step": 7, "title": "Capture Network Timeline", "command": "const requests = []; page.on('request', req => requests.push({time: Date.now(), method: req.method(), url: req.url()})); page.on('response', res => console.log('Response:', res.status(), res.url())); await page.goto('https://jsonplaceholder.typicode.com'); await page.waitForLoadState('networkidle'); console.log('Network requests:', requests.length);", "explanation": "Log timing of all network activity", "expected_output": "Network requests: 5+", "success_criteria": "Timeline captured"},
-    {"step": 8, "title": "Test Accessibility Tree", "command": "await page.goto('https://example.com'); const snapshot = await page.accessibility.snapshot(); const headingRole = snapshot.children.find(c => c.role === 'heading'); console.log('Accessibility:', headingRole ? headingRole.name : 'No heading'); console.log('Full tree nodes:', JSON.stringify(snapshot).length);", "explanation": "Verify accessibility structure", "expected_output": "Accessibility: Example Domain, Full tree nodes: 500+", "success_criteria": "A11y tree captured"},
-    {"step": 9, "title": "Stop Tracing and Save", "command": "await context.tracing.stop({path: '/tmp/trace.zip'}); console.log('Trace saved to /tmp/trace.zip'); const videoPath = await page.video().path(); console.log('Video saved to:', videoPath);", "explanation": "Export trace and video artifacts", "expected_output": "Trace saved to /tmp/trace.zip, Video saved to: /tmp/videos/...", "success_criteria": "Artifacts exported"},
-    {"step": 10, "title": "Generate Debug Report", "command": "const fs = require('fs'); const report = {sessionDuration: Date.now(), screenshotCount: 3, traceFile: '/tmp/trace.zip', videoFile: await page.video().path(), networkRequests: requests.length, testSteps: ['login', 'dynamic_load', 'upload', 'frames', 'drag_drop']}; fs.writeFileSync('/tmp/debug_report.json', JSON.stringify(report, null, 2)); console.log('Debug report saved'); await browser.close(); console.log('To view trace: npx playwright show-trace /tmp/trace.zip');", "explanation": "Create comprehensive debug report with viewing instructions", "expected_output": "Debug report saved, To view trace: npx playwright show-trace /tmp/trace.zip", "success_criteria": "Complete documentation"}
+  "tools_used": [
+    "playwright",
+    "trace_viewer",
+    "video_recording",
+    "debugger"
   ],
-  "learning_objectives": ["Trace recording", "Video capture", "Screenshot debugging", "Network timeline", "Accessibility testing", "Artifact generation", "Frame handling"],
-  "mitigation": ["Not applicable - debugging tool"],
-  "tags": ["playwright", "trace_viewer", "debugging", "testing", "video", "accessibility"]
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Start Tracing with Full Options",
+      "command": "const { chromium } = require('playwright'); const browser = await chromium.launch(); const context = await browser.newContext({recordVideo: {dir: '/tmp/videos/', size: {width: 1280, height: 720}}}); await context.tracing.start({screenshots: true, snapshots: true, sources: true}); const page = await context.newPage();",
+      "explanation": "Enable comprehensive trace recording",
+      "expected_output": "Tracing started with screenshots and snapshots",
+      "success_criteria": "Trace active"
+    },
+    {
+      "step": 2,
+      "title": "Execute Multi-Step Workflow",
+      "command": "await page.goto('https://the-internet.herokuapp.com/login'); await page.screenshot({path: '/tmp/step1_login_page.png'}); await page.locator('#username').fill('tomsmith'); await page.locator('#password').fill('SuperSecretPassword!'); await page.screenshot({path: '/tmp/step2_filled_form.png'}); await page.click('button[type=\"submit\"]'); await page.waitForURL('**/secure'); await page.screenshot({path: '/tmp/step3_logged_in.png'}); console.log('Workflow completed');",
+      "explanation": "Perform actions with step-by-step screenshots",
+      "expected_output": "Workflow completed",
+      "success_criteria": "3 screenshots saved"
+    },
+    {
+      "step": 3,
+      "title": "Interact with Dynamic Content",
+      "command": "await page.goto('https://the-internet.herokuapp.com/dynamic_loading/2'); await page.click('#start button'); await page.locator('#finish h4').waitFor({state: 'visible'}); const text = await page.locator('#finish h4').textContent(); console.log('Dynamic content:', text);",
+      "explanation": "Trace captures AJAX loading sequence",
+      "expected_output": "Dynamic content: Hello World!",
+      "success_criteria": "Content loaded"
+    },
+    {
+      "step": 4,
+      "title": "Test File Upload",
+      "command": "await page.goto('https://the-internet.herokuapp.com/upload'); const fileInput = page.locator('#file-upload'); await fileInput.setInputFiles({name: 'test.txt', mimeType: 'text/plain', buffer: Buffer.from('Playwright test file')}); await page.click('#file-submit'); await page.waitForSelector('#uploaded-files'); console.log('File uploaded');",
+      "explanation": "Upload virtual file and verify",
+      "expected_output": "File uploaded",
+      "success_criteria": "Upload successful"
+    },
+    {
+      "step": 5,
+      "title": "Handle Frames and Nested Content",
+      "command": "await page.goto('https://the-internet.herokuapp.com/nested_frames'); const topFrame = page.frameLocator('frame[name=\"frame-top\"]'); const leftFrame = topFrame.frameLocator('frame[name=\"frame-left\"]'); const content = await leftFrame.locator('body').textContent(); console.log('Nested frame content:', content);",
+      "explanation": "Navigate nested iframe structure",
+      "expected_output": "Nested frame content: LEFT",
+      "success_criteria": "Frame accessed"
+    },
+    {
+      "step": 6,
+      "title": "Test Drag and Drop",
+      "command": "await page.goto('https://the-internet.herokuapp.com/drag_and_drop'); const source = page.locator('#column-a'); const target = page.locator('#column-b'); await source.dragTo(target); await page.waitForTimeout(500); const headerA = await page.locator('#column-a header').textContent(); console.log('After drag:', headerA);",
+      "explanation": "Perform drag and drop interaction",
+      "expected_output": "After drag: B",
+      "success_criteria": "Elements swapped"
+    },
+    {
+      "step": 7,
+      "title": "Capture Network Timeline",
+      "command": "const requests = []; page.on('request', req => requests.push({time: Date.now(), method: req.method(), url: req.url()})); page.on('response', res => console.log('Response:', res.status(), res.url())); await page.goto('https://jsonplaceholder.typicode.com'); await page.waitForLoadState('networkidle'); console.log('Network requests:', requests.length);",
+      "explanation": "Log timing of all network activity",
+      "expected_output": "Network requests: 5+",
+      "success_criteria": "Timeline captured"
+    },
+    {
+      "step": 8,
+      "title": "Test Accessibility Tree",
+      "command": "await page.goto('https://example.com'); const snapshot = await page.accessibility.snapshot(); const headingRole = snapshot.children.find(c => c.role === 'heading'); console.log('Accessibility:', headingRole ? headingRole.name : 'No heading'); console.log('Full tree nodes:', JSON.stringify(snapshot).length);",
+      "explanation": "Verify accessibility structure",
+      "expected_output": "Accessibility: Example Domain, Full tree nodes: 500+",
+      "success_criteria": "A11y tree captured"
+    },
+    {
+      "step": 9,
+      "title": "Stop Tracing and Save",
+      "command": "await context.tracing.stop({path: '/tmp/trace.zip'}); console.log('Trace saved to /tmp/trace.zip'); const videoPath = await page.video().path(); console.log('Video saved to:', videoPath);",
+      "explanation": "Export trace and video artifacts",
+      "expected_output": "Trace saved to /tmp/trace.zip, Video saved to: /tmp/videos/...",
+      "success_criteria": "Artifacts exported"
+    },
+    {
+      "step": 10,
+      "title": "Generate Debug Report",
+      "command": "const fs = require('fs'); const report = {sessionDuration: Date.now(), screenshotCount: 3, traceFile: '/tmp/trace.zip', videoFile: await page.video().path(), networkRequests: requests.length, testSteps: ['login', 'dynamic_load', 'upload', 'frames', 'drag_drop']}; fs.writeFileSync('/tmp/debug_report.json', JSON.stringify(report, null, 2)); console.log('Debug report saved'); await browser.close(); console.log('To view trace: npx playwright show-trace /tmp/trace.zip');",
+      "explanation": "Create comprehensive debug report with viewing instructions",
+      "expected_output": "Debug report saved, To view trace: npx playwright show-trace /tmp/trace.zip",
+      "success_criteria": "Complete documentation"
+    }
+  ],
+  "learning_objectives": [
+    "Trace recording",
+    "Video capture",
+    "Screenshot debugging",
+    "Network timeline",
+    "Accessibility testing",
+    "Artifact generation",
+    "Frame handling"
+  ],
+  "mitigation": [
+    "Not applicable - debugging tool"
+  ],
+  "tags": [
+    "playwright",
+    "trace_viewer",
+    "debugging",
+    "testing",
+    "video",
+    "accessibility"
+  ]
 }

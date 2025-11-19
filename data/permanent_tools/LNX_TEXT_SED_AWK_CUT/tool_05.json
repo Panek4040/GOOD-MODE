@@ -2,29 +2,97 @@
   "name": "tr_character_translation_deletion",
   "description": "Translate, delete, squeeze characters using tr command for text transformation",
   "pattern": "tr.*translate|character.*replace|tr.*delete|case.*convert",
-  "parameters": ["set1", "set2"],
+  "parameters": [
+    "set1",
+    "set2"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Sample Text' | tr '{{set1}}' '{{set2}}'"]},
-      "expected_output": {"type": "string", "example": "Characters in set1 replaced with corresponding set2 characters"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'Sample Text' | tr '{{set1}}' '{{set2}}'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Characters in set1 replaced with corresponding set2 characters"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Sample Text 123' | tr -d '{{set1}}'"]},
-      "expected_output": {"type": "string", "example": "Characters in '{{set1}}' deleted from output"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'Sample Text 123' | tr -d '{{set1}}'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Characters in '{{set1}}' deleted from output"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'HELLO WORLD' | tr '[:upper:]' '[:lower:]'"]},
-      "expected_output": {"type": "string", "example": "hello world (uppercase converted to lowercase)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'HELLO WORLD' | tr '[:upper:]' '[:lower:]'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "hello world (uppercase converted to lowercase)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'hello    world' | tr -s ' '"]},
-      "expected_output": {"type": "string", "example": "hello world (multiple spaces squeezed to single space)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'hello    world' | tr -s ' '"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "hello world (multiple spaces squeezed to single space)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Text123' | tr -cd '[:alpha:]'"]},
-      "expected_output": {"type": "string", "example": "Text (keep only alphabetic characters, delete complement)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'Text123' | tr -cd '[:alpha:]'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Text (keep only alphabetic characters, delete complement)"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

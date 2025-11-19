@@ -2,7 +2,10 @@
   "name": "ss_list_socket_connections_filter",
   "description": "List all network connections with filtering by TCP/UDP, state, ports using modern ss command",
   "pattern": "list.*connections|show.*sockets|active.*network|ss.*command",
-  "parameters": ["protocol", "state"],
+  "parameters": [
+    "protocol",
+    "state"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "ss",
-        "args": ["-s"]
+        "args": [
+          "-s"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +28,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "if [ '{{protocol}}' = 'tcp' ]; then ss -tn state {{state}}; elif [ '{{protocol}}' = 'udp' ]; then ss -un; elif [ '{{protocol}}' = 'all' ]; then ss -tunap; fi"]
+        "args": [
+          "-c",
+          "if [ '{{protocol}}' = 'tcp' ]; then ss -tn state {{state}}; elif [ '{{protocol}}' = 'udp' ]; then ss -un; elif [ '{{protocol}}' = 'all' ]; then ss -tunap; fi"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +44,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "ss -tunap | grep -E 'LISTEN|ESTAB' | wc -l"]
+        "args": [
+          "-c",
+          "ss -tunap | grep -E 'LISTEN|ESTAB' | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +60,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "ss -tunap | awk '{print $5}' | cut -d: -f1 | sort | uniq -c | sort -rn | head -10"]
+        "args": [
+          "-c",
+          "ss -tunap | awk '{print $5}' | cut -d: -f1 | sort | uniq -c | sort -rn | head -10"
+        ]
       },
       "expected_output": {
         "type": "string",

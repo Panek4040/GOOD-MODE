@@ -2,21 +2,67 @@
   "name": "container_exploitation",
   "description": "Docker and Kubernetes container exploitation and escape",
   "pattern": "docker.*escape|k8s.*exploit|container.*breakout",
-  "parameters": ["container_id", "namespace"],
+  "parameters": [
+    "container_id",
+    "namespace"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "docker", "args": ["ps"]},
-      "expected_output": {"type": "string", "example": "CONTAINER ID   IMAGE          STATUS      PORTS\nabc123def456   web-app:latest Up 2 hours  0.0.0.0:80->80/tcp\n\nContainer running with exposed ports"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker",
+        "args": [
+          "ps"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "CONTAINER ID   IMAGE          STATUS      PORTS\nabc123def456   web-app:latest Up 2 hours  0.0.0.0:80->80/tcp\n\nContainer running with exposed ports"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "docker", "args": ["exec", "-it", "abc123def456", "/bin/bash"]},
-      "expected_output": {"type": "string", "example": "root@abc123def456:/app# id\nuid=0(root) gid=0(root) groups=0(root)\n\nRoot access inside container"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "docker",
+        "args": [
+          "exec",
+          "-it",
+          "abc123def456",
+          "/bin/bash"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "root@abc123def456:/app# id\nuid=0(root) gid=0(root) groups=0(root)\n\nRoot access inside container"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "kubectl", "args": ["get", "pods", "--all-namespaces"]},
-      "expected_output": {"type": "string", "example": "NAMESPACE   NAME                     READY   STATUS\ndefault     web-app-pod-abc123       1/1     Running\nkube-system etcd-master              1/1     Running\n\nKubernetes pods enumerated"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kubectl",
+        "args": [
+          "get",
+          "pods",
+          "--all-namespaces"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "NAMESPACE   NAME                     READY   STATUS\ndefault     web-app-pod-abc123       1/1     Running\nkube-system etcd-master              1/1     Running\n\nKubernetes pods enumerated"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

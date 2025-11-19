@@ -2,7 +2,12 @@
   "name": "rsync_remote_server_backup_ssh",
   "description": "Backup to remote server using rsync over SSH with bandwidth limit and exclude patterns",
   "pattern": "remote.*backup|rsync.*ssh|backup.*server",
-  "parameters": ["local_path", "remote_host", "remote_path", "bandwidth_limit"],
+  "parameters": [
+    "local_path",
+    "remote_host",
+    "remote_path",
+    "bandwidth_limit"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +15,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sh {{local_path}}"]
+        "args": [
+          "-c",
+          "du -sh {{local_path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +31,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "ssh {{remote_host}} 'du -sh {{remote_path}} 2>/dev/null || echo \"{{remote_path}} not found\"'"]
+        "args": [
+          "-c",
+          "ssh {{remote_host}} 'du -sh {{remote_path}} 2>/dev/null || echo \"{{remote_path}} not found\"'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +47,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "rsync -avz --bwlimit={{bandwidth_limit}} --exclude='*.tmp' --exclude='cache/*' --dry-run {{local_path}}/ {{remote_host}}:{{remote_path}}/ 2>&1 | tail -15"]
+        "args": [
+          "-c",
+          "rsync -avz --bwlimit={{bandwidth_limit}} --exclude='*.tmp' --exclude='cache/*' --dry-run {{local_path}}/ {{remote_host}}:{{remote_path}}/ 2>&1 | tail -15"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +63,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "rsync -avz --bwlimit={{bandwidth_limit}} --exclude='*.tmp' --exclude='cache/*' --progress {{local_path}}/ {{remote_host}}:{{remote_path}}/ 2>&1 | tail -5"]
+        "args": [
+          "-c",
+          "rsync -avz --bwlimit={{bandwidth_limit}} --exclude='*.tmp' --exclude='cache/*' --progress {{local_path}}/ {{remote_host}}:{{remote_path}}/ 2>&1 | tail -5"
+        ]
       },
       "expected_output": {
         "type": "string",

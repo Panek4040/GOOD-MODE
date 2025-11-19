@@ -10,7 +10,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find /var/www/project -name 'node_modules' -o -name '*.log' | head -10"]
+        "args": [
+          "-c",
+          "find /var/www/project -name 'node_modules' -o -name '*.log' | head -10"
+        ]
       },
       "observation": "/var/www/project/node_modules\n/var/www/project/frontend/node_modules\n/var/www/project/logs/app.log\n/var/www/project/logs/error.log\n/var/www/project/cache/debug.log"
     },
@@ -21,7 +24,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo \"Total: $(du -sh /var/www/project | cut -f1)\" && echo \"node_modules: $(du -sh /var/www/project/node_modules 2>/dev/null | cut -f1 || echo '0')\""]
+        "args": [
+          "-c",
+          "echo \"Total: $(du -sh /var/www/project | cut -f1)\" && echo \"node_modules: $(du -sh /var/www/project/node_modules 2>/dev/null | cut -f1 || echo '0')\""
+        ]
       },
       "observation": "Total: 3.2G\nnode_modules: 1.8G"
     },
@@ -32,7 +38,17 @@
         "tool": "shell",
         "operation": "run",
         "command": "rsync",
-        "args": ["-av", "--delete", "--exclude=node_modules", "--exclude=*.log", "--exclude=.git", "--dry-run", "--stats", "/var/www/project/", "/backup/project/"]
+        "args": [
+          "-av",
+          "--delete",
+          "--exclude=node_modules",
+          "--exclude=*.log",
+          "--exclude=.git",
+          "--dry-run",
+          "--stats",
+          "/var/www/project/",
+          "/backup/project/"
+        ]
       },
       "observation": "sending incremental file list\ndeleting old_cache.dat\ndeleting temp/obsolete_file.txt\nsrc/index.js\nsrc/config.js\npublic/index.html\n\nNumber of files: 456 (reg: 420, dir: 36)\nNumber of created files: 15\nNumber of deleted files: 8\nNumber of regular files transferred: 15\nTotal file size: 1.4G bytes\nTotal transferred file size: 45M bytes"
     },
@@ -43,7 +59,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "rsync -av --delete --exclude=node_modules --exclude='*.log' --exclude=.git --stats /var/www/project/ /backup/project/ | tail -12"]
+        "args": [
+          "-c",
+          "rsync -av --delete --exclude=node_modules --exclude='*.log' --exclude=.git --stats /var/www/project/ /backup/project/ | tail -12"
+        ]
       },
       "observation": "Number of files: 456 (reg: 420, dir: 36)\nNumber of created files: 15\nNumber of deleted files: 8\nNumber of regular files transferred: 15\nTotal file size: 1.4G bytes\nLiteral data: 45.2M bytes\nMatched data: 0 bytes\nFile list size: 18.5K\nFile list generation time: 0.008 seconds\nFile list transfer time: 0.000 seconds\nTotal bytes sent: 45.5M\nTotal bytes received: 892 bytes"
     },
@@ -54,7 +73,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "test -d /backup/project/node_modules && echo 'ERROR: node_modules exists' || echo 'OK: node_modules excluded'"]
+        "args": [
+          "-c",
+          "test -d /backup/project/node_modules && echo 'ERROR: node_modules exists' || echo 'OK: node_modules excluded'"
+        ]
       },
       "observation": "OK: node_modules excluded"
     },
@@ -65,7 +87,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "test -f /backup/project/old_cache.dat && echo 'ERROR: old file exists' || echo 'OK: obsolete files deleted'"]
+        "args": [
+          "-c",
+          "test -f /backup/project/old_cache.dat && echo 'ERROR: old file exists' || echo 'OK: obsolete files deleted'"
+        ]
       },
       "observation": "OK: obsolete files deleted"
     },
@@ -76,7 +101,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "diff -r /var/www/project /backup/project --exclude=node_modules --exclude='*.log' --exclude=.git | head -5"]
+        "args": [
+          "-c",
+          "diff -r /var/www/project /backup/project --exclude=node_modules --exclude='*.log' --exclude=.git | head -5"
+        ]
       },
       "observation": ""
     },
@@ -87,7 +115,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sh /var/www/project /backup/project"]
+        "args": [
+          "-c",
+          "du -sh /var/www/project /backup/project"
+        ]
       },
       "observation": "3.2G\t/var/www/project\n1.4G\t/backup/project"
     }

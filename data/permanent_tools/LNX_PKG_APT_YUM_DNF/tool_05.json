@@ -1,1 +1,82 @@
-{"name":"dpkg_rpm_package_file_management","description":"Install .deb or .rpm packages from files, query package contents","pattern":"install.*deb|install.*rpm|dpkg.*install","parameters":["package_file","pkg_type"],"sequence":[{"action":{"type":"system_command","tool":"shell","operation":"run","command":"bash","args":["-c","ls -lh {{package_file}}"]},"expected_output":{"type":"string","example":"-rw-r--r-- 1 user user 2.3M Nov 18 10:00 {{package_file}}"}},{"action":{"type":"system_command","tool":"shell","operation":"run","command":"bash","args":["-c","if [ '{{pkg_type}}' = 'deb' ]; then dpkg -I {{package_file}}; else rpm -qip {{package_file}}; fi"]},"expected_output":{"type":"string","example":"Package: app\nVersion: 1.0.0\nArchitecture: amd64"}},{"action":{"type":"system_command","tool":"shell","operation":"run","command":"bash","args":["-c","if [ '{{pkg_type}}' = 'deb' ]; then dpkg -i {{package_file}}; else rpm -ivh {{package_file}}; fi"]},"expected_output":{"type":"string","example":"Selecting previously unselected package\nUnpacking app (1.0.0)...\nSetting up app..."}},{"action":{"type":"system_command","tool":"shell","operation":"run","command":"bash","args":["-c","if [ '{{pkg_type}}' = 'deb' ]; then dpkg -l | grep app; else rpm -qa | grep app; fi"]},"expected_output":{"type":"string","example":"ii  app  1.0.0  amd64"}}],"stats":{"uses":0,"successes":0,"failures":0,"success_rate":0.0},"created_by":"neural_mesh_v5.2_generator"}
+{
+  "name": "dpkg_rpm_package_file_management",
+  "description": "Install .deb or .rpm packages from files, query package contents",
+  "pattern": "install.*deb|install.*rpm|dpkg.*install",
+  "parameters": [
+    "package_file",
+    "pkg_type"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "ls -lh {{package_file}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "-rw-r--r-- 1 user user 2.3M Nov 18 10:00 {{package_file}}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "if [ '{{pkg_type}}' = 'deb' ]; then dpkg -I {{package_file}}; else rpm -qip {{package_file}}; fi"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Package: app\nVersion: 1.0.0\nArchitecture: amd64"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "if [ '{{pkg_type}}' = 'deb' ]; then dpkg -i {{package_file}}; else rpm -ivh {{package_file}}; fi"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Selecting previously unselected package\nUnpacking app (1.0.0)...\nSetting up app..."
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "if [ '{{pkg_type}}' = 'deb' ]; then dpkg -l | grep app; else rpm -qa | grep app; fi"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "ii  app  1.0.0  amd64"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

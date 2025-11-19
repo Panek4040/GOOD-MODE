@@ -2,7 +2,11 @@
   "name": "incremental_differential_backup_strategy",
   "description": "Implement incremental/differential backup strategy using tar with listed-incremental or rsync hardlinks",
   "pattern": "incremental.*backup|differential.*backup|backup.*strategy",
-  "parameters": ["source_dir", "backup_base", "backup_type"],
+  "parameters": [
+    "source_dir",
+    "backup_base",
+    "backup_type"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sh {{source_dir}} && find {{source_dir}} -type f | wc -l"]
+        "args": [
+          "-c",
+          "du -sh {{source_dir}} && find {{source_dir}} -type f | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "if [ '{{backup_type}}' = 'full' ]; then tar -czf {{backup_base}}-full.tar.gz -g {{backup_base}}.snar {{source_dir}}; elif [ '{{backup_type}}' = 'incremental' ]; then tar -czf {{backup_base}}-inc-$(date +%Y%m%d).tar.gz -g {{backup_base}}.snar {{source_dir}}; fi"]
+        "args": [
+          "-c",
+          "if [ '{{backup_type}}' = 'full' ]; then tar -czf {{backup_base}}-full.tar.gz -g {{backup_base}}.snar {{source_dir}}; elif [ '{{backup_type}}' = 'incremental' ]; then tar -czf {{backup_base}}-inc-$(date +%Y%m%d).tar.gz -g {{backup_base}}.snar {{source_dir}}; fi"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "ls -lh {{backup_base}}*.tar.gz | awk '{print $5, $9}'"]
+        "args": [
+          "-c",
+          "ls -lh {{backup_base}}*.tar.gz | awk '{print $5, $9}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "cat {{backup_base}}.snar | head -10"]
+        "args": [
+          "-c",
+          "cat {{backup_base}}.snar | head -10"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +78,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -ch {{backup_base}}*.tar.gz | tail -1"]
+        "args": [
+          "-c",
+          "du -ch {{backup_base}}*.tar.gz | tail -1"
+        ]
       },
       "expected_output": {
         "type": "string",

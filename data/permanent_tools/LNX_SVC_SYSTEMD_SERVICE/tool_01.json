@@ -2,7 +2,10 @@
   "name": "systemctl_start_stop_restart_service",
   "description": "Start, stop, restart systemd services and verify their running state",
   "pattern": "start.*service|stop.*service|restart.*systemctl",
-  "parameters": ["service_name", "action"],
+  "parameters": [
+    "service_name",
+    "action"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["status", "{{service_name}}"]
+        "args": [
+          "status",
+          "{{service_name}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["{{action}}", "{{service_name}}"]
+        "args": [
+          "{{action}}",
+          "{{service_name}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["is-active", "{{service_name}}"]
+        "args": [
+          "is-active",
+          "{{service_name}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +61,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["status", "{{service_name}}", "--no-pager", "-l"]
+        "args": [
+          "status",
+          "{{service_name}}",
+          "--no-pager",
+          "-l"
+        ]
       },
       "expected_output": {
         "type": "string",

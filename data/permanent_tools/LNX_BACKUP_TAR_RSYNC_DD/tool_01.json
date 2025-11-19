@@ -2,7 +2,11 @@
   "name": "tar_create_extract_compressed_archive",
   "description": "Create and extract tar archives with gzip/bzip2/xz compression",
   "pattern": "create.*archive|tar.*backup|extract.*tar",
-  "parameters": ["archive_path", "source_dir", "operation"],
+  "parameters": [
+    "archive_path",
+    "source_dir",
+    "operation"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sh '{{source_dir}}'"]
+        "args": [
+          "-c",
+          "du -sh '{{source_dir}}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "if [ '{{operation}}' = 'create' ]; then tar -czf '{{archive_path}}' -C '$(dirname {{source_dir}})' '$(basename {{source_dir}})'; elif [ '{{operation}}' = 'extract' ]; then tar -xzf '{{archive_path}}' -C /tmp/; elif [ '{{operation}}' = 'list' ]; then tar -tzf '{{archive_path}}' | head -20; fi"]
+        "args": [
+          "-c",
+          "if [ '{{operation}}' = 'create' ]; then tar -czf '{{archive_path}}' -C '$(dirname {{source_dir}})' '$(basename {{source_dir}})'; elif [ '{{operation}}' = 'extract' ]; then tar -xzf '{{archive_path}}' -C /tmp/; elif [ '{{operation}}' = 'list' ]; then tar -tzf '{{archive_path}}' | head -20; fi"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "ls -lh '{{archive_path}}'"]
+        "args": [
+          "-c",
+          "ls -lh '{{archive_path}}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "tar -tzf '{{archive_path}}' | wc -l"]
+        "args": [
+          "-c",
+          "tar -tzf '{{archive_path}}' | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",

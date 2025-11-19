@@ -2,7 +2,10 @@
   "name": "docker_exec_interactive_shell_commands",
   "description": "Execute commands inside running container for debugging and maintenance",
   "pattern": "docker.*exec|execute.*inside.*container|container.*shell|docker.*bash",
-  "parameters": ["container_name", "shell_command"],
+  "parameters": [
+    "container_name",
+    "shell_command"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,15 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["ps", "--filter", "name={{container_name}}", "--filter", "status=running", "--format", "{{.Names}}"]
+        "args": [
+          "ps",
+          "--filter",
+          "name={{container_name}}",
+          "--filter",
+          "status=running",
+          "--format",
+          "{{.Names}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +34,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["exec", "{{container_name}}", "whoami"]
+        "args": [
+          "exec",
+          "{{container_name}}",
+          "whoami"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +51,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["exec", "{{container_name}}", "bash", "-c", "{{shell_command}}"]
+        "args": [
+          "exec",
+          "{{container_name}}",
+          "bash",
+          "-c",
+          "{{shell_command}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +70,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["exec", "{{container_name}}", "ps", "aux"]
+        "args": [
+          "exec",
+          "{{container_name}}",
+          "ps",
+          "aux"
+        ]
       },
       "expected_output": {
         "type": "string",

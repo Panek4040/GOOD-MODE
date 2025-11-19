@@ -2,7 +2,10 @@
   "name": "sync_dirs_with_delete",
   "description": "Mirror directories with rsync including deletions",
   "pattern": "mirror.*directories|sync.*delete|exact.*copy",
-  "parameters": ["source_path", "dest_path"],
+  "parameters": [
+    "source_path",
+    "dest_path"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{dest_path}}' -type f | wc -l"]
+        "args": [
+          "-c",
+          "find '{{dest_path}}' -type f | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "rsync",
-        "args": ["-av", "--delete", "--dry-run", "{{source_path}}/", "{{dest_path}}/"]
+        "args": [
+          "-av",
+          "--delete",
+          "--dry-run",
+          "{{source_path}}/",
+          "{{dest_path}}/"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +48,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "rsync -av --delete --stats '{{source_path}}/' '{{dest_path}}/' | tail -10"]
+        "args": [
+          "-c",
+          "rsync -av --delete --stats '{{source_path}}/' '{{dest_path}}/' | tail -10"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +64,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{dest_path}}' -type f | wc -l"]
+        "args": [
+          "-c",
+          "find '{{dest_path}}' -type f | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +80,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "diff -r '{{source_path}}' '{{dest_path}}' && echo 'Directories are identical' || echo 'Differences found'"]
+        "args": [
+          "-c",
+          "diff -r '{{source_path}}' '{{dest_path}}' && echo 'Directories are identical' || echo 'Differences found'"
+        ]
       },
       "expected_output": {
         "type": "string",

@@ -2,7 +2,11 @@
   "name": "list_dir_pattern_match",
   "description": "List files matching specific pattern using find and grep",
   "pattern": "find.*pattern|search.*files.*name|filter.*files",
-  "parameters": ["path", "pattern", "max_depth"],
+  "parameters": [
+    "path",
+    "pattern",
+    "max_depth"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,15 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["{{path}}", "-maxdepth", "{{max_depth}}", "-type", "f", "-name", "{{pattern}}"]
+        "args": [
+          "{{path}}",
+          "-maxdepth",
+          "{{max_depth}}",
+          "-type",
+          "f",
+          "-name",
+          "{{pattern}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +35,21 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["{{path}}", "-maxdepth", "{{max_depth}}", "-type", "f", "-name", "{{pattern}}", "-exec", "stat", "-c", "%n|%s|%y", "{}", ";"]
+        "args": [
+          "{{path}}",
+          "-maxdepth",
+          "{{max_depth}}",
+          "-type",
+          "f",
+          "-name",
+          "{{pattern}}",
+          "-exec",
+          "stat",
+          "-c",
+          "%n|%s|%y",
+          "{}",
+          ";"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +62,16 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["{{path}}", "-maxdepth", "{{max_depth}}", "-type", "f", "-name", "{{pattern}}", "-ls"]
+        "args": [
+          "{{path}}",
+          "-maxdepth",
+          "{{max_depth}}",
+          "-type",
+          "f",
+          "-name",
+          "{{pattern}}",
+          "-ls"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +84,17 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["{{path}}", "-maxdepth", "{{max_depth}}", "-type", "f", "-name", "{{pattern}}", "-printf", "%p|%s|%TY-%Tm-%Td %TH:%TM:%TS\\n"]
+        "args": [
+          "{{path}}",
+          "-maxdepth",
+          "{{max_depth}}",
+          "-type",
+          "f",
+          "-name",
+          "{{pattern}}",
+          "-printf",
+          "%p|%s|%TY-%Tm-%Td %TH:%TM:%TS\\n"
+        ]
       },
       "expected_output": {
         "type": "string",

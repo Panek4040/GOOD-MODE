@@ -2,7 +2,9 @@
   "name": "docker_container_lifecycle_stop_remove",
   "description": "Manage container lifecycle: stop, restart, and remove containers with cleanup",
   "pattern": "stop.*container|remove.*docker|docker.*rm|cleanup.*containers",
-  "parameters": ["container_name"],
+  "parameters": [
+    "container_name"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +12,14 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["ps", "-a", "--filter", "name={{container_name}}", "--format", "{{.ID}} {{.Status}}"]
+        "args": [
+          "ps",
+          "-a",
+          "--filter",
+          "name={{container_name}}",
+          "--format",
+          "{{.ID}} {{.Status}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +32,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["stop", "{{container_name}}"]
+        "args": [
+          "stop",
+          "{{container_name}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +48,14 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["ps", "-a", "--filter", "name={{container_name}}", "--format", "{{.Status}}"]
+        "args": [
+          "ps",
+          "-a",
+          "--filter",
+          "name={{container_name}}",
+          "--format",
+          "{{.Status}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +68,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["rm", "{{container_name}}"]
+        "args": [
+          "rm",
+          "{{container_name}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +84,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["ps", "-a", "--filter", "name={{container_name}}"]
+        "args": [
+          "ps",
+          "-a",
+          "--filter",
+          "name={{container_name}}"
+        ]
       },
       "expected_output": {
         "type": "string",

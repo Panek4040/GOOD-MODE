@@ -2,7 +2,10 @@
   "name": "journalctl_query_system_logs_time_range",
   "description": "Query systemd journal logs with time range filters and priority levels",
   "pattern": "journalctl.*logs|systemd.*journal|query.*system.*logs",
-  "parameters": ["time_since", "priority"],
+  "parameters": [
+    "time_since",
+    "priority"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "journalctl",
-        "args": ["--version"]
+        "args": [
+          "--version"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +28,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "journalctl",
-        "args": ["--since", "{{time_since}}", "-p", "{{priority}}", "--no-pager"]
+        "args": [
+          "--since",
+          "{{time_since}}",
+          "-p",
+          "{{priority}}",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +47,14 @@
         "tool": "shell",
         "operation": "run",
         "command": "journalctl",
-        "args": ["--since", "{{time_since}}", "-p", "{{priority}}", "--output=json-pretty", "--lines=1"]
+        "args": [
+          "--since",
+          "{{time_since}}",
+          "-p",
+          "{{priority}}",
+          "--output=json-pretty",
+          "--lines=1"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +67,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "journalctl --since '{{time_since}}' -p {{priority}} --no-pager | wc -l"]
+        "args": [
+          "-c",
+          "journalctl --since '{{time_since}}' -p {{priority}} --no-pager | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",

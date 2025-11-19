@@ -2,7 +2,10 @@
   "name": "systemctl_enable_disable_autostart",
   "description": "Enable or disable services to start automatically at boot time",
   "pattern": "enable.*service|disable.*autostart|boot.*service",
-  "parameters": ["service_name", "enable_action"],
+  "parameters": [
+    "service_name",
+    "enable_action"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["is-enabled", "{{service_name}}"]
+        "args": [
+          "is-enabled",
+          "{{service_name}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "if [ '{{enable_action}}' = 'enable' ]; then systemctl enable {{service_name}}; else systemctl disable {{service_name}}; fi"]
+        "args": [
+          "-c",
+          "if [ '{{enable_action}}' = 'enable' ]; then systemctl enable {{service_name}}; else systemctl disable {{service_name}}; fi"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["is-enabled", "{{service_name}}"]
+        "args": [
+          "is-enabled",
+          "{{service_name}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +61,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "systemctl list-unit-files | grep {{service_name}}"]
+        "args": [
+          "-c",
+          "systemctl list-unit-files | grep {{service_name}}"
+        ]
       },
       "expected_output": {
         "type": "string",

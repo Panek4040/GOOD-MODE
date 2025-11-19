@@ -2,7 +2,10 @@
   "name": "disk_usage_recursive_tree",
   "description": "Generate recursive tree view of disk usage with indentation",
   "pattern": "tree.*disk|recursive.*usage|nested.*size",
-  "parameters": ["path", "max_depth"],
+  "parameters": [
+    "path",
+    "max_depth"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "du",
-        "args": ["-h", "--max-depth={{max_depth}}", "{{path}}"]
+        "args": [
+          "-h",
+          "--max-depth={{max_depth}}",
+          "{{path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -ah --max-depth={{max_depth}} '{{path}}' | sort -k2"]
+        "args": [
+          "-c",
+          "du -ah --max-depth={{max_depth}} '{{path}}' | sort -k2"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -maxdepth {{max_depth}} -type d -exec du -sh {} \\; | sort -k2"]
+        "args": [
+          "-c",
+          "find '{{path}}' -maxdepth {{max_depth}} -type d -exec du -sh {} \\; | sort -k2"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -h --max-depth={{max_depth}} '{{path}}' | awk '{depth=gsub(/\\//, \"/\", $2); indent=\"\"; for(i=0;i<depth;i++) indent=indent\"  \"; print indent $1 \"\\t\" $2}'"]
+        "args": [
+          "-c",
+          "du -h --max-depth={{max_depth}} '{{path}}' | awk '{depth=gsub(/\\//, \"/\", $2); indent=\"\"; for(i=0;i<depth;i++) indent=indent\"  \"; print indent $1 \"\\t\" $2}'"
+        ]
       },
       "expected_output": {
         "type": "string",

@@ -2,7 +2,9 @@
   "name": "systemctl_status_logs_journal",
   "description": "Check service status, view logs with journalctl, analyze service failures",
   "pattern": "service.*status|check.*logs|journalctl.*service",
-  "parameters": ["service_name"],
+  "parameters": [
+    "service_name"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +12,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["status", "{{service_name}}", "--no-pager"]
+        "args": [
+          "status",
+          "{{service_name}}",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "journalctl",
-        "args": ["-u", "{{service_name}}", "-n", "20", "--no-pager"]
+        "args": [
+          "-u",
+          "{{service_name}}",
+          "-n",
+          "20",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +48,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "journalctl",
-        "args": ["-u", "{{service_name}}", "--since", "today", "--no-pager"]
+        "args": [
+          "-u",
+          "{{service_name}}",
+          "--since",
+          "today",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +67,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["show", "{{service_name}}", "-p", "ActiveState,SubState,LoadState,UnitFileState"]
+        "args": [
+          "show",
+          "{{service_name}}",
+          "-p",
+          "ActiveState,SubState,LoadState,UnitFileState"
+        ]
       },
       "expected_output": {
         "type": "string",

@@ -2,7 +2,13 @@
   "name": "docker_run_with_env_network_limits",
   "description": "Run container with environment variables, custom network, and resource constraints",
   "pattern": "docker.*environment.*variables|container.*resource.*limits|docker.*network.*create",
-  "parameters": ["image_name", "container_name", "network_name", "memory_limit", "cpu_limit"],
+  "parameters": [
+    "image_name",
+    "container_name",
+    "network_name",
+    "memory_limit",
+    "cpu_limit"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +16,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["network", "create", "{{network_name}}"]
+        "args": [
+          "network",
+          "create",
+          "{{network_name}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +33,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["network", "inspect", "{{network_name}}", "--format", "{{.Driver}} - {{.Scope}}"]
+        "args": [
+          "network",
+          "inspect",
+          "{{network_name}}",
+          "--format",
+          "{{.Driver}} - {{.Scope}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +52,23 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["run", "-d", "--name", "{{container_name}}", "--network", "{{network_name}}", "-e", "APP_ENV=production", "-e", "DB_HOST=postgres", "--memory", "{{memory_limit}}", "--cpus", "{{cpu_limit}}", "{{image_name}}"]
+        "args": [
+          "run",
+          "-d",
+          "--name",
+          "{{container_name}}",
+          "--network",
+          "{{network_name}}",
+          "-e",
+          "APP_ENV=production",
+          "-e",
+          "DB_HOST=postgres",
+          "--memory",
+          "{{memory_limit}}",
+          "--cpus",
+          "{{cpu_limit}}",
+          "{{image_name}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +81,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["inspect", "{{container_name}}", "--format", "Memory: {{.HostConfig.Memory}} | CPUs: {{.HostConfig.NanoCpus}}"]
+        "args": [
+          "inspect",
+          "{{container_name}}",
+          "--format",
+          "Memory: {{.HostConfig.Memory}} | CPUs: {{.HostConfig.NanoCpus}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +99,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["exec", "{{container_name}}", "env"]
+        "args": [
+          "exec",
+          "{{container_name}}",
+          "env"
+        ]
       },
       "expected_output": {
         "type": "string",

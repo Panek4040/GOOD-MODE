@@ -2,7 +2,10 @@
   "name": "text_search_basic",
   "description": "Search for text pattern in files recursively",
   "pattern": "search.*text|find.*string|grep.*files",
-  "parameters": ["path", "pattern"],
+  "parameters": [
+    "path",
+    "pattern"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "grep",
-        "args": ["-r", "-n", "{{pattern}}", "{{path}}"]
+        "args": [
+          "-r",
+          "-n",
+          "{{pattern}}",
+          "{{path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +31,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -n '{{pattern}}' '{{path}}' | wc -l"]
+        "args": [
+          "-c",
+          "grep -r -n '{{pattern}}' '{{path}}' | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +47,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -l '{{pattern}}' '{{path}}' | sort"]
+        "args": [
+          "-c",
+          "grep -r -l '{{pattern}}' '{{path}}' | sort"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +63,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -n -H -C 2 '{{pattern}}' '{{path}}' | head -20"]
+        "args": [
+          "-c",
+          "grep -r -n -H -C 2 '{{pattern}}' '{{path}}' | head -20"
+        ]
       },
       "expected_output": {
         "type": "string",

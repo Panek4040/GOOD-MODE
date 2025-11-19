@@ -2,7 +2,11 @@
   "name": "rsync_incremental_sync_backup",
   "description": "Synchronize directories with rsync for incremental backups, preserve permissions",
   "pattern": "rsync.*backup|sync.*directories|incremental.*backup",
-  "parameters": ["source", "destination", "sync_options"],
+  "parameters": [
+    "source",
+    "destination",
+    "sync_options"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sh '{{source}}' && du -sh '{{destination}}' 2>/dev/null || echo '{{destination}} does not exist'"]
+        "args": [
+          "-c",
+          "du -sh '{{source}}' && du -sh '{{destination}}' 2>/dev/null || echo '{{destination}} does not exist'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "rsync",
-        "args": ["-av", "--dry-run", "--stats", "{{source}}/", "{{destination}}/"]
+        "args": [
+          "-av",
+          "--dry-run",
+          "--stats",
+          "{{source}}/",
+          "{{destination}}/"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +49,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "rsync -av --delete --progress '{{source}}/' '{{destination}}/' 2>&1 | tail -20"]
+        "args": [
+          "-c",
+          "rsync -av --delete --progress '{{source}}/' '{{destination}}/' 2>&1 | tail -20"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +65,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sh '{{destination}}' && find '{{destination}}' -type f | wc -l"]
+        "args": [
+          "-c",
+          "du -sh '{{destination}}' && find '{{destination}}' -type f | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",

@@ -2,7 +2,9 @@
   "name": "systemd_timers_cron_alternative",
   "description": "Manage systemd timers as cron alternative, list timers, check timer status and next run",
   "pattern": "systemd.*timer|list.*timers|schedule.*service",
-  "parameters": ["timer_name"],
+  "parameters": [
+    "timer_name"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +12,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["list-timers", "--all", "--no-pager"]
+        "args": [
+          "list-timers",
+          "--all",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["status", "{{timer_name}}.timer", "--no-pager"]
+        "args": [
+          "status",
+          "{{timer_name}}.timer",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["cat", "{{timer_name}}.timer"]
+        "args": [
+          "cat",
+          "{{timer_name}}.timer"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "systemctl list-timers --no-pager | grep {{timer_name}}"]
+        "args": [
+          "-c",
+          "systemctl list-timers --no-pager | grep {{timer_name}}"
+        ]
       },
       "expected_output": {
         "type": "string",

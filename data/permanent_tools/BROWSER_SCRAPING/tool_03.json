@@ -2,21 +2,65 @@
   "name": "selenium_dynamic_scraping",
   "description": "Scrape JavaScript-rendered content with Selenium headless",
   "pattern": "selenium.*scrape|headless.*scraping|dynamic.*content",
-  "parameters": ["url", "wait_condition"],
+  "parameters": [
+    "url",
+    "wait_condition"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from selenium import webdriver; from selenium.webdriver.chrome.options import Options; from selenium.webdriver.common.by import By; options = Options(); options.add_argument('--headless'); driver = webdriver.Chrome(options=options); driver.get('https://example.com'); title = driver.title; heading = driver.find_element(By.TAG_NAME, 'h1').text; print(f'Title: {title}'); print(f'Heading: {heading}'); driver.quit()"]},
-      "expected_output": {"type": "string", "example": "Title: Example Domain\nHeading: Example Domain\n\nDynamic content scraped"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "from selenium import webdriver; from selenium.webdriver.chrome.options import Options; from selenium.webdriver.common.by import By; options = Options(); options.add_argument('--headless'); driver = webdriver.Chrome(options=options); driver.get('https://example.com'); title = driver.title; heading = driver.find_element(By.TAG_NAME, 'h1').text; print(f'Title: {title}'); print(f'Heading: {heading}'); driver.quit()"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Title: Example Domain\nHeading: Example Domain\n\nDynamic content scraped"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from selenium import webdriver; from selenium.webdriver.chrome.options import Options; from selenium.webdriver.common.by import By; from selenium.webdriver.support.ui import WebDriverWait; from selenium.webdriver.support import expected_conditions as EC; options = Options(); options.add_argument('--headless'); driver = webdriver.Chrome(options=options); driver.get('https://the-internet.herokuapp.com/dynamic_loading/2'); driver.find_element(By.CSS_SELECTOR, '#start button').click(); element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#finish h4'))); print(f'Loaded text: {element.text}'); driver.quit()"]},
-      "expected_output": {"type": "string", "example": "Loaded text: Hello World!\n\nAJAX content waited and scraped"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "from selenium import webdriver; from selenium.webdriver.chrome.options import Options; from selenium.webdriver.common.by import By; from selenium.webdriver.support.ui import WebDriverWait; from selenium.webdriver.support import expected_conditions as EC; options = Options(); options.add_argument('--headless'); driver = webdriver.Chrome(options=options); driver.get('https://the-internet.herokuapp.com/dynamic_loading/2'); driver.find_element(By.CSS_SELECTOR, '#start button').click(); element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, '#finish h4'))); print(f'Loaded text: {element.text}'); driver.quit()"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Loaded text: Hello World!\n\nAJAX content waited and scraped"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from selenium import webdriver; from selenium.webdriver.chrome.options import Options; from selenium.webdriver.common.by import By; import time; options = Options(); options.add_argument('--headless'); driver = webdriver.Chrome(options=options); driver.get('https://example.com'); for i in range(3): driver.execute_script('window.scrollBy(0, 500)'); time.sleep(0.5); height = driver.execute_script('return document.body.scrollHeight'); print(f'Page height: {height}px'); driver.quit()"]},
-      "expected_output": {"type": "string", "example": "Page height: 1500px\n\nPage scrolled for lazy-load content"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "from selenium import webdriver; from selenium.webdriver.chrome.options import Options; from selenium.webdriver.common.by import By; import time; options = Options(); options.add_argument('--headless'); driver = webdriver.Chrome(options=options); driver.get('https://example.com'); for i in range(3): driver.execute_script('window.scrollBy(0, 500)'); time.sleep(0.5); height = driver.execute_script('return document.body.scrollHeight'); print(f'Page height: {height}px'); driver.quit()"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Page height: 1500px\n\nPage scrolled for lazy-load content"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

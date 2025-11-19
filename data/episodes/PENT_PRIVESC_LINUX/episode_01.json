@@ -8,7 +8,9 @@
       "step_number": 1,
       "tool": "suid_binary_exploitation",
       "action": "Enumerate SUID binaries on the system",
-      "parameters": {"search_path": "/"},
+      "parameters": {
+        "search_path": "/"
+      },
       "expected_result": "Found 8 SUID binaries including custom /usr/local/bin/backup binary with unusual permissions",
       "explanation": "SUID binaries run with owner's privileges - if misconfigured, can lead to privilege escalation"
     },
@@ -75,7 +77,11 @@
     "created_by": "neural_mesh_v5.2_generator",
     "category": "pentesting",
     "subcategory": "privilege_escalation",
-    "tools_used": ["suid_binary_exploitation", "sudo_misconfiguration_abuse", "cron_job_manipulation"],
+    "tools_used": [
+      "suid_binary_exploitation",
+      "sudo_misconfiguration_abuse",
+      "cron_job_manipulation"
+    ],
     "estimated_time": "30-45 minutes",
     "authorization_required": true,
     "severity": "critical"

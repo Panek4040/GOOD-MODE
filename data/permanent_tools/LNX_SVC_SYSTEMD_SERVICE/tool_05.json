@@ -2,7 +2,11 @@
   "name": "systemd_create_custom_service_unit",
   "description": "Create custom systemd service unit file, configure ExecStart, enable and start service",
   "pattern": "create.*service|new.*systemd.*unit|custom.*service.*file",
-  "parameters": ["service_name", "exec_command", "description"],
+  "parameters": [
+    "service_name",
+    "exec_command",
+    "description"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "cat > /etc/systemd/system/{{service_name}}.service << 'EOF'\n[Unit]\nDescription={{description}}\nAfter=network.target\n\n[Service]\nType=simple\nExecStart={{exec_command}}\nRestart=on-failure\nRestartSec=10\n\n[Install]\nWantedBy=multi-user.target\nEOF"]
+        "args": [
+          "-c",
+          "cat > /etc/systemd/system/{{service_name}}.service << 'EOF'\n[Unit]\nDescription={{description}}\nAfter=network.target\n\n[Service]\nType=simple\nExecStart={{exec_command}}\nRestart=on-failure\nRestartSec=10\n\n[Install]\nWantedBy=multi-user.target\nEOF"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "cat",
-        "args": ["/etc/systemd/system/{{service_name}}.service"]
+        "args": [
+          "/etc/systemd/system/{{service_name}}.service"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["daemon-reload"]
+        "args": [
+          "daemon-reload"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +60,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["enable", "--now", "{{service_name}}"]
+        "args": [
+          "enable",
+          "--now",
+          "{{service_name}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +77,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["status", "{{service_name}}", "--no-pager"]
+        "args": [
+          "status",
+          "{{service_name}}",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",

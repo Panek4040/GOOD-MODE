@@ -3,20 +3,110 @@
   "description": "Mock backend APIs and intercept network requests for isolated frontend testing",
   "difficulty": "advanced",
   "estimated_time": "70 minutes",
-  "tools_used": ["playwright", "route", "fulfill", "network_interception"],
-  "attack_chain": [
-    {"step": 1, "title": "Setup Browser with HAR Recording", "command": "const { chromium } = require('playwright'); const browser = await chromium.launch(); const context = await browser.newContext({recordHar: {path: '/tmp/network.har'}});const page = await context.newPage();", "explanation": "Record all network traffic to HAR file", "expected_output": "Browser with HAR recording started", "success_criteria": "Context created"},
-    {"step": 2, "title": "Mock API Authentication", "command": "await page.route('**/api/auth/login', route => route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({success: true, token: 'mock-jwt-token', user: {id: 1, name: 'Test User'}})}));", "explanation": "Intercept login API and return fake token", "expected_output": "Auth route mocked", "success_criteria": "Mock response ready"},
-    {"step": 3, "title": "Navigate and Trigger Mocked Login", "command": "await page.goto('https://example.com/login'); await page.locator('#email').fill('test@example.com'); await page.locator('#password').fill('password'); const [response] = await Promise.all([page.waitForResponse('**/api/auth/login'), page.click('button[type=\"submit\"]')]); const data = await response.json(); console.log('Mocked response:', data);", "explanation": "Submit form and receive mocked API response", "expected_output": "Mocked response: {success: true, token: 'mock-jwt-token'}", "success_criteria": "Mock data received"},
-    {"step": 4, "title": "Mock User Data Endpoint", "command": "await page.route('**/api/users', route => route.fulfill({status: 200, body: JSON.stringify([{id: 1, name: 'Alice'}, {id: 2, name: 'Bob'}, {id: 3, name: 'Charlie'}])}));", "explanation": "Return fake user list", "expected_output": "Users API mocked", "success_criteria": "Mock users defined"},
-    {"step": 5, "title": "Test with Mocked Data", "command": "await page.evaluate(async () => { const res = await fetch('/api/users'); const users = await res.json(); console.log('Fetched users:', users.length); }); await page.waitForTimeout(1000); console.log('Frontend consumed mocked data');", "explanation": "Verify app handles mocked API correctly", "expected_output": "Frontend consumed mocked data", "success_criteria": "App works with mocks"},
-    {"step": 6, "title": "Simulate Network Failure", "command": "await page.route('**/api/products', route => route.abort('failed')); await page.evaluate(() => { fetch('/api/products').catch(e => console.log('Network error:', e)); }); await page.waitForTimeout(1000); console.log('Network failure simulated');", "explanation": "Test error handling by aborting request", "expected_output": "Network failure simulated", "success_criteria": "Request blocked"},
-    {"step": 7, "title": "Mock Slow API Response", "command": "await page.route('**/api/dashboard', async route => { await new Promise(r => setTimeout(r, 3000)); route.fulfill({status: 200, body: JSON.stringify({stats: {users: 150, revenue: 50000}})}); }); const start = Date.now(); await page.goto('https://example.com/dashboard'); await page.waitForResponse('**/api/dashboard'); console.log('Slow API took:', Date.now() - start, 'ms');", "explanation": "Add artificial delay to test loading states", "expected_output": "Slow API took: 3000+ ms", "success_criteria": "Delay applied"},
-    {"step": 8, "title": "Modify Request Headers", "command": "await page.route('**/api/**', route => { const headers = {...route.request().headers(), 'X-Custom-Header': 'Playwright', 'Authorization': 'Bearer mock-token'}; route.continue({headers}); }); await page.evaluate(() => fetch('/api/data')); console.log('Headers modified');", "explanation": "Inject custom headers into API calls", "expected_output": "Headers modified", "success_criteria": "Headers injected"},
-    {"step": 9, "title": "Capture All API Calls", "command": "const apiLog = []; page.on('request', req => { if (req.url().includes('/api/')) { apiLog.push({method: req.method(), url: req.url(), headers: req.headers()}); } }); await page.goto('https://jsonplaceholder.typicode.com'); await page.evaluate(() => { fetch('/posts/1'); fetch('/users/1'); }); await page.waitForTimeout(2000); console.log('API calls captured:', apiLog.length);", "explanation": "Log all API requests for analysis", "expected_output": "API calls captured: 2+", "success_criteria": "Requests logged"},
-    {"step": 10, "title": "Export HAR and Cleanup", "command": "await context.close(); const fs = require('fs'); const har = JSON.parse(fs.readFileSync('/tmp/network.har')); console.log('HAR entries:', har.log.entries.length); console.log('HAR file saved'); await browser.close();", "explanation": "Save network recording and close browser", "expected_output": "HAR entries: 10+, HAR file saved", "success_criteria": "Network data exported"}
+  "tools_used": [
+    "playwright",
+    "route",
+    "fulfill",
+    "network_interception"
   ],
-  "learning_objectives": ["API mocking", "Network interception", "Route handlers", "HAR recording", "Error simulation", "Header manipulation"],
-  "mitigation": ["Not applicable - testing tool"],
-  "tags": ["playwright", "api_mocking", "network", "testing", "har"]
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Setup Browser with HAR Recording",
+      "command": "const { chromium } = require('playwright'); const browser = await chromium.launch(); const context = await browser.newContext({recordHar: {path: '/tmp/network.har'}});const page = await context.newPage();",
+      "explanation": "Record all network traffic to HAR file",
+      "expected_output": "Browser with HAR recording started",
+      "success_criteria": "Context created"
+    },
+    {
+      "step": 2,
+      "title": "Mock API Authentication",
+      "command": "await page.route('**/api/auth/login', route => route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({success: true, token: 'mock-jwt-token', user: {id: 1, name: 'Test User'}})}));",
+      "explanation": "Intercept login API and return fake token",
+      "expected_output": "Auth route mocked",
+      "success_criteria": "Mock response ready"
+    },
+    {
+      "step": 3,
+      "title": "Navigate and Trigger Mocked Login",
+      "command": "await page.goto('https://example.com/login'); await page.locator('#email').fill('test@example.com'); await page.locator('#password').fill('password'); const [response] = await Promise.all([page.waitForResponse('**/api/auth/login'), page.click('button[type=\"submit\"]')]); const data = await response.json(); console.log('Mocked response:', data);",
+      "explanation": "Submit form and receive mocked API response",
+      "expected_output": "Mocked response: {success: true, token: 'mock-jwt-token'}",
+      "success_criteria": "Mock data received"
+    },
+    {
+      "step": 4,
+      "title": "Mock User Data Endpoint",
+      "command": "await page.route('**/api/users', route => route.fulfill({status: 200, body: JSON.stringify([{id: 1, name: 'Alice'}, {id: 2, name: 'Bob'}, {id: 3, name: 'Charlie'}])}));",
+      "explanation": "Return fake user list",
+      "expected_output": "Users API mocked",
+      "success_criteria": "Mock users defined"
+    },
+    {
+      "step": 5,
+      "title": "Test with Mocked Data",
+      "command": "await page.evaluate(async () => { const res = await fetch('/api/users'); const users = await res.json(); console.log('Fetched users:', users.length); }); await page.waitForTimeout(1000); console.log('Frontend consumed mocked data');",
+      "explanation": "Verify app handles mocked API correctly",
+      "expected_output": "Frontend consumed mocked data",
+      "success_criteria": "App works with mocks"
+    },
+    {
+      "step": 6,
+      "title": "Simulate Network Failure",
+      "command": "await page.route('**/api/products', route => route.abort('failed')); await page.evaluate(() => { fetch('/api/products').catch(e => console.log('Network error:', e)); }); await page.waitForTimeout(1000); console.log('Network failure simulated');",
+      "explanation": "Test error handling by aborting request",
+      "expected_output": "Network failure simulated",
+      "success_criteria": "Request blocked"
+    },
+    {
+      "step": 7,
+      "title": "Mock Slow API Response",
+      "command": "await page.route('**/api/dashboard', async route => { await new Promise(r => setTimeout(r, 3000)); route.fulfill({status: 200, body: JSON.stringify({stats: {users: 150, revenue: 50000}})}); }); const start = Date.now(); await page.goto('https://example.com/dashboard'); await page.waitForResponse('**/api/dashboard'); console.log('Slow API took:', Date.now() - start, 'ms');",
+      "explanation": "Add artificial delay to test loading states",
+      "expected_output": "Slow API took: 3000+ ms",
+      "success_criteria": "Delay applied"
+    },
+    {
+      "step": 8,
+      "title": "Modify Request Headers",
+      "command": "await page.route('**/api/**', route => { const headers = {...route.request().headers(), 'X-Custom-Header': 'Playwright', 'Authorization': 'Bearer mock-token'}; route.continue({headers}); }); await page.evaluate(() => fetch('/api/data')); console.log('Headers modified');",
+      "explanation": "Inject custom headers into API calls",
+      "expected_output": "Headers modified",
+      "success_criteria": "Headers injected"
+    },
+    {
+      "step": 9,
+      "title": "Capture All API Calls",
+      "command": "const apiLog = []; page.on('request', req => { if (req.url().includes('/api/')) { apiLog.push({method: req.method(), url: req.url(), headers: req.headers()}); } }); await page.goto('https://jsonplaceholder.typicode.com'); await page.evaluate(() => { fetch('/posts/1'); fetch('/users/1'); }); await page.waitForTimeout(2000); console.log('API calls captured:', apiLog.length);",
+      "explanation": "Log all API requests for analysis",
+      "expected_output": "API calls captured: 2+",
+      "success_criteria": "Requests logged"
+    },
+    {
+      "step": 10,
+      "title": "Export HAR and Cleanup",
+      "command": "await context.close(); const fs = require('fs'); const har = JSON.parse(fs.readFileSync('/tmp/network.har')); console.log('HAR entries:', har.log.entries.length); console.log('HAR file saved'); await browser.close();",
+      "explanation": "Save network recording and close browser",
+      "expected_output": "HAR entries: 10+, HAR file saved",
+      "success_criteria": "Network data exported"
+    }
+  ],
+  "learning_objectives": [
+    "API mocking",
+    "Network interception",
+    "Route handlers",
+    "HAR recording",
+    "Error simulation",
+    "Header manipulation"
+  ],
+  "mitigation": [
+    "Not applicable - testing tool"
+  ],
+  "tags": [
+    "playwright",
+    "api_mocking",
+    "network",
+    "testing",
+    "har"
+  ]
 }

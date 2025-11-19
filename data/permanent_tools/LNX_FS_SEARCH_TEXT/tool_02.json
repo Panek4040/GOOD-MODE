@@ -2,7 +2,10 @@
   "name": "text_search_case_insensitive",
   "description": "Search for text pattern ignoring case with extended regex",
   "pattern": "case.*insensitive.*search|ignore.*case|search.*any.*case",
-  "parameters": ["path", "pattern"],
+  "parameters": [
+    "path",
+    "pattern"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "grep",
-        "args": ["-r", "-i", "-n", "{{pattern}}", "{{path}}"]
+        "args": [
+          "-r",
+          "-i",
+          "-n",
+          "{{pattern}}",
+          "{{path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +32,14 @@
         "tool": "shell",
         "operation": "run",
         "command": "grep",
-        "args": ["-r", "-i", "-E", "-n", "{{pattern}}", "{{path}}"]
+        "args": [
+          "-r",
+          "-i",
+          "-E",
+          "-n",
+          "{{pattern}}",
+          "{{path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +52,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -i -l '{{pattern}}' '{{path}}' | sort | uniq"]
+        "args": [
+          "-c",
+          "grep -r -i -l '{{pattern}}' '{{path}}' | sort | uniq"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +68,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -i -c '{{pattern}}' '{{path}}' | grep -v ':0$' | sort -t: -k2 -rn | head -10"]
+        "args": [
+          "-c",
+          "grep -r -i -c '{{pattern}}' '{{path}}' | grep -v ':0$' | sort -t: -k2 -rn | head -10"
+        ]
       },
       "expected_output": {
         "type": "string",

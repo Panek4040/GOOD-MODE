@@ -2,7 +2,10 @@
   "name": "iptables_show_firewall_rules_chains",
   "description": "Display iptables firewall rules, chains, packet counters for INPUT/OUTPUT/FORWARD",
   "pattern": "iptables.*rules|firewall.*config|show.*chains|packet.*filter",
-  "parameters": ["chain", "table"],
+  "parameters": [
+    "chain",
+    "table"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "iptables",
-        "args": ["-L", "-v", "-n"]
+        "args": [
+          "-L",
+          "-v",
+          "-n"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "if [ '{{table}}' = 'nat' ]; then iptables -t nat -L -v -n; elif [ '{{table}}' = 'mangle' ]; then iptables -t mangle -L -v -n; else iptables -t filter -L {{chain}} -v -n; fi"]
+        "args": [
+          "-c",
+          "if [ '{{table}}' = 'nat' ]; then iptables -t nat -L -v -n; elif [ '{{table}}' = 'mangle' ]; then iptables -t mangle -L -v -n; else iptables -t filter -L {{chain}} -v -n; fi"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "iptables -S"]
+        "args": [
+          "-c",
+          "iptables -S"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "iptables -L -v -n --line-numbers | grep -A 20 'Chain INPUT'"]
+        "args": [
+          "-c",
+          "iptables -L -v -n --line-numbers | grep -A 20 'Chain INPUT'"
+        ]
       },
       "expected_output": {
         "type": "string",

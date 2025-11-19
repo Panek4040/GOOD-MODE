@@ -2,33 +2,116 @@
   "name": "owasp_zap_proxy_scanner",
   "description": "OWASP ZAP (Zed Attack Proxy) for automated web application security scanning",
   "pattern": "zap.*proxy|zap.*scan|owasp.*zap|zap.*spider",
-  "parameters": ["target_url", "scan_type"],
+  "parameters": [
+    "target_url",
+    "scan_type"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "zap.sh", "args": ["-daemon", "-port", "8090", "-config", "api.disablekey=true"]},
-      "expected_output": {"type": "string", "example": "ZAP 2.14.0 started in daemon mode\nZAP is now listening on 127.0.0.1:8090\nAPI key disabled for local testing\n\nZAP daemon ready:\n  Proxy: http://127.0.0.1:8090\n  API: http://127.0.0.1:8090/UI\n  Status: Running\n\nReady to accept API commands"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "zap.sh",
+        "args": [
+          "-daemon",
+          "-port",
+          "8090",
+          "-config",
+          "api.disablekey=true"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "ZAP 2.14.0 started in daemon mode\nZAP is now listening on 127.0.0.1:8090\nAPI key disabled for local testing\n\nZAP daemon ready:\n  Proxy: http://127.0.0.1:8090\n  API: http://127.0.0.1:8090/UI\n  Status: Running\n\nReady to accept API commands"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "curl", "args": ["http://127.0.0.1:8090/JSON/spider/action/scan/?url={{target_url}}"]},
-      "expected_output": {"type": "string", "example": "{\"scan\":\"1\"}\n\nZAP Spider started:\n  Scan ID: 1\n  Target: {{target_url}}\n  Status: Running\n\nSpider discovering URLs:\n  http://testsite.com/\n  http://testsite.com/login.php\n  http://testsite.com/products.php\n  http://testsite.com/api/users\n  http://testsite.com/admin/dashboard.php\n  http://testsite.com/search?q=test\n\nFound 47 URLs in site map"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "http://127.0.0.1:8090/JSON/spider/action/scan/?url={{target_url}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\"scan\":\"1\"}\n\nZAP Spider started:\n  Scan ID: 1\n  Target: {{target_url}}\n  Status: Running\n\nSpider discovering URLs:\n  http://testsite.com/\n  http://testsite.com/login.php\n  http://testsite.com/products.php\n  http://testsite.com/api/users\n  http://testsite.com/admin/dashboard.php\n  http://testsite.com/search?q=test\n\nFound 47 URLs in site map"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "curl", "args": ["http://127.0.0.1:8090/JSON/ascan/action/scan/?url={{target_url}}&recurse=true&inScopeOnly=false"]},
-      "expected_output": {"type": "string", "example": "{\"scan\":\"2\"}\n\nZAP Active Scan started:\n  Scan ID: 2\n  Target: {{target_url}}\n  Recurse: true\n  Policies: All enabled\n\nTesting for vulnerabilities:\n  [SQL Injection] Testing 15 variants...\n  [XSS (Cross Site Scripting)] Testing reflected XSS...\n  [Path Traversal] Testing directory traversal...\n  [Command Injection] Testing OS command injection...\n  [CSRF] Checking anti-CSRF tokens...\n\nScan progress: 45% complete"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "http://127.0.0.1:8090/JSON/ascan/action/scan/?url={{target_url}}&recurse=true&inScopeOnly=false"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\"scan\":\"2\"}\n\nZAP Active Scan started:\n  Scan ID: 2\n  Target: {{target_url}}\n  Recurse: true\n  Policies: All enabled\n\nTesting for vulnerabilities:\n  [SQL Injection] Testing 15 variants...\n  [XSS (Cross Site Scripting)] Testing reflected XSS...\n  [Path Traversal] Testing directory traversal...\n  [Command Injection] Testing OS command injection...\n  [CSRF] Checking anti-CSRF tokens...\n\nScan progress: 45% complete"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "curl 'http://127.0.0.1:8090/JSON/core/view/alerts/' | jq ."]},
-      "expected_output": {"type": "string", "example": "{\n  \"alerts\": [\n    {\n      \"alert\": \"SQL Injection\",\n      \"risk\": \"High\",\n      \"confidence\": \"Medium\",\n      \"url\": \"http://testsite.com/search.php?q=test\",\n      \"param\": \"q\",\n      \"attack\": \"test' OR '1'='1\",\n      \"evidence\": \"You have an error in your SQL syntax\",\n      \"solution\": \"Use parameterized queries\"\n    },\n    {\n      \"alert\": \"Cross Site Scripting (Reflected)\",\n      \"risk\": \"High\",\n      \"confidence\": \"High\",\n      \"url\": \"http://testsite.com/search.php?q=<script>alert(1)</script>\",\n      \"param\": \"q\",\n      \"attack\": \"<script>alert(1)</script>\",\n      \"evidence\": \"<script>alert(1)</script> reflected in response\"\n    },\n    {\n      \"alert\": \"Path Traversal\",\n      \"risk\": \"High\",\n      \"confidence\": \"Medium\",\n      \"url\": \"http://testsite.com/download.php?file=../../../../etc/passwd\",\n      \"param\": \"file\",\n      \"evidence\": \"root:x:0:0:root:/root:/bin/bash\"\n    }\n  ]\n}\n\nFound 3 high-risk vulnerabilities"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "curl 'http://127.0.0.1:8090/JSON/core/view/alerts/' | jq ."
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n  \"alerts\": [\n    {\n      \"alert\": \"SQL Injection\",\n      \"risk\": \"High\",\n      \"confidence\": \"Medium\",\n      \"url\": \"http://testsite.com/search.php?q=test\",\n      \"param\": \"q\",\n      \"attack\": \"test' OR '1'='1\",\n      \"evidence\": \"You have an error in your SQL syntax\",\n      \"solution\": \"Use parameterized queries\"\n    },\n    {\n      \"alert\": \"Cross Site Scripting (Reflected)\",\n      \"risk\": \"High\",\n      \"confidence\": \"High\",\n      \"url\": \"http://testsite.com/search.php?q=<script>alert(1)</script>\",\n      \"param\": \"q\",\n      \"attack\": \"<script>alert(1)</script>\",\n      \"evidence\": \"<script>alert(1)</script> reflected in response\"\n    },\n    {\n      \"alert\": \"Path Traversal\",\n      \"risk\": \"High\",\n      \"confidence\": \"Medium\",\n      \"url\": \"http://testsite.com/download.php?file=../../../../etc/passwd\",\n      \"param\": \"file\",\n      \"evidence\": \"root:x:0:0:root:/root:/bin/bash\"\n    }\n  ]\n}\n\nFound 3 high-risk vulnerabilities"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "zap-cli", "args": ["quick-scan", "-s", "xss,sqli", "{{target_url}}"]},
-      "expected_output": {"type": "string", "example": "ZAP Quick Scan started\nTarget: {{target_url}}\nEnabled plugins: XSS, SQL Injection\n\nSpider scan progress:\n  URLs found: 47\n  Duration: 45 seconds\n\nActive scan progress:\n  XSS tests: 234 requests sent\n  SQLi tests: 156 requests sent\n\nVulnerabilities found:\n  High: 2 (SQL Injection, XSS)\n  Medium: 5 (CSRF, Cookie Security)\n  Low: 8 (Missing headers)\n  Informational: 12\n\nScan completed in 5 minutes 32 seconds"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "zap-cli",
+        "args": [
+          "quick-scan",
+          "-s",
+          "xss,sqli",
+          "{{target_url}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "ZAP Quick Scan started\nTarget: {{target_url}}\nEnabled plugins: XSS, SQL Injection\n\nSpider scan progress:\n  URLs found: 47\n  Duration: 45 seconds\n\nActive scan progress:\n  XSS tests: 234 requests sent\n  SQLi tests: 156 requests sent\n\nVulnerabilities found:\n  High: 2 (SQL Injection, XSS)\n  Medium: 5 (CSRF, Cookie Security)\n  Low: 8 (Missing headers)\n  Informational: 12\n\nScan completed in 5 minutes 32 seconds"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "curl 'http://127.0.0.1:8090/OTHER/core/other/htmlreport/' > zap_report.html && echo 'Report saved to zap_report.html'"]},
-      "expected_output": {"type": "string", "example": "ZAP HTML Report Generated\n\nReport saved to: zap_report.html\nFile size: 2.4 MB\n\nReport contents:\n  - Executive Summary\n  - Risk levels: High (2), Medium (5), Low (8)\n  - Detailed findings with remediation\n  - URLs tested: 47\n  - Total alerts: 27\n  - Scan duration: 5m 32s\n  - Recommendations for each vulnerability\n\nReport ready for client delivery"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "curl 'http://127.0.0.1:8090/OTHER/core/other/htmlreport/' > zap_report.html && echo 'Report saved to zap_report.html'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "ZAP HTML Report Generated\n\nReport saved to: zap_report.html\nFile size: 2.4 MB\n\nReport contents:\n  - Executive Summary\n  - Risk levels: High (2), Medium (5), Low (8)\n  - Detailed findings with remediation\n  - URLs tested: 47\n  - Total alerts: 27\n  - Scan duration: 5m 32s\n  - Recommendations for each vulnerability\n\nReport ready for client delivery"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

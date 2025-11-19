@@ -2,7 +2,10 @@
   "name": "systemctl_reload_daemon_and_services",
   "description": "Reload systemd daemon after config changes, reload service configs without restart",
   "pattern": "reload.*daemon|reload.*service|systemctl.*daemon-reload",
-  "parameters": ["service_name", "reload_type"],
+  "parameters": [
+    "service_name",
+    "reload_type"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "ls -l /etc/systemd/system/{{service_name}}.service"]
+        "args": [
+          "-c",
+          "ls -l /etc/systemd/system/{{service_name}}.service"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["daemon-reload"]
+        "args": [
+          "daemon-reload"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +44,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "if [ '{{reload_type}}' = 'reload' ]; then systemctl reload {{service_name}}; elif [ '{{reload_type}}' = 'reload-or-restart' ]; then systemctl reload-or-restart {{service_name}}; elif [ '{{reload_type}}' = 'try-restart' ]; then systemctl try-restart {{service_name}}; fi"]
+        "args": [
+          "-c",
+          "if [ '{{reload_type}}' = 'reload' ]; then systemctl reload {{service_name}}; elif [ '{{reload_type}}' = 'reload-or-restart' ]; then systemctl reload-or-restart {{service_name}}; elif [ '{{reload_type}}' = 'try-restart' ]; then systemctl try-restart {{service_name}}; fi"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +60,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["status", "{{service_name}}", "--no-pager", "-l"]
+        "args": [
+          "status",
+          "{{service_name}}",
+          "--no-pager",
+          "-l"
+        ]
       },
       "expected_output": {
         "type": "string",

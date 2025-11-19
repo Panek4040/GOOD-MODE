@@ -2,21 +2,64 @@
   "name": "page_object_model",
   "description": "Page Object Model pattern for maintainable UI tests",
   "pattern": "page.*object|pom|locator.*class",
-  "parameters": ["page_class"],
+  "parameters": [
+    "page_class"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "class LoginPage: def __init__(self, driver): self.driver = driver; self.username_field = ('id', 'username'); self.password_field = ('id', 'password'); self.submit_button = ('id', 'submit'); def login(self, username, password): print(f'Logging in as {username}'); return True; page = LoginPage(None); result = page.login('user@test.com', 'password'); print(f'Login result: {result}'); print('Page Object Model pattern demonstrated')"]},
-      "expected_output": {"type": "string", "example": "Logging in as user@test.com\nLogin result: True\nPage Object Model pattern demonstrated\n\nPOM class structure"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "class LoginPage: def __init__(self, driver): self.driver = driver; self.username_field = ('id', 'username'); self.password_field = ('id', 'password'); self.submit_button = ('id', 'submit'); def login(self, username, password): print(f'Logging in as {username}'); return True; page = LoginPage(None); result = page.login('user@test.com', 'password'); print(f'Login result: {result}'); print('Page Object Model pattern demonstrated')"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Logging in as user@test.com\nLogin result: True\nPage Object Model pattern demonstrated\n\nPOM class structure"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "class BasePage: def __init__(self, driver): self.driver = driver; def find_element(self, locator): print(f'Finding element: {locator}'); return f'Element-{locator[1]}'; class HomePage(BasePage): @property; def search_box(self): return self.find_element(('css', '.search')); def search(self, query): print(f'Searching for: {query}'); return True; page = HomePage(None); page.search('test query'); print('Inheritance in Page Objects')"]},
-      "expected_output": {"type": "string", "example": "Searching for: test query\nInheritance in Page Objects\n\nBase page with shared methods"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "class BasePage: def __init__(self, driver): self.driver = driver; def find_element(self, locator): print(f'Finding element: {locator}'); return f'Element-{locator[1]}'; class HomePage(BasePage): @property; def search_box(self): return self.find_element(('css', '.search')); def search(self, query): print(f'Searching for: {query}'); return True; page = HomePage(None); page.search('test query'); print('Inheritance in Page Objects')"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Searching for: test query\nInheritance in Page Objects\n\nBase page with shared methods"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from dataclasses import dataclass; @dataclass; class Locators: username = ('id', 'user'); password = ('id', 'pass'); submit = ('css', 'button[type=\"submit\"]'); class LoginPage: locators = Locators(); def fill_username(self, text): print(f'Filling username: {text}'); def fill_password(self, text): print(f'Filling password: {text}'); def click_submit(self): print('Clicking submit'); page = LoginPage(); page.fill_username('test'); page.fill_password('pass'); page.click_submit(); print('Locators separated from actions')"]},
-      "expected_output": {"type": "string", "example": "Filling username: test\nFilling password: pass\nClicking submit\nLocators separated from actions\n\nLocator strategy pattern"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "from dataclasses import dataclass; @dataclass; class Locators: username = ('id', 'user'); password = ('id', 'pass'); submit = ('css', 'button[type=\"submit\"]'); class LoginPage: locators = Locators(); def fill_username(self, text): print(f'Filling username: {text}'); def fill_password(self, text): print(f'Filling password: {text}'); def click_submit(self): print('Clicking submit'); page = LoginPage(); page.fill_username('test'); page.fill_password('pass'); page.click_submit(); print('Locators separated from actions')"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Filling username: test\nFilling password: pass\nClicking submit\nLocators separated from actions\n\nLocator strategy pattern"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

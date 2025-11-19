@@ -2,21 +2,64 @@
   "name": "jest_testing_framework",
   "description": "JavaScript testing with Jest for unit and integration tests",
   "pattern": "jest.*test|test.*suite|describe.*it",
-  "parameters": ["test_file"],
+  "parameters": [
+    "test_file"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const sum = (a, b) => a + b; test('adds 1 + 2 to equal 3', () => { expect(sum(1, 2)).toBe(3); }); console.log('Jest test defined'); // Note: requires jest runner to execute"]},
-      "expected_output": {"type": "string", "example": "Jest test defined\n\nTest structure created"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const sum = (a, b) => a + b; test('adds 1 + 2 to equal 3', () => { expect(sum(1, 2)).toBe(3); }); console.log('Jest test defined'); // Note: requires jest runner to execute"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Jest test defined\n\nTest structure created"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "describe('Calculator', () => { test('multiplication', () => { expect(2 * 3).toBe(6); }); test('division', () => { expect(6 / 2).toBe(3); }); }); console.log('Test suite with 2 tests')"]},
-      "expected_output": {"type": "string", "example": "Test suite with 2 tests\n\nDescribe block with multiple tests"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "describe('Calculator', () => { test('multiplication', () => { expect(2 * 3).toBe(6); }); test('division', () => { expect(6 / 2).toBe(3); }); }); console.log('Test suite with 2 tests')"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Test suite with 2 tests\n\nDescribe block with multiple tests"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "beforeEach(() => { console.log('Setup before each test'); }); afterEach(() => { console.log('Cleanup after each test'); }); test('example test', () => { expect(true).toBe(true); }); console.log('Lifecycle hooks configured')"]},
-      "expected_output": {"type": "string", "example": "Lifecycle hooks configured\n\nSetup and teardown defined"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "beforeEach(() => { console.log('Setup before each test'); }); afterEach(() => { console.log('Cleanup after each test'); }); test('example test', () => { expect(true).toBe(true); }); console.log('Lifecycle hooks configured')"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Lifecycle hooks configured\n\nSetup and teardown defined"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

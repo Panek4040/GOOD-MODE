@@ -5,26 +5,87 @@
   "parameters": [],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "uptime", "args": []},
-      "expected_output": {"type": "string", "example": " 14:45:23 up 23 days,  4:05,  2 users,  load average: 1.23, 1.45, 1.67"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "uptime",
+        "args": []
+      },
+      "expected_output": {
+        "type": "string",
+        "example": " 14:45:23 up 23 days,  4:05,  2 users,  load average: 1.23, 1.45, 1.67"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "uptime", "args": ["-p"]},
-      "expected_output": {"type": "string", "example": "up 3 weeks, 2 days, 4 hours, 5 minutes"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "uptime",
+        "args": [
+          "-p"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "up 3 weeks, 2 days, 4 hours, 5 minutes"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat /proc/loadavg"]},
-      "expected_output": {"type": "string", "example": "1.23 1.45 1.67 2/234 12345 (load averages + running/total processes)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat /proc/loadavg"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "1.23 1.45 1.67 2/234 12345 (load averages + running/total processes)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "nproc && uptime | awk -F'load average:' '{print $2}'"]},
-      "expected_output": {"type": "string", "example": "8 CPUs with load: 1.23, 1.45, 1.67 - healthy (load < CPU count)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "nproc && uptime | awk -F'load average:' '{print $2}'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "8 CPUs with load: 1.23, 1.45, 1.67 - healthy (load < CPU count)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "w -h | wc -l && uptime | grep -o 'load average:.*' | awk '{if ($3 > 5.0) print \"HIGH LOAD WARNING: \" $3; else print \"Load normal: \" $3}'"]},
-      "expected_output": {"type": "string", "example": "2 users logged in. Load normal: 1.23 (or) HIGH LOAD WARNING: 8.45 - investigate CPU usage"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "w -h | wc -l && uptime | grep -o 'load average:.*' | awk '{if ($3 > 5.0) print \"HIGH LOAD WARNING: \" $3; else print \"Load normal: \" $3}'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "2 users logged in. Load normal: 1.23 (or) HIGH LOAD WARNING: 8.45 - investigate CPU usage"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

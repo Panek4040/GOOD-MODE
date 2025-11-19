@@ -2,37 +2,147 @@
   "name": "active_directory_enumeration",
   "description": "Active Directory enumeration with BloodHound, PowerView, and LDAP queries",
   "pattern": "bloodhound|powerview|ldap.*enum|ad.*enum",
-  "parameters": ["domain", "dc_ip"],
+  "parameters": [
+    "domain",
+    "dc_ip"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bloodhound-python", "args": ["-d", "corp.local", "-u", "john.doe", "-p", "P@ssw0rd123", "-ns", "10.10.10.10", "-c", "All"]},
-      "expected_output": {"type": "string", "example": "INFO: Found AD domain: corp.local\nINFO: Connecting to LDAP server: dc01.corp.local\nINFO: Found 1 domains\nINFO: Found 1 domains in the forest\nINFO: Found 5 computers\nINFO: Connecting to LDAP server: dc01.corp.local\nINFO: Found 124 users\nINFO: Found 87 groups\nINFO: Found 0 trusts\nINFO: Starting computer enumeration with 10 workers\nINFO: Querying computer: DC01.corp.local\nINFO: Querying computer: WEB-01.corp.local\nINFO: Querying computer: DB-01.corp.local\nINFO: Querying computer: FILE-01.corp.local\nINFO: Querying computer: APP-01.corp.local\nINFO: Done in 00M 52S\n\nBloodHound data collected:\n  Domain: corp.local\n  Users: 124\n  Groups: 87\n  Computers: 5\n  Trusts: 0\n\nJSON files created:\n  20240115_users.json\n  20240115_groups.json\n  20240115_computers.json\n  20240115_domains.json\n\nImport to BloodHound GUI for attack path analysis"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bloodhound-python",
+        "args": [
+          "-d",
+          "corp.local",
+          "-u",
+          "john.doe",
+          "-p",
+          "P@ssw0rd123",
+          "-ns",
+          "10.10.10.10",
+          "-c",
+          "All"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "INFO: Found AD domain: corp.local\nINFO: Connecting to LDAP server: dc01.corp.local\nINFO: Found 1 domains\nINFO: Found 1 domains in the forest\nINFO: Found 5 computers\nINFO: Connecting to LDAP server: dc01.corp.local\nINFO: Found 124 users\nINFO: Found 87 groups\nINFO: Found 0 trusts\nINFO: Starting computer enumeration with 10 workers\nINFO: Querying computer: DC01.corp.local\nINFO: Querying computer: WEB-01.corp.local\nINFO: Querying computer: DB-01.corp.local\nINFO: Querying computer: FILE-01.corp.local\nINFO: Querying computer: APP-01.corp.local\nINFO: Done in 00M 52S\n\nBloodHound data collected:\n  Domain: corp.local\n  Users: 124\n  Groups: 87\n  Computers: 5\n  Trusts: 0\n\nJSON files created:\n  20240115_users.json\n  20240115_groups.json\n  20240115_computers.json\n  20240115_domains.json\n\nImport to BloodHound GUI for attack path analysis"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "powershell", "args": ["-c", "Import-Module .\\PowerView.ps1; Get-NetDomain"]},
-      "expected_output": {"type": "string", "example": "Forest                  : corp.local\nDomainControllers       : {DC01.corp.local}\nChildren                : {}\nDomainMode              : Windows2012R2Domain\nDomainModeLevel         : 6\nParent                  :\nPdcRoleOwner            : DC01.corp.local\nRidRoleOwner            : DC01.corp.local\nInfrastructureRoleOwner : DC01.corp.local\nName                    : corp.local\n\nDomain enumeration:\n  Domain: corp.local\n  Forest: corp.local\n  DC: DC01.corp.local\n  Domain Mode: Windows Server 2012 R2\n  Functional Level: 6"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "Import-Module .\\PowerView.ps1; Get-NetDomain"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Forest                  : corp.local\nDomainControllers       : {DC01.corp.local}\nChildren                : {}\nDomainMode              : Windows2012R2Domain\nDomainModeLevel         : 6\nParent                  :\nPdcRoleOwner            : DC01.corp.local\nRidRoleOwner            : DC01.corp.local\nInfrastructureRoleOwner : DC01.corp.local\nName                    : corp.local\n\nDomain enumeration:\n  Domain: corp.local\n  Forest: corp.local\n  DC: DC01.corp.local\n  Domain Mode: Windows Server 2012 R2\n  Functional Level: 6"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "powershell", "args": ["-c", "Import-Module .\\PowerView.ps1; Get-NetDomainController"]},
-      "expected_output": {"type": "string", "example": "Forest                     : corp.local\nName                       : DC01.corp.local\nOSVersion                  : Windows Server 2016\nIPAddress                  : 10.10.10.10\nSiteName                   : Default-First-Site-Name\nDomain                     : corp.local\nIsGlobalCatalog            : True\nIsReadOnly                 : False\n\nDomain Controller info:\n  Hostname: DC01.corp.local\n  IP: 10.10.10.10\n  OS: Windows Server 2016\n  Global Catalog: Yes\n  RODC: No"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "Import-Module .\\PowerView.ps1; Get-NetDomainController"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Forest                     : corp.local\nName                       : DC01.corp.local\nOSVersion                  : Windows Server 2016\nIPAddress                  : 10.10.10.10\nSiteName                   : Default-First-Site-Name\nDomain                     : corp.local\nIsGlobalCatalog            : True\nIsReadOnly                 : False\n\nDomain Controller info:\n  Hostname: DC01.corp.local\n  IP: 10.10.10.10\n  OS: Windows Server 2016\n  Global Catalog: Yes\n  RODC: No"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "powershell", "args": ["-c", "Import-Module .\\PowerView.ps1; Get-NetUser | Select-Object samaccountname,description,pwdlastset,lastlogon | ft"]},
-      "expected_output": {"type": "string", "example": "samaccountname description                           pwdlastset            lastlogon\n-------------- -----------                           ----------            ---------\nAdministrator  Built-in account for admin           1/1/2024 10:30:00 AM  1/15/2024 4:15:22 PM\nGuest          Built-in account for guest           Never                 Never\nkrbtgt         Key Distribution Center Service      1/1/2024 10:30:00 AM  Never\njohn.doe       IT Administrator                     12/15/2023 2:45:00 PM 1/15/2024 9:30:15 AM\njane.smith     HR Manager                           11/20/2023 11:20:00 AM 1/14/2024 3:22:10 PM\nsqlservice     SQL Server Service Account           6/10/2023 8:15:00 AM  1/15/2024 2:10:05 AM\nbackup_admin   Backup Administrator Account         Never                 Never\nsvc-web        IIS Service Account                  8/5/2023 4:30:00 PM   1/15/2024 12:05:30 PM\n\nUser enumeration:\n  Total users: 124\n  Service accounts: sqlservice, svc-web\n  Stale accounts: backup_admin (never logged in)\n  Admin accounts: Administrator, john.doe"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "Import-Module .\\PowerView.ps1; Get-NetUser | Select-Object samaccountname,description,pwdlastset,lastlogon | ft"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "samaccountname description                           pwdlastset            lastlogon\n-------------- -----------                           ----------            ---------\nAdministrator  Built-in account for admin           1/1/2024 10:30:00 AM  1/15/2024 4:15:22 PM\nGuest          Built-in account for guest           Never                 Never\nkrbtgt         Key Distribution Center Service      1/1/2024 10:30:00 AM  Never\njohn.doe       IT Administrator                     12/15/2023 2:45:00 PM 1/15/2024 9:30:15 AM\njane.smith     HR Manager                           11/20/2023 11:20:00 AM 1/14/2024 3:22:10 PM\nsqlservice     SQL Server Service Account           6/10/2023 8:15:00 AM  1/15/2024 2:10:05 AM\nbackup_admin   Backup Administrator Account         Never                 Never\nsvc-web        IIS Service Account                  8/5/2023 4:30:00 PM   1/15/2024 12:05:30 PM\n\nUser enumeration:\n  Total users: 124\n  Service accounts: sqlservice, svc-web\n  Stale accounts: backup_admin (never logged in)\n  Admin accounts: Administrator, john.doe"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "powershell", "args": ["-c", "Import-Module .\\PowerView.ps1; Get-NetGroup 'Domain Admins' | Get-NetGroupMember"]},
-      "expected_output": {"type": "string", "example": "GroupDomain             : corp.local\nGroupName               : Domain Admins\nGroupDistinguishedName  : CN=Domain Admins,CN=Users,DC=corp,DC=local\nMemberDomain            : corp.local\nMemberName              : Administrator\nMemberDistinguishedName : CN=Administrator,CN=Users,DC=corp,DC=local\nMemberObjectClass       : user\nMemberSID               : S-1-5-21-123456789-123456789-123456789-500\n\nGroupDomain             : corp.local\nGroupName               : Domain Admins\nMemberName              : admin-desktop\nMemberDistinguishedName : CN=admin-desktop,CN=Users,DC=corp,DC=local\nMemberObjectClass       : user\nMemberSID               : S-1-5-21-123456789-123456789-123456789-1108\n\nDomain Admins group members:\n  1. Administrator (default admin)\n  2. admin-desktop (privileged user account)\n\nTarget these accounts for credential theft!"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "Import-Module .\\PowerView.ps1; Get-NetGroup 'Domain Admins' | Get-NetGroupMember"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "GroupDomain             : corp.local\nGroupName               : Domain Admins\nGroupDistinguishedName  : CN=Domain Admins,CN=Users,DC=corp,DC=local\nMemberDomain            : corp.local\nMemberName              : Administrator\nMemberDistinguishedName : CN=Administrator,CN=Users,DC=corp,DC=local\nMemberObjectClass       : user\nMemberSID               : S-1-5-21-123456789-123456789-123456789-500\n\nGroupDomain             : corp.local\nGroupName               : Domain Admins\nMemberName              : admin-desktop\nMemberDistinguishedName : CN=admin-desktop,CN=Users,DC=corp,DC=local\nMemberObjectClass       : user\nMemberSID               : S-1-5-21-123456789-123456789-123456789-1108\n\nDomain Admins group members:\n  1. Administrator (default admin)\n  2. admin-desktop (privileged user account)\n\nTarget these accounts for credential theft!"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "powershell", "args": ["-c", "Import-Module .\\PowerView.ps1; Get-NetComputer | Select-Object dnshostname,operatingsystem,operatingsystemversion | ft"]},
-      "expected_output": {"type": "string", "example": "dnshostname           operatingsystem                operatingsystemversion\n-----------           ---------------                ----------------------\nDC01.corp.local       Windows Server 2016 Standard   10.0 (14393)\nWEB-01.corp.local     Windows Server 2019 Standard   10.0 (17763)\nDB-01.corp.local      Windows Server 2016 Standard   10.0 (14393)\nFILE-01.corp.local    Windows Server 2012 R2 Standard 6.3 (9600)\nAPP-01.corp.local     Windows 10 Enterprise          10.0 (19041)\n\nComputer inventory:\n  Domain Controller: DC01 (Server 2016)\n  Web Server: WEB-01 (Server 2019)\n  Database: DB-01 (Server 2016)\n  File Server: FILE-01 (Server 2012 R2 - OLD!)\n  Application: APP-01 (Windows 10)\n\nTarget FILE-01 for unpatched vulnerabilities"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "Import-Module .\\PowerView.ps1; Get-NetComputer | Select-Object dnshostname,operatingsystem,operatingsystemversion | ft"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "dnshostname           operatingsystem                operatingsystemversion\n-----------           ---------------                ----------------------\nDC01.corp.local       Windows Server 2016 Standard   10.0 (14393)\nWEB-01.corp.local     Windows Server 2019 Standard   10.0 (17763)\nDB-01.corp.local      Windows Server 2016 Standard   10.0 (14393)\nFILE-01.corp.local    Windows Server 2012 R2 Standard 6.3 (9600)\nAPP-01.corp.local     Windows 10 Enterprise          10.0 (19041)\n\nComputer inventory:\n  Domain Controller: DC01 (Server 2016)\n  Web Server: WEB-01 (Server 2019)\n  Database: DB-01 (Server 2016)\n  File Server: FILE-01 (Server 2012 R2 - OLD!)\n  Application: APP-01 (Windows 10)\n\nTarget FILE-01 for unpatched vulnerabilities"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "ldapsearch", "args": ["-x", "-H", "ldap://10.10.10.10", "-D", "john.doe@corp.local", "-w", "P@ssw0rd123", "-b", "DC=corp,DC=local", "(objectClass=user)", "sAMAccountName", "memberOf"]},
-      "expected_output": {"type": "string", "example": "# extended LDIF\n#\n# LDAPv3\n# base <DC=corp,DC=local> with scope subtree\n# filter: (objectClass=user)\n# requesting: sAMAccountName memberOf\n#\n\n# Administrator, Users, corp.local\ndn: CN=Administrator,CN=Users,DC=corp,DC=local\nsAMAccountName: Administrator\nmemberOf: CN=Group Policy Creator Owners,CN=Users,DC=corp,DC=local\nmemberOf: CN=Domain Admins,CN=Users,DC=corp,DC=local\nmemberOf: CN=Enterprise Admins,CN=Users,DC=corp,DC=local\nmemberOf: CN=Schema Admins,CN=Users,DC=corp,DC=local\nmemberOf: CN=Administrators,CN=Builtin,DC=corp,DC=local\n\n# john.doe, Users, corp.local\ndn: CN=John Doe,CN=Users,DC=corp,DC=local\nsAMAccountName: john.doe\nmemberOf: CN=Domain Admins,CN=Users,DC=corp,DC=local\nmemberOf: CN=IT Admins,CN=Users,DC=corp,DC=local\n\n# sqlservice, Users, corp.local\ndn: CN=SQL Service,CN=Users,DC=corp,DC=local\nsAMAccountName: sqlservice\nmemberOf: CN=Service Accounts,CN=Users,DC=corp,DC=local\n\n# search result\nsearch: 2\nresult: 0 Success\n\nLDAP enumeration results:\n  Domain Admins: Administrator, john.doe\n  Service Accounts: sqlservice\n  Groups identified: 87 total"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "ldapsearch",
+        "args": [
+          "-x",
+          "-H",
+          "ldap://10.10.10.10",
+          "-D",
+          "john.doe@corp.local",
+          "-w",
+          "P@ssw0rd123",
+          "-b",
+          "DC=corp,DC=local",
+          "(objectClass=user)",
+          "sAMAccountName",
+          "memberOf"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "# extended LDIF\n#\n# LDAPv3\n# base <DC=corp,DC=local> with scope subtree\n# filter: (objectClass=user)\n# requesting: sAMAccountName memberOf\n#\n\n# Administrator, Users, corp.local\ndn: CN=Administrator,CN=Users,DC=corp,DC=local\nsAMAccountName: Administrator\nmemberOf: CN=Group Policy Creator Owners,CN=Users,DC=corp,DC=local\nmemberOf: CN=Domain Admins,CN=Users,DC=corp,DC=local\nmemberOf: CN=Enterprise Admins,CN=Users,DC=corp,DC=local\nmemberOf: CN=Schema Admins,CN=Users,DC=corp,DC=local\nmemberOf: CN=Administrators,CN=Builtin,DC=corp,DC=local\n\n# john.doe, Users, corp.local\ndn: CN=John Doe,CN=Users,DC=corp,DC=local\nsAMAccountName: john.doe\nmemberOf: CN=Domain Admins,CN=Users,DC=corp,DC=local\nmemberOf: CN=IT Admins,CN=Users,DC=corp,DC=local\n\n# sqlservice, Users, corp.local\ndn: CN=SQL Service,CN=Users,DC=corp,DC=local\nsAMAccountName: sqlservice\nmemberOf: CN=Service Accounts,CN=Users,DC=corp,DC=local\n\n# search result\nsearch: 2\nresult: 0 Success\n\nLDAP enumeration results:\n  Domain Admins: Administrator, john.doe\n  Service Accounts: sqlservice\n  Groups identified: 87 total"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

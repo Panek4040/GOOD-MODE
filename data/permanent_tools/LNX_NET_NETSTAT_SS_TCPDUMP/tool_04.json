@@ -2,7 +2,10 @@
   "name": "lsof_list_network_connections_files",
   "description": "List all open network sockets and files by process, user, or port using lsof",
   "pattern": "lsof.*network|open.*sockets|process.*connections|port.*usage",
-  "parameters": ["filter_type", "filter_value"],
+  "parameters": [
+    "filter_type",
+    "filter_value"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "lsof -i -P -n | head -20"]
+        "args": [
+          "-c",
+          "lsof -i -P -n | head -20"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "if [ '{{filter_type}}' = 'port' ]; then lsof -i :{{filter_value}} -P -n; elif [ '{{filter_type}}' = 'user' ]; then lsof -u {{filter_value}} -i -P -n; elif [ '{{filter_type}}' = 'process' ]; then lsof -c {{filter_value}} -i -P -n; elif [ '{{filter_type}}' = 'tcp' ]; then lsof -i TCP -P -n; elif [ '{{filter_type}}' = 'udp' ]; then lsof -i UDP -P -n; fi"]
+        "args": [
+          "-c",
+          "if [ '{{filter_type}}' = 'port' ]; then lsof -i :{{filter_value}} -P -n; elif [ '{{filter_type}}' = 'user' ]; then lsof -u {{filter_value}} -i -P -n; elif [ '{{filter_type}}' = 'process' ]; then lsof -c {{filter_value}} -i -P -n; elif [ '{{filter_type}}' = 'tcp' ]; then lsof -i TCP -P -n; elif [ '{{filter_type}}' = 'udp' ]; then lsof -i UDP -P -n; fi"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "lsof -i -P -n | grep ESTABLISHED | wc -l"]
+        "args": [
+          "-c",
+          "lsof -i -P -n | grep ESTABLISHED | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +61,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "lsof -i -P -n | awk '{print $1}' | sort | uniq -c | sort -rn | head -10"]
+        "args": [
+          "-c",
+          "lsof -i -P -n | awk '{print $1}' | sort | uniq -c | sort -rn | head -10"
+        ]
       },
       "expected_output": {
         "type": "string",

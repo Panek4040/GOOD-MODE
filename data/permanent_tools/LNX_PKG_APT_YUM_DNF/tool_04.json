@@ -1,1 +1,81 @@
-{"name":"apt_remove_purge_cleanup","description":"Remove packages, purge configuration, clean cache, autoremove dependencies","pattern":"remove.*package|uninstall|purge.*config|clean.*cache","parameters":["package_name","remove_type"],"sequence":[{"action":{"type":"system_command","tool":"shell","operation":"run","command":"dpkg","args":["-l","{{package_name}}"]},"expected_output":{"type":"string","example":"ii  {{package_name}}  1.18.0  amd64"}},{"action":{"type":"system_command","tool":"shell","operation":"run","command":"bash","args":["-c","if [ '{{remove_type}}' = 'remove' ]; then apt-get remove -y {{package_name}}; elif [ '{{remove_type}}' = 'purge' ]; then apt-get purge -y {{package_name}}; elif [ '{{remove_type}}' = 'autoremove' ]; then apt-get autoremove -y; fi"]},"expected_output":{"type":"string","example":"Removing {{package_name}}...\nProcessing triggers..."}},{"action":{"type":"system_command","tool":"shell","operation":"run","command":"bash","args":["-c","dpkg -l {{package_name}} 2>&1 || echo 'Package removed'"]},"expected_output":{"type":"string","example":"rc  {{package_name}}  1.18.0  (residual config)"}},{"action":{"type":"system_command","tool":"shell","operation":"run","command":"apt-get","args":["clean"]},"expected_output":{"type":"string","example":""}}],"stats":{"uses":0,"successes":0,"failures":0,"success_rate":0.0},"created_by":"neural_mesh_v5.2_generator"}
+{
+  "name": "apt_remove_purge_cleanup",
+  "description": "Remove packages, purge configuration, clean cache, autoremove dependencies",
+  "pattern": "remove.*package|uninstall|purge.*config|clean.*cache",
+  "parameters": [
+    "package_name",
+    "remove_type"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "dpkg",
+        "args": [
+          "-l",
+          "{{package_name}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "ii  {{package_name}}  1.18.0  amd64"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "if [ '{{remove_type}}' = 'remove' ]; then apt-get remove -y {{package_name}}; elif [ '{{remove_type}}' = 'purge' ]; then apt-get purge -y {{package_name}}; elif [ '{{remove_type}}' = 'autoremove' ]; then apt-get autoremove -y; fi"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Removing {{package_name}}...\nProcessing triggers..."
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "dpkg -l {{package_name}} 2>&1 || echo 'Package removed'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "rc  {{package_name}}  1.18.0  (residual config)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "apt-get",
+        "args": [
+          "clean"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

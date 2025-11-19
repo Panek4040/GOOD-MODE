@@ -3,7 +3,13 @@
   "description": "Advanced attack chain leveraging stored XSS for session hijacking, admin access, and pivoting to internal network infrastructure",
   "difficulty": "advanced",
   "estimated_time": "60 minutes",
-  "tools_used": ["burp", "curl", "BeEF", "proxychains", "nmap"],
+  "tools_used": [
+    "burp",
+    "curl",
+    "BeEF",
+    "proxychains",
+    "nmap"
+  ],
   "attack_chain": [
     {
       "step": 1,
@@ -149,5 +155,13 @@
     "Monitor for unexpected outbound connections and SOCKS proxies",
     "Implement file integrity monitoring for cron jobs and scheduled tasks"
   ],
-  "tags": ["xss", "stored_xss", "session_hijacking", "beef", "pivoting", "lateral_movement", "network_segmentation"]
+  "tags": [
+    "xss",
+    "stored_xss",
+    "session_hijacking",
+    "beef",
+    "pivoting",
+    "lateral_movement",
+    "network_segmentation"
+  ]
 }

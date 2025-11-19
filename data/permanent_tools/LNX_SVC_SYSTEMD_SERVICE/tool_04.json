@@ -2,7 +2,9 @@
   "name": "systemctl_list_all_services_states",
   "description": "List all systemd services, filter by state (running, failed, enabled), count services",
   "pattern": "list.*services|show.*all.*units|systemctl.*list",
-  "parameters": ["filter_state"],
+  "parameters": [
+    "filter_state"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +12,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["list-units", "--type=service", "--all", "--no-pager"]
+        "args": [
+          "list-units",
+          "--type=service",
+          "--all",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "systemctl list-units --type=service --state={{filter_state}} --no-pager | head -20"]
+        "args": [
+          "-c",
+          "systemctl list-units --type=service --state={{filter_state}} --no-pager | head -20"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "systemctl list-units --type=service --state=running --no-pager | wc -l"]
+        "args": [
+          "-c",
+          "systemctl list-units --type=service --state=running --no-pager | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "systemctl list-unit-files --type=service --state=enabled --no-pager | grep -v UNIT | wc -l"]
+        "args": [
+          "-c",
+          "systemctl list-unit-files --type=service --state=enabled --no-pager | grep -v UNIT | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",

@@ -2,7 +2,10 @@
   "name": "backup_verify_integrity_test_restore",
   "description": "Verify backup integrity, test archive extraction, compare checksums before/after",
   "pattern": "verify.*backup|test.*archive|check.*integrity",
-  "parameters": ["archive_path", "verification_type"],
+  "parameters": [
+    "archive_path",
+    "verification_type"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "ls -lh {{archive_path}} && file {{archive_path}}"]
+        "args": [
+          "-c",
+          "ls -lh {{archive_path}} && file {{archive_path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "if [ '{{verification_type}}' = 'list' ]; then tar -tzf {{archive_path}} | head -20; elif [ '{{verification_type}}' = 'test' ]; then tar -tzf {{archive_path}} > /dev/null && echo 'Archive OK'; elif [ '{{verification_type}}' = 'extract_test' ]; then mkdir -p /tmp/restore_test && tar -xzf {{archive_path}} -C /tmp/restore_test && echo 'Extraction successful'; fi"]
+        "args": [
+          "-c",
+          "if [ '{{verification_type}}' = 'list' ]; then tar -tzf {{archive_path}} | head -20; elif [ '{{verification_type}}' = 'test' ]; then tar -tzf {{archive_path}} > /dev/null && echo 'Archive OK'; elif [ '{{verification_type}}' = 'extract_test' ]; then mkdir -p /tmp/restore_test && tar -xzf {{archive_path}} -C /tmp/restore_test && echo 'Extraction successful'; fi"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "sha256sum {{archive_path}}"]
+        "args": [
+          "-c",
+          "sha256sum {{archive_path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +61,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "tar -tzf {{archive_path}} | wc -l && du -h {{archive_path}}"]
+        "args": [
+          "-c",
+          "tar -tzf {{archive_path}} | wc -l && du -h {{archive_path}}"
+        ]
       },
       "expected_output": {
         "type": "string",

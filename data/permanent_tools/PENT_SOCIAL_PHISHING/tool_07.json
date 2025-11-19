@@ -2,29 +2,97 @@
   "name": "osint_pretexting_recon",
   "description": "OSINT gathering and pretexting for targeted social engineering campaigns",
   "pattern": "osint.*recon|pretexting|target.*research|social.*media.*enum",
-  "parameters": ["target_name", "company"],
+  "parameters": [
+    "target_name",
+    "company"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "theHarvester -d company.com -b google,linkedin,twitter,bing -l 500"]},
-      "expected_output": {"type": "string", "example": "theHarvester 4.2.0\n*******************************************************************\n*  _   _                                            _             *\n* | |_| |__   ___    /\\  /\\__ _ _ ____   _____  ___| |_ ___ _ __  *\n* | __|  _ \\ / _ \\  / /_/ / _` | '__\\ \\ / / _ \\/ __| __/ _ \\ '__| *\n* | |_| | | |  __/ / __  / (_| | |   \\ V /  __/\\__ \\ ||  __/ |    *\n*  \\__|_| |_|\\___| \\/ /_/ \\__,_|_|    \\_/ \\___||___/\\__\\___|_|    *\n*                                                                 *\n*******************************************************************\n\nSearching 500 results from: google, linkedin, twitter, bing\n\n[*] Emails found: 48\n    john.doe@company.com\n    jane.smith@company.com\n    bob.johnson@company.com\n    alice.brown@company.com\n    mike.wilson@company.com\n    ... [43 more]\n\n[*] Hosts found: 12\n    mail.company.com (192.168.1.10)\n    vpn.company.com (192.168.1.20)\n    www.company.com (192.168.1.30)\n    ... [9 more]\n\n[*] LinkedIn profiles: 25\n    John Doe - Chief Financial Officer\n    Jane Smith - IT Security Manager\n    Bob Johnson - Senior Accountant\n    Alice Brown - HR Director\n    Mike Wilson - DevOps Engineer\n    ... [20 more]\n\n[*] Twitter accounts: 8\n    @company_official\n    @johndoe_cfo\n    @janesmith_it\n    ... [5 more]"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "theHarvester -d company.com -b google,linkedin,twitter,bing -l 500"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "theHarvester 4.2.0\n*******************************************************************\n*  _   _                                            _             *\n* | |_| |__   ___    /\\  /\\__ _ _ ____   _____  ___| |_ ___ _ __  *\n* | __|  _ \\ / _ \\  / /_/ / _` | '__\\ \\ / / _ \\/ __| __/ _ \\ '__| *\n* | |_| | | |  __/ / __  / (_| | |   \\ V /  __/\\__ \\ ||  __/ |    *\n*  \\__|_| |_|\\___| \\/ /_/ \\__,_|_|    \\_/ \\___||___/\\__\\___|_|    *\n*                                                                 *\n*******************************************************************\n\nSearching 500 results from: google, linkedin, twitter, bing\n\n[*] Emails found: 48\n    john.doe@company.com\n    jane.smith@company.com\n    bob.johnson@company.com\n    alice.brown@company.com\n    mike.wilson@company.com\n    ... [43 more]\n\n[*] Hosts found: 12\n    mail.company.com (192.168.1.10)\n    vpn.company.com (192.168.1.20)\n    www.company.com (192.168.1.30)\n    ... [9 more]\n\n[*] LinkedIn profiles: 25\n    John Doe - Chief Financial Officer\n    Jane Smith - IT Security Manager\n    Bob Johnson - Senior Accountant\n    Alice Brown - HR Director\n    Mike Wilson - DevOps Engineer\n    ... [20 more]\n\n[*] Twitter accounts: 8\n    @company_official\n    @johndoe_cfo\n    @janesmith_it\n    ... [5 more]"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sherlock john_doe_target --print-found"]},
-      "expected_output": {"type": "string", "example": "Sherlock v0.14.2 - Social Media Username Enumeration\n\nSearching for 'john_doe_target' across 300+ sites...\n\n[+] Facebook: https://facebook.com/john.doe.target\n    Profile: John Doe\n    Location: New York, NY\n    Employer: Acme Corporation\n    Friends: 847\n\n[+] LinkedIn: https://linkedin.com/in/johndoetarget\n    Name: John M. Doe\n    Title: Chief Financial Officer\n    Company: Acme Corporation\n    Education: MBA from Harvard Business School\n    Connections: 500+\n\n[+] Twitter: https://twitter.com/john_doe_cfo\n    Bio: CFO @AcmeCorp | Harvard MBA | Views are my own\n    Followers: 2,341\n    Recent tweets: Company earnings, industry news\n\n[+] Instagram: https://instagram.com/johndoe_nyc\n    Posts: 234\n    Followers: 1,567\n    Recent: Family photos, luxury car, vacation in Bahamas\n\n[+] GitHub: https://github.com/jdoe_acme\n    Repositories: 3 (all private)\n    Activity: Last active 2 days ago\n\nOSINT Intelligence Summary:\n  Target: John M. Doe\n  Role: CFO at Acme Corporation\n  Education: Harvard MBA\n  Location: New York, NY\n  Interests: Finance, golf, luxury travel\n  Family: Married, 2 children\n  Social media presence: High (active on multiple platforms)\n\nPretexting angles:\n  ✓ Golf invitation (common interest)\n  ✓ Harvard alumni network\n  ✓ Industry conference invitation\n  ✓ Executive peer networking"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "sherlock john_doe_target --print-found"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Sherlock v0.14.2 - Social Media Username Enumeration\n\nSearching for 'john_doe_target' across 300+ sites...\n\n[+] Facebook: https://facebook.com/john.doe.target\n    Profile: John Doe\n    Location: New York, NY\n    Employer: Acme Corporation\n    Friends: 847\n\n[+] LinkedIn: https://linkedin.com/in/johndoetarget\n    Name: John M. Doe\n    Title: Chief Financial Officer\n    Company: Acme Corporation\n    Education: MBA from Harvard Business School\n    Connections: 500+\n\n[+] Twitter: https://twitter.com/john_doe_cfo\n    Bio: CFO @AcmeCorp | Harvard MBA | Views are my own\n    Followers: 2,341\n    Recent tweets: Company earnings, industry news\n\n[+] Instagram: https://instagram.com/johndoe_nyc\n    Posts: 234\n    Followers: 1,567\n    Recent: Family photos, luxury car, vacation in Bahamas\n\n[+] GitHub: https://github.com/jdoe_acme\n    Repositories: 3 (all private)\n    Activity: Last active 2 days ago\n\nOSINT Intelligence Summary:\n  Target: John M. Doe\n  Role: CFO at Acme Corporation\n  Education: Harvard MBA\n  Location: New York, NY\n  Interests: Finance, golf, luxury travel\n  Family: Married, 2 children\n  Social media presence: High (active on multiple platforms)\n\nPretexting angles:\n  ✓ Golf invitation (common interest)\n  ✓ Harvard alumni network\n  ✓ Industry conference invitation\n  ✓ Executive peer networking"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "curl -s 'https://phonebook.cz/search?q=company.com' | grep -oE '\\b[A-Za-z0-9._%+-]+@company\\.com\\b' | sort -u"]},
-      "expected_output": {"type": "string", "example": "Phonebook.cz email enumeration results:\n\nadmin@company.com\nalice.brown@company.com\nbob.johnson@company.com\ncontact@company.com\nhr@company.com\ninfo@company.com\nit-support@company.com\njane.smith@company.com\njohn.doe@company.com\nmarketing@company.com\nmike.wilson@company.com\nsales@company.com\nsecurity@company.com\nsupport@company.com\n\nTotal unique emails: 14\n\nEmail pattern analysis:\n  Format: firstname.lastname@company.com\n  Also: department@company.com (info, hr, sales)\n  Admin accounts: admin@, it-support@, security@\n\nHigh-value targets:\n  ✓ john.doe@company.com (CFO - financial access)\n  ✓ jane.smith@company.com (IT Security - system access)\n  ✓ alice.brown@company.com (HR - employee data)\n  ✓ admin@company.com (Administrative access)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "curl -s 'https://phonebook.cz/search?q=company.com' | grep -oE '\\b[A-Za-z0-9._%+-]+@company\\.com\\b' | sort -u"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Phonebook.cz email enumeration results:\n\nadmin@company.com\nalice.brown@company.com\nbob.johnson@company.com\ncontact@company.com\nhr@company.com\ninfo@company.com\nit-support@company.com\njane.smith@company.com\njohn.doe@company.com\nmarketing@company.com\nmike.wilson@company.com\nsales@company.com\nsecurity@company.com\nsupport@company.com\n\nTotal unique emails: 14\n\nEmail pattern analysis:\n  Format: firstname.lastname@company.com\n  Also: department@company.com (info, hr, sales)\n  Admin accounts: admin@, it-support@, security@\n\nHigh-value targets:\n  ✓ john.doe@company.com (CFO - financial access)\n  ✓ jane.smith@company.com (IT Security - system access)\n  ✓ alice.brown@company.com (HR - employee data)\n  ✓ admin@company.com (Administrative access)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "linkedin2username -c 'Acme Corporation' -o employees.txt"]},
-      "expected_output": {"type": "string", "example": "LinkedIn2Username - Employee Enumeration Tool\n\nCompany: Acme Corporation\nSearching LinkedIn for employees...\n\n[+] Found 347 employees\n[+] Parsing names and titles...\n[+] Generating email addresses...\n\nSample results:\n  John Doe (CFO) → john.doe@company.com\n  Jane Smith (IT Security Manager) → jane.smith@company.com\n  Bob Johnson (Senior Accountant) → bob.johnson@company.com\n  Alice Brown (HR Director) → alice.brown@company.com\n  Mike Wilson (DevOps Engineer) → mike.wilson@company.com\n  Sarah Davis (Marketing Manager) → sarah.davis@company.com\n  Tom Anderson (Sales Director) → tom.anderson@company.com\n  ... [340 more]\n\nDepartment breakdown:\n  - IT/Technology: 78 employees\n  - Finance/Accounting: 45 employees\n  - Sales/Marketing: 92 employees\n  - HR/Admin: 34 employees\n  - Operations: 56 employees\n  - Executive: 12 employees\n  - Other: 30 employees\n\nOutput saved: employees.txt (347 email addresses)\n\nPhishing campaign targeting:\n  Priority 1: Finance dept (wire transfer fraud)\n  Priority 2: IT dept (credential harvesting)\n  Priority 3: HR dept (employee data access)\n  Priority 4: Executive (business email compromise)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "linkedin2username -c 'Acme Corporation' -o employees.txt"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "LinkedIn2Username - Employee Enumeration Tool\n\nCompany: Acme Corporation\nSearching LinkedIn for employees...\n\n[+] Found 347 employees\n[+] Parsing names and titles...\n[+] Generating email addresses...\n\nSample results:\n  John Doe (CFO) → john.doe@company.com\n  Jane Smith (IT Security Manager) → jane.smith@company.com\n  Bob Johnson (Senior Accountant) → bob.johnson@company.com\n  Alice Brown (HR Director) → alice.brown@company.com\n  Mike Wilson (DevOps Engineer) → mike.wilson@company.com\n  Sarah Davis (Marketing Manager) → sarah.davis@company.com\n  Tom Anderson (Sales Director) → tom.anderson@company.com\n  ... [340 more]\n\nDepartment breakdown:\n  - IT/Technology: 78 employees\n  - Finance/Accounting: 45 employees\n  - Sales/Marketing: 92 employees\n  - HR/Admin: 34 employees\n  - Operations: 56 employees\n  - Executive: 12 employees\n  - Other: 30 employees\n\nOutput saved: employees.txt (347 email addresses)\n\nPhishing campaign targeting:\n  Priority 1: Finance dept (wire transfer fraud)\n  Priority 2: IT dept (credential harvesting)\n  Priority 3: HR dept (employee data access)\n  Priority 4: Executive (business email compromise)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > pretext_profile.txt << 'EOF'\nTarget: John M. Doe\nRole: Chief Financial Officer\nCompany: Acme Corporation\nLocation: New York, NY\n\nPersonal Info:\n- Age: 46\n- Education: MBA, Harvard Business School (Class of 2002)\n- Previous: VP Finance at BigCorp (2010-2018)\n- Interests: Golf, sailing, vintage cars\n- Family: Married to Susan Doe, 2 children (ages 12, 14)\n\nDigital Footprint:\n- LinkedIn: Very active, posts weekly about finance/economics\n- Twitter: @john_doe_cfo, 2.3K followers, shares industry news\n- Facebook: Semi-private, shows family vacations, car shows\n- Instagram: @johndoe_nyc, luxury lifestyle posts\n\nProfessional Network:\n- Harvard alumni network (very active)\n- CFO roundtable member\n- Board member: NY Finance Association\n- Speaker at FinTech conferences\n\nCommunication Style:\n- Formal in professional settings\n- Responds to LinkedIn messages\n- Active email user (replies within 24 hours)\n- Prefers phone calls for urgent matters\n\nVulnerabilities:\n- Status-conscious (responds to executive peer invitations)\n- Harvard alumni loyalty (trusts fellow alumni)\n- Golf enthusiast (accepts golf outing invitations)\n- Technology adopter (clicks on fintech-related content)\n\nPretexting Scenarios:\n1. Harvard Alumni Reunion\n   Sender: harvardreunion2024@alumni.harvard.edu\n   Subject: \"Exclusive CFO Networking Event - Harvard Club NYC\"\n   Hook: Limited spots, fellow Class of 2002 attendees\n   \n2. FinTech Conference Speaker Invitation\n   Sender: events@fintechsummit.com\n   Subject: \"Speaker Invitation: CFO Panel - FinTech Summit 2024\"\n   Hook: Previous speakers from Goldman Sachs, JPMorgan\n   \n3. Charitable Golf Tournament\n   Sender: committee@nygolfcharity.org\n   Subject: \"VIP Invitation: Annual Charity Golf Classic\"\n   Hook: Exclusive event, other C-suite executives attending\n   \n4. Urgent Wire Transfer (CEO Fraud)\n   Sender: ceo@acmecorp.com (spoofed)\n   Subject: \"URGENT: Confidential Acquisition - Wire Transfer Needed\"\n   Hook: Time-sensitive, confidential, board-approved\nEOF\ncat pretext_profile.txt"]},
-      "expected_output": {"type": "string", "example": "Comprehensive pretext profile created: pretext_profile.txt\n\nTarget profile for social engineering:\n\nPrimary Attack Vectors:\n  1. Harvard alumni angle (85% success rate)\n  2. Executive peer networking (75% success rate)\n  3. Golf/luxury interest bait (70% success rate)\n  4. CEO fraud/urgency (60% success rate)\n\nRecommended approach:\n  Phase 1: Build rapport via LinkedIn (Harvard connection)\n  Phase 2: Invite to exclusive event (golf tournament)\n  Phase 3: Establish trust through multiple touchpoints\n  Phase 4: Execute phishing attack (credibility established)\n\nAlternative: Direct CEO fraud\n  Skip relationship building\n  Immediate wire transfer request\n  Higher risk but faster execution\n  Recommended for time-sensitive campaigns\n\nSuccess probability:\n  Rapport-building approach: 75-85%\n  Direct CEO fraud: 50-60%\n  Combined approach: 90%+\n\nPretext profile ready for campaign deployment"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > pretext_profile.txt << 'EOF'\nTarget: John M. Doe\nRole: Chief Financial Officer\nCompany: Acme Corporation\nLocation: New York, NY\n\nPersonal Info:\n- Age: 46\n- Education: MBA, Harvard Business School (Class of 2002)\n- Previous: VP Finance at BigCorp (2010-2018)\n- Interests: Golf, sailing, vintage cars\n- Family: Married to Susan Doe, 2 children (ages 12, 14)\n\nDigital Footprint:\n- LinkedIn: Very active, posts weekly about finance/economics\n- Twitter: @john_doe_cfo, 2.3K followers, shares industry news\n- Facebook: Semi-private, shows family vacations, car shows\n- Instagram: @johndoe_nyc, luxury lifestyle posts\n\nProfessional Network:\n- Harvard alumni network (very active)\n- CFO roundtable member\n- Board member: NY Finance Association\n- Speaker at FinTech conferences\n\nCommunication Style:\n- Formal in professional settings\n- Responds to LinkedIn messages\n- Active email user (replies within 24 hours)\n- Prefers phone calls for urgent matters\n\nVulnerabilities:\n- Status-conscious (responds to executive peer invitations)\n- Harvard alumni loyalty (trusts fellow alumni)\n- Golf enthusiast (accepts golf outing invitations)\n- Technology adopter (clicks on fintech-related content)\n\nPretexting Scenarios:\n1. Harvard Alumni Reunion\n   Sender: harvardreunion2024@alumni.harvard.edu\n   Subject: \"Exclusive CFO Networking Event - Harvard Club NYC\"\n   Hook: Limited spots, fellow Class of 2002 attendees\n   \n2. FinTech Conference Speaker Invitation\n   Sender: events@fintechsummit.com\n   Subject: \"Speaker Invitation: CFO Panel - FinTech Summit 2024\"\n   Hook: Previous speakers from Goldman Sachs, JPMorgan\n   \n3. Charitable Golf Tournament\n   Sender: committee@nygolfcharity.org\n   Subject: \"VIP Invitation: Annual Charity Golf Classic\"\n   Hook: Exclusive event, other C-suite executives attending\n   \n4. Urgent Wire Transfer (CEO Fraud)\n   Sender: ceo@acmecorp.com (spoofed)\n   Subject: \"URGENT: Confidential Acquisition - Wire Transfer Needed\"\n   Hook: Time-sensitive, confidential, board-approved\nEOF\ncat pretext_profile.txt"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Comprehensive pretext profile created: pretext_profile.txt\n\nTarget profile for social engineering:\n\nPrimary Attack Vectors:\n  1. Harvard alumni angle (85% success rate)\n  2. Executive peer networking (75% success rate)\n  3. Golf/luxury interest bait (70% success rate)\n  4. CEO fraud/urgency (60% success rate)\n\nRecommended approach:\n  Phase 1: Build rapport via LinkedIn (Harvard connection)\n  Phase 2: Invite to exclusive event (golf tournament)\n  Phase 3: Establish trust through multiple touchpoints\n  Phase 4: Execute phishing attack (credibility established)\n\nAlternative: Direct CEO fraud\n  Skip relationship building\n  Immediate wire transfer request\n  Higher risk but faster execution\n  Recommended for time-sensitive campaigns\n\nSuccess probability:\n  Rapport-building approach: 75-85%\n  Direct CEO fraud: 50-60%\n  Combined approach: 90%+\n\nPretext profile ready for campaign deployment"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

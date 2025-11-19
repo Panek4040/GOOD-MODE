@@ -2,7 +2,10 @@
   "name": "docker_compose_multi_container_orchestration",
   "description": "Deploy multi-container application using docker-compose with service dependencies",
   "pattern": "docker.compose.*up|compose.*start.*services|multi.container.*orchestration",
-  "parameters": ["compose_file_path", "project_name"],
+  "parameters": [
+    "compose_file_path",
+    "project_name"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker-compose",
-        "args": ["--version"]
+        "args": [
+          "--version"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +28,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "cat",
-        "args": ["{{compose_file_path}}"]
+        "args": [
+          "{{compose_file_path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +43,14 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker-compose",
-        "args": ["-f", "{{compose_file_path}}", "-p", "{{project_name}}", "up", "-d"]
+        "args": [
+          "-f",
+          "{{compose_file_path}}",
+          "-p",
+          "{{project_name}}",
+          "up",
+          "-d"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +63,15 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker-compose",
-        "args": ["-f", "{{compose_file_path}}", "-p", "{{project_name}}", "ps", "--format", "table"]
+        "args": [
+          "-f",
+          "{{compose_file_path}}",
+          "-p",
+          "{{project_name}}",
+          "ps",
+          "--format",
+          "table"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +84,14 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["network", "ls", "--filter", "name={{project_name}}", "--format", "{{.Name}} - {{.Driver}}"]
+        "args": [
+          "network",
+          "ls",
+          "--filter",
+          "name={{project_name}}",
+          "--format",
+          "{{.Name}} - {{.Driver}}"
+        ]
       },
       "expected_output": {
         "type": "string",

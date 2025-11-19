@@ -2,7 +2,10 @@
   "name": "safe_delete_batch_with_log",
   "description": "Delete multiple files matching pattern with detailed logging",
   "pattern": "batch.*delete|delete.*multiple|remove.*pattern",
-  "parameters": ["path", "pattern"],
+  "parameters": [
+    "path",
+    "pattern"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -name '{{pattern}}' -type f | head -20"]
+        "args": [
+          "-c",
+          "find '{{path}}' -name '{{pattern}}' -type f | head -20"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -name '{{pattern}}' -type f -exec stat -c '%n|%s|%y' {} \\; | head -10"]
+        "args": [
+          "-c",
+          "find '{{path}}' -name '{{pattern}}' -type f -exec stat -c '%n|%s|%y' {} \\; | head -10"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "count=$(find '{{path}}' -name '{{pattern}}' -type f | wc -l); total_size=$(find '{{path}}' -name '{{pattern}}' -type f -exec stat -c %s {} \\; | awk '{sum+=$1} END {print sum}'); size_mb=$((total_size / 1024 / 1024)); echo \"Files to delete: $count (Total: ${size_mb}MB)\""]
+        "args": [
+          "-c",
+          "count=$(find '{{path}}' -name '{{pattern}}' -type f | wc -l); total_size=$(find '{{path}}' -name '{{pattern}}' -type f -exec stat -c %s {} \\; | awk '{sum+=$1} END {print sum}'); size_mb=$((total_size / 1024 / 1024)); echo \"Files to delete: $count (Total: ${size_mb}MB)\""
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +61,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "log_file=\"/tmp/delete_log_$(date +%Y%m%d_%H%M%S).txt\"; find '{{path}}' -name '{{pattern}}' -type f -exec sh -c 'echo \"$(date +\\\"%Y-%m-%d %H:%M:%S\\\") DELETE $(stat -c \\\"%n %s bytes\\\" \\\"$1\\\")\" >> \"'$log_file'\"' _ {} \\; && echo \"Log created: $log_file\""]
+        "args": [
+          "-c",
+          "log_file=\"/tmp/delete_log_$(date +%Y%m%d_%H%M%S).txt\"; find '{{path}}' -name '{{pattern}}' -type f -exec sh -c 'echo \"$(date +\\\"%Y-%m-%d %H:%M:%S\\\") DELETE $(stat -c \\\"%n %s bytes\\\" \\\"$1\\\")\" >> \"'$log_file'\"' _ {} \\; && echo \"Log created: $log_file\""
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +77,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "deleted=0; find '{{path}}' -name '{{pattern}}' -type f | while read f; do rm \"$f\" && ((deleted++)); done; echo \"Deleted $deleted files\""]
+        "args": [
+          "-c",
+          "deleted=0; find '{{path}}' -name '{{pattern}}' -type f | while read f; do rm \"$f\" && ((deleted++)); done; echo \"Deleted $deleted files\""
+        ]
       },
       "expected_output": {
         "type": "string",

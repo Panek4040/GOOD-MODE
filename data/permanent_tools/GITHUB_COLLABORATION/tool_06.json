@@ -2,21 +2,72 @@
   "name": "github_code_search",
   "description": "Search code, commits, and repositories on GitHub",
   "pattern": "gh.*search.*code|gh.*search.*repos|gh.*api.*search",
-  "parameters": ["search_query"],
+  "parameters": [
+    "search_query"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gh", "args": ["search", "repos", "machine learning", "--limit", "5"]},
-      "expected_output": {"type": "string", "example": "user1/ml-project\nuser2/ml-toolkit\nuser3/ml-algorithms"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "gh",
+        "args": [
+          "search",
+          "repos",
+          "machine learning",
+          "--limit",
+          "5"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "user1/ml-project\nuser2/ml-toolkit\nuser3/ml-algorithms"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gh", "args": ["api", "search/code", "-q", ".q=addClass+repo:jquery/jquery"]},
-      "expected_output": {"type": "string", "example": "{\"total_count\":50,\"items\":[{\"name\":\"core.js\",\"path\":\"src/core.js\"}]}"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "gh",
+        "args": [
+          "api",
+          "search/code",
+          "-q",
+          ".q=addClass+repo:jquery/jquery"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\"total_count\":50,\"items\":[{\"name\":\"core.js\",\"path\":\"src/core.js\"}]}"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gh", "args": ["search", "issues", "is:open is:issue label:bug", "--limit", "10"]},
-      "expected_output": {"type": "string", "example": "user/repo#42  Bug: Login fails\nuser/repo#38  Bug: Crash on iOS"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "gh",
+        "args": [
+          "search",
+          "issues",
+          "is:open is:issue label:bug",
+          "--limit",
+          "10"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "user/repo#42  Bug: Login fails\nuser/repo#38  Bug: Crash on iOS"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

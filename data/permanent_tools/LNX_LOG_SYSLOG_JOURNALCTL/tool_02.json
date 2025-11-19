@@ -2,7 +2,10 @@
   "name": "journalctl_filter_by_service_unit",
   "description": "Filter journal logs by specific systemd service or unit with follow mode",
   "pattern": "journalctl.*service|filter.*unit.*logs|service.*logs",
-  "parameters": ["unit_name", "lines"],
+  "parameters": [
+    "unit_name",
+    "lines"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["status", "{{unit_name}}", "--no-pager"]
+        "args": [
+          "status",
+          "{{unit_name}}",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "journalctl",
-        "args": ["-u", "{{unit_name}}", "-n", "{{lines}}", "--no-pager"]
+        "args": [
+          "-u",
+          "{{unit_name}}",
+          "-n",
+          "{{lines}}",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +49,14 @@
         "tool": "shell",
         "operation": "run",
         "command": "journalctl",
-        "args": ["-u", "{{unit_name}}", "--since", "today", "--priority=err", "--no-pager"]
+        "args": [
+          "-u",
+          "{{unit_name}}",
+          "--since",
+          "today",
+          "--priority=err",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +69,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "journalctl",
-        "args": ["-u", "{{unit_name}}", "--output=cat", "--no-pager", "--lines=5"]
+        "args": [
+          "-u",
+          "{{unit_name}}",
+          "--output=cat",
+          "--no-pager",
+          "--lines=5"
+        ]
       },
       "expected_output": {
         "type": "string",

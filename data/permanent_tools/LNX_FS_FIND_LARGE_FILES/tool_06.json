@@ -2,7 +2,10 @@
   "name": "find_large_with_owner",
   "description": "Find large files and show owner/group information",
   "pattern": "large.*owner|large.*files.*user|size.*ownership",
-  "parameters": ["path", "min_size_mb"],
+  "parameters": [
+    "path",
+    "min_size_mb"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%s|%u|%g|%p\\n' | sort -rn"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%s|%u|%g|%p\\n' | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -exec stat -c '%s|%U|%G|%n' {} \\; | sort -rn"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -size +{{min_size_mb}}M -exec stat -c '%s|%U|%G|%n' {} \\; | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%u\\n' | sort | uniq -c | sort -rn"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%u\\n' | sort | uniq -c | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +61,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%u|%s\\n' | awk -F'|' '{owner=$1; size=$2; sum[owner]+=size; count[owner]++} END {for (o in sum) print sum[o]\"|\"count[o]\"|\"o}' | sort -rn"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%u|%s\\n' | awk -F'|' '{owner=$1; size=$2; sum[owner]+=size; count[owner]++} END {for (o in sum) print sum[o]\"|\"count[o]\"|\"o}' | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",

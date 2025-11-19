@@ -2,7 +2,10 @@
   "name": "tar_different_compression_formats",
   "description": "Compare compression formats gzip, bzip2, xz for tar archives - speed vs size tradeoff",
   "pattern": "compress.*archive|gzip.*bzip|tar.*compression",
-  "parameters": ["source_dir", "output_base"],
+  "parameters": [
+    "source_dir",
+    "output_base"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sh {{source_dir}}"]
+        "args": [
+          "-c",
+          "du -sh {{source_dir}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "time tar -czf {{output_base}}.tar.gz -C $(dirname {{source_dir}}) $(basename {{source_dir}}) 2>&1 | grep real"]
+        "args": [
+          "-c",
+          "time tar -czf {{output_base}}.tar.gz -C $(dirname {{source_dir}}) $(basename {{source_dir}}) 2>&1 | grep real"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "time tar -cjf {{output_base}}.tar.bz2 -C $(dirname {{source_dir}}) $(basename {{source_dir}}) 2>&1 | grep real"]
+        "args": [
+          "-c",
+          "time tar -cjf {{output_base}}.tar.bz2 -C $(dirname {{source_dir}}) $(basename {{source_dir}}) 2>&1 | grep real"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +61,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "time tar -cJf {{output_base}}.tar.xz -C $(dirname {{source_dir}}) $(basename {{source_dir}}) 2>&1 | grep real"]
+        "args": [
+          "-c",
+          "time tar -cJf {{output_base}}.tar.xz -C $(dirname {{source_dir}}) $(basename {{source_dir}}) 2>&1 | grep real"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +77,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "ls -lh {{output_base}}.tar.* | awk '{print $5, $9}'"]
+        "args": [
+          "-c",
+          "ls -lh {{output_base}}.tar.* | awk '{print $5, $9}'"
+        ]
       },
       "expected_output": {
         "type": "string",

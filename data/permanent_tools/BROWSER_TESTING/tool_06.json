@@ -2,21 +2,64 @@
   "name": "test_fixtures_setup",
   "description": "Test fixtures, setup, teardown, and test data management",
   "pattern": "fixture|setup|teardown|before.*after",
-  "parameters": ["fixture_type"],
+  "parameters": [
+    "fixture_type"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "class TestClass: @classmethod; def setup_class(cls): print('Setup once for all tests'); cls.shared_resource = 'database_connection'; @classmethod; def teardown_class(cls): print('Teardown after all tests'); def setup_method(self): print('  Setup before each test'); def teardown_method(self): print('  Teardown after each test'); def test_one(self): print('    Running test_one'); def test_two(self): print('    Running test_two'); tc = TestClass(); tc.setup_class(); tc.setup_method(); tc.test_one(); tc.teardown_method(); tc.setup_method(); tc.test_two(); tc.teardown_method(); tc.teardown_class()"]},
-      "expected_output": {"type": "string", "example": "Setup once for all tests\n  Setup before each test\n    Running test_one\n  Teardown after each test\n  Setup before each test\n    Running test_two\n  Teardown after each test\nTeardown after all tests\n\nTest lifecycle hooks"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "class TestClass: @classmethod; def setup_class(cls): print('Setup once for all tests'); cls.shared_resource = 'database_connection'; @classmethod; def teardown_class(cls): print('Teardown after all tests'); def setup_method(self): print('  Setup before each test'); def teardown_method(self): print('  Teardown after each test'); def test_one(self): print('    Running test_one'); def test_two(self): print('    Running test_two'); tc = TestClass(); tc.setup_class(); tc.setup_method(); tc.test_one(); tc.teardown_method(); tc.setup_method(); tc.test_two(); tc.teardown_method(); tc.teardown_class()"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Setup once for all tests\n  Setup before each test\n    Running test_one\n  Teardown after each test\n  Setup before each test\n    Running test_two\n  Teardown after each test\nTeardown after all tests\n\nTest lifecycle hooks"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "import pytest; @pytest.fixture; def database(): print('Creating database connection'); db = {'users': [], 'posts': []}; yield db; print('Closing database connection'); def test_add_user(): db = {'users': [], 'posts': []}; db['users'].append({'id': 1, 'name': 'Test'}); print(f'Users in DB: {len(db[\"users\"])}'); assert len(db['users']) == 1; test_add_user(); print('Fixture with yield for cleanup')"]},
-      "expected_output": {"type": "string", "example": "Users in DB: 1\nFixture with yield for cleanup\n\nFixture provides and cleans up"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "import pytest; @pytest.fixture; def database(): print('Creating database connection'); db = {'users': [], 'posts': []}; yield db; print('Closing database connection'); def test_add_user(): db = {'users': [], 'posts': []}; db['users'].append({'id': 1, 'name': 'Test'}); print(f'Users in DB: {len(db[\"users\"])}'); assert len(db['users']) == 1; test_add_user(); print('Fixture with yield for cleanup')"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Users in DB: 1\nFixture with yield for cleanup\n\nFixture provides and cleans up"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "class TestDataFactory: @staticmethod; def create_user(id=1, name='Test'): return {'id': id, 'name': name, 'email': f'{name.lower()}@test.com'}; @staticmethod; def create_post(user_id=1, title='Test'): return {'user_id': user_id, 'title': title, 'content': 'Test content'}; user = TestDataFactory.create_user(id=5, name='Alice'); post = TestDataFactory.create_post(user_id=5, title='First Post'); print('User:', user); print('Post:', post); print('Factory pattern for test data')"]},
-      "expected_output": {"type": "string", "example": "User: {'id': 5, 'name': 'Alice', 'email': 'alice@test.com'}\nPost: {'user_id': 5, 'title': 'First Post', 'content': 'Test content'}\nFactory pattern for test data\n\nTest data builders"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "class TestDataFactory: @staticmethod; def create_user(id=1, name='Test'): return {'id': id, 'name': name, 'email': f'{name.lower()}@test.com'}; @staticmethod; def create_post(user_id=1, title='Test'): return {'user_id': user_id, 'title': title, 'content': 'Test content'}; user = TestDataFactory.create_user(id=5, name='Alice'); post = TestDataFactory.create_post(user_id=5, title='First Post'); print('User:', user); print('Post:', post); print('Factory pattern for test data')"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "User: {'id': 5, 'name': 'Alice', 'email': 'alice@test.com'}\nPost: {'user_id': 5, 'title': 'First Post', 'content': 'Test content'}\nFactory pattern for test data\n\nTest data builders"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

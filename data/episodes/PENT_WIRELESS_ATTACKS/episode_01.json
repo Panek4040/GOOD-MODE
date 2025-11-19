@@ -3,7 +3,13 @@
   "description": "Complete wireless attack from reconnaissance to credential harvesting via WPA2 cracking and evil twin AP",
   "difficulty": "intermediate",
   "estimated_time": "60 minutes",
-  "tools_used": ["aircrack-ng", "hashcat", "hostapd", "dnsmasq", "aireplay-ng"],
+  "tools_used": [
+    "aircrack-ng",
+    "hashcat",
+    "hostapd",
+    "dnsmasq",
+    "aireplay-ng"
+  ],
   "attack_chain": [
     {
       "step": 1,
@@ -147,5 +153,13 @@
     "Use VPN for all sensitive traffic even on trusted WiFi",
     "Monitor for rogue access points with identical SSIDs"
   ],
-  "tags": ["wifi", "wpa2", "handshake", "evil_twin", "captive_portal", "mitm", "credential_harvesting"]
+  "tags": [
+    "wifi",
+    "wpa2",
+    "handshake",
+    "evil_twin",
+    "captive_portal",
+    "mitm",
+    "credential_harvesting"
+  ]
 }

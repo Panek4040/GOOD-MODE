@@ -3,20 +3,114 @@
   "description": "Master git rebase, reflog, and recovering lost commits",
   "difficulty": "expert",
   "estimated_time": "70 minutes",
-  "tools_used": ["git", "rebase", "reflog", "history_rewriting"],
-  "attack_chain": [
-    {"step": 1, "title": "Create Repository with History", "command": "git init rewrite-demo && cd rewrite-demo && for i in {1..5}; do echo \"Commit $i\" > file$i.txt && git add . && git commit -m \"Commit $i\"; done && git log --oneline", "explanation": "Setup repo with multiple commits", "expected_output": "Commit 5\\nCommit 4\\nCommit 3\\nCommit 2\\nCommit 1", "success_criteria": "5 commits created"},
-    {"step": 2, "title": "Interactive Rebase Setup", "command": "git rebase -i HEAD~3 --autosquash || echo 'Interactive rebase started'", "explanation": "Start interactive rebase of last 3 commits", "expected_output": "pick abc123 Commit 3\\npick def456 Commit 4\\npick ghi789 Commit 5", "success_criteria": "Rebase initiated"},
-    {"step": 3, "title": "Squash Commits", "command": "GIT_SEQUENCE_EDITOR='sed -i \"2s/pick/squash/;3s/pick/squash/\"' git rebase -i HEAD~3 && git log --oneline -n 3", "explanation": "Combine 3 commits into one", "expected_output": "Combined commits 3-5\\nCommit 2\\nCommit 1", "success_criteria": "Commits squashed"},
-    {"step": 4, "title": "Amend Last Commit", "command": "echo 'Additional change' >> file5.txt && git add file5.txt && git commit --amend --no-edit && git show HEAD --stat", "explanation": "Add changes to previous commit", "expected_output": "file5.txt | 1 +\\n1 file changed, 1 insertion(+)", "success_criteria": "Commit amended"},
-    {"step": 5, "title": "Accidentally Reset Hard", "command": "LAST_COMMIT=$(git rev-parse HEAD) && git reset --hard HEAD~2 && git log --oneline", "explanation": "Simulate losing commits with hard reset", "expected_output": "Commit 1", "success_criteria": "Commits lost"},
-    {"step": 6, "title": "View Reflog", "command": "git reflog -n 10", "explanation": "Check reflog for lost commits", "expected_output": "HEAD@{0}: reset: moving to HEAD~2\\nHEAD@{1}: commit (amend)", "success_criteria": "Reflog shows history"},
-    {"step": 7, "title": "Recover Lost Commits", "command": "git reset --hard HEAD@{1} && git log --oneline", "explanation": "Restore from reflog entry", "expected_output": "Combined commits 3-5\\nCommit 2\\nCommit 1", "success_criteria": "Commits recovered"},
-    {"step": 8, "title": "Cherry-Pick Specific Commit", "command": "git checkout -b fix-branch HEAD~2 && git log --oneline main | head -1 | awk '{print $1}' | xargs git cherry-pick && git log --oneline", "explanation": "Apply specific commit to different branch", "expected_output": "Combined commits 3-5\\nCommit 1", "success_criteria": "Commit cherry-picked"},
-    {"step": 9, "title": "Filter Branch History", "command": "git checkout main && git filter-branch --tree-filter 'rm -f file3.txt' HEAD~2..HEAD 2>&1 | grep -i rewrite || echo 'History filtered'", "explanation": "Remove file from commit history", "expected_output": "Rewrite abc123...def456", "success_criteria": "History rewritten"},
-    {"step": 10, "title": "Create Backup and Clean", "command": "git tag backup-before-cleanup HEAD && git reflog expire --expire=now --all && git gc --prune=now --aggressive && git count-objects -v | head -5", "explanation": "Tag current state, cleanup reflog and optimize", "expected_output": "count: 0\\nsize: 0\\nin-pack: 15", "success_criteria": "Repo optimized"}
+  "tools_used": [
+    "git",
+    "rebase",
+    "reflog",
+    "history_rewriting"
   ],
-  "learning_objectives": ["Interactive rebase", "Reflog usage", "Commit recovery", "History rewriting", "Git internals", "Repository maintenance"],
-  "mitigation": ["Regular backups", "Branch protection", "Tag important commits", "Avoid force push to shared branches"],
-  "tags": ["git", "rebase", "reflog", "history_rewriting", "recovery", "advanced"]
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Create Repository with History",
+      "command": "git init rewrite-demo && cd rewrite-demo && for i in {1..5}; do echo \"Commit $i\" > file$i.txt && git add . && git commit -m \"Commit $i\"; done && git log --oneline",
+      "explanation": "Setup repo with multiple commits",
+      "expected_output": "Commit 5\\nCommit 4\\nCommit 3\\nCommit 2\\nCommit 1",
+      "success_criteria": "5 commits created"
+    },
+    {
+      "step": 2,
+      "title": "Interactive Rebase Setup",
+      "command": "git rebase -i HEAD~3 --autosquash || echo 'Interactive rebase started'",
+      "explanation": "Start interactive rebase of last 3 commits",
+      "expected_output": "pick abc123 Commit 3\\npick def456 Commit 4\\npick ghi789 Commit 5",
+      "success_criteria": "Rebase initiated"
+    },
+    {
+      "step": 3,
+      "title": "Squash Commits",
+      "command": "GIT_SEQUENCE_EDITOR='sed -i \"2s/pick/squash/;3s/pick/squash/\"' git rebase -i HEAD~3 && git log --oneline -n 3",
+      "explanation": "Combine 3 commits into one",
+      "expected_output": "Combined commits 3-5\\nCommit 2\\nCommit 1",
+      "success_criteria": "Commits squashed"
+    },
+    {
+      "step": 4,
+      "title": "Amend Last Commit",
+      "command": "echo 'Additional change' >> file5.txt && git add file5.txt && git commit --amend --no-edit && git show HEAD --stat",
+      "explanation": "Add changes to previous commit",
+      "expected_output": "file5.txt | 1 +\\n1 file changed, 1 insertion(+)",
+      "success_criteria": "Commit amended"
+    },
+    {
+      "step": 5,
+      "title": "Accidentally Reset Hard",
+      "command": "LAST_COMMIT=$(git rev-parse HEAD) && git reset --hard HEAD~2 && git log --oneline",
+      "explanation": "Simulate losing commits with hard reset",
+      "expected_output": "Commit 1",
+      "success_criteria": "Commits lost"
+    },
+    {
+      "step": 6,
+      "title": "View Reflog",
+      "command": "git reflog -n 10",
+      "explanation": "Check reflog for lost commits",
+      "expected_output": "HEAD@{0}: reset: moving to HEAD~2\\nHEAD@{1}: commit (amend)",
+      "success_criteria": "Reflog shows history"
+    },
+    {
+      "step": 7,
+      "title": "Recover Lost Commits",
+      "command": "git reset --hard HEAD@{1} && git log --oneline",
+      "explanation": "Restore from reflog entry",
+      "expected_output": "Combined commits 3-5\\nCommit 2\\nCommit 1",
+      "success_criteria": "Commits recovered"
+    },
+    {
+      "step": 8,
+      "title": "Cherry-Pick Specific Commit",
+      "command": "git checkout -b fix-branch HEAD~2 && git log --oneline main | head -1 | awk '{print $1}' | xargs git cherry-pick && git log --oneline",
+      "explanation": "Apply specific commit to different branch",
+      "expected_output": "Combined commits 3-5\\nCommit 1",
+      "success_criteria": "Commit cherry-picked"
+    },
+    {
+      "step": 9,
+      "title": "Filter Branch History",
+      "command": "git checkout main && git filter-branch --tree-filter 'rm -f file3.txt' HEAD~2..HEAD 2>&1 | grep -i rewrite || echo 'History filtered'",
+      "explanation": "Remove file from commit history",
+      "expected_output": "Rewrite abc123...def456",
+      "success_criteria": "History rewritten"
+    },
+    {
+      "step": 10,
+      "title": "Create Backup and Clean",
+      "command": "git tag backup-before-cleanup HEAD && git reflog expire --expire=now --all && git gc --prune=now --aggressive && git count-objects -v | head -5",
+      "explanation": "Tag current state, cleanup reflog and optimize",
+      "expected_output": "count: 0\\nsize: 0\\nin-pack: 15",
+      "success_criteria": "Repo optimized"
+    }
+  ],
+  "learning_objectives": [
+    "Interactive rebase",
+    "Reflog usage",
+    "Commit recovery",
+    "History rewriting",
+    "Git internals",
+    "Repository maintenance"
+  ],
+  "mitigation": [
+    "Regular backups",
+    "Branch protection",
+    "Tag important commits",
+    "Avoid force push to shared branches"
+  ],
+  "tags": [
+    "git",
+    "rebase",
+    "reflog",
+    "history_rewriting",
+    "recovery",
+    "advanced"
+  ]
 }

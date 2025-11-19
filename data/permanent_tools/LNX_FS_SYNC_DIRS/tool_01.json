@@ -2,7 +2,10 @@
   "name": "sync_dirs_basic_rsync",
   "description": "Synchronize directories using rsync with dry-run verification",
   "pattern": "sync.*directories|rsync.*folders|copy.*sync",
-  "parameters": ["source_path", "dest_path"],
+  "parameters": [
+    "source_path",
+    "dest_path"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sh '{{source_path}}' && du -sh '{{dest_path}}' 2>/dev/null || echo '{{dest_path}}: does not exist'"]
+        "args": [
+          "-c",
+          "du -sh '{{source_path}}' && du -sh '{{dest_path}}' 2>/dev/null || echo '{{dest_path}}: does not exist'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "rsync",
-        "args": ["-av", "--dry-run", "--stats", "{{source_path}}/", "{{dest_path}}/"]
+        "args": [
+          "-av",
+          "--dry-run",
+          "--stats",
+          "{{source_path}}/",
+          "{{dest_path}}/"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +48,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo 'Starting sync at: '$(date +'%Y-%m-%d %H:%M:%S')"]
+        "args": [
+          "-c",
+          "echo 'Starting sync at: '$(date +'%Y-%m-%d %H:%M:%S')"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +64,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "rsync",
-        "args": ["-av", "--progress", "{{source_path}}/", "{{dest_path}}/"]
+        "args": [
+          "-av",
+          "--progress",
+          "{{source_path}}/",
+          "{{dest_path}}/"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +82,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo 'Completed at: '$(date +'%Y-%m-%d %H:%M:%S') && du -sh '{{dest_path}}'"]
+        "args": [
+          "-c",
+          "echo 'Completed at: '$(date +'%Y-%m-%d %H:%M:%S') && du -sh '{{dest_path}}'"
+        ]
       },
       "expected_output": {
         "type": "string",

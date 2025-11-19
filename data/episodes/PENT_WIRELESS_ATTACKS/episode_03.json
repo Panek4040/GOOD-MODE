@@ -3,7 +3,14 @@
   "description": "Advanced attack chain targeting WPA2-Enterprise networks with PEAP credential capture and rogue RADIUS server",
   "difficulty": "advanced",
   "estimated_time": "90 minutes",
-  "tools_used": ["airodump-ng", "tshark", "eaphammer", "asleap", "hashcat", "freeradius"],
+  "tools_used": [
+    "airodump-ng",
+    "tshark",
+    "eaphammer",
+    "asleap",
+    "hashcat",
+    "freeradius"
+  ],
   "attack_chain": [
     {
       "step": 1,
@@ -191,5 +198,14 @@
     "Require MFA for network authentication",
     "Regular security awareness training on WiFi threats"
   ],
-  "tags": ["wpa_enterprise", "802.1x", "peap", "eap", "radius", "evil_twin", "credential_harvesting", "active_directory"]
+  "tags": [
+    "wpa_enterprise",
+    "802.1x",
+    "peap",
+    "eap",
+    "radius",
+    "evil_twin",
+    "credential_harvesting",
+    "active_directory"
+  ]
 }

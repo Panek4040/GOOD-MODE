@@ -3,20 +3,112 @@
   "description": "Extract data from dynamic infinite-scroll pages with Selenium",
   "difficulty": "advanced",
   "estimated_time": "75 minutes",
-  "tools_used": ["selenium", "beautifulsoup", "json", "scrolling"],
-  "attack_chain": [
-    {"step": 1, "title": "Initialize Headless Browser", "command": "from selenium import webdriver; from selenium.webdriver.chrome.options import Options; from bs4 import BeautifulSoup; import json; import time; options = Options(); options.add_argument('--headless'); options.add_argument('--disable-blink-features=AutomationControlled'); driver = webdriver.Chrome(options=options); print('Headless browser started')", "explanation": "Launch Chrome in stealth headless mode", "expected_output": "Headless browser started", "success_criteria": "Driver initialized"},
-    {"step": 2, "title": "Navigate to Target Page", "command": "driver.get('https://the-internet.herokuapp.com/infinite_scroll'); time.sleep(2); initial_height = driver.execute_script('return document.body.scrollHeight'); print(f'Initial page height: {initial_height}px')", "explanation": "Load infinite scroll demo page", "expected_output": "Initial page height: 1000px", "success_criteria": "Page loaded"},
-    {"step": 3, "title": "Scroll and Load Content", "command": "scroll_pause_time = 2; screen_height = driver.execute_script('return window.screen.height'); i = 1; scroll_count = 0; while scroll_count < 5: driver.execute_script(f'window.scrollTo(0, {screen_height * i});'); i += 1; time.sleep(scroll_pause_time); scroll_height = driver.execute_script('return document.body.scrollHeight'); scroll_count += 1; print(f'Scroll {scroll_count}: Height {scroll_height}px')", "explanation": "Incrementally scroll to trigger content loading", "expected_output": "Scroll 1-5: Height increasing", "success_criteria": "Content loaded"},
-    {"step": 4, "title": "Extract All Loaded Content", "command": "page_source = driver.page_source; soup = BeautifulSoup(page_source, 'html.parser'); paragraphs = soup.find_all('div', class_='jscroll-added'); print(f'Loaded paragraphs: {len(paragraphs)}'); [print(f'  P{i+1}: {p.text[:40]}...') for i, p in enumerate(paragraphs[:3])]", "explanation": "Parse dynamically loaded elements", "expected_output": "Loaded paragraphs: 10+", "success_criteria": "Content extracted"},
-    {"step": 5, "title": "Detect End of Scroll", "command": "last_height = driver.execute_script('return document.body.scrollHeight'); driver.execute_script('window.scrollTo(0, document.body.scrollHeight)'); time.sleep(2); new_height = driver.execute_script('return document.body.scrollHeight'); if new_height == last_height: print('Reached end of content'); else: print(f'More content available: {new_height - last_height}px')", "explanation": "Check if more content loads on scroll", "expected_output": "Reached end of content or More content available", "success_criteria": "End detection works"},
-    {"step": 6, "title": "Extract Metadata from Elements", "command": "elements = driver.find_elements('xpath', '//div[@class=\"jscroll-added\"]'); data = []; for el in elements[:10]: data.append({'text': el.text, 'class': el.get_attribute('class'), 'position': el.location['y']}); print(f'Extracted metadata for {len(data)} elements'); print('Sample:', data[0])", "explanation": "Collect element attributes and positions", "expected_output": "Extracted metadata for 10 elements", "success_criteria": "Metadata collected"},
-    {"step": 7, "title": "Capture Network Requests", "command": "logs = driver.get_log('performance'); network_events = [json.loads(log['message'])['message'] for log in logs]; requests = [e for e in network_events if e.get('method') == 'Network.requestWillBeSent']; print(f'Network requests: {len(requests)}'); print(f'XHR requests: {sum(1 for r in requests if \"XHR\" in str(r))}')", "explanation": "Analyze network traffic for AJAX calls", "expected_output": "Network requests: 50+, XHR requests: 5+", "success_criteria": "Requests logged"},
-    {"step": 8, "title": "Take Progress Screenshots", "command": "driver.execute_script('window.scrollTo(0, 0)'); driver.save_screenshot('/tmp/scroll_top.png'); driver.execute_script('window.scrollTo(0, document.body.scrollHeight/2)'); driver.save_screenshot('/tmp/scroll_mid.png'); driver.execute_script('window.scrollTo(0, document.body.scrollHeight)'); driver.save_screenshot('/tmp/scroll_bottom.png'); print('3 screenshots saved')", "explanation": "Capture visual evidence of scrolling", "expected_output": "3 screenshots saved", "success_criteria": "Images created"},
-    {"step": 9, "title": "Export Scraped Data", "command": "output = {'total_items': len(data), 'scroll_count': scroll_count, 'final_height': driver.execute_script('return document.body.scrollHeight'), 'items': data[:20]}; with open('/tmp/scroll_data.json', 'w') as f: json.dump(output, f, indent=2); print(f\"Exported {output['total_items']} items to JSON\")", "explanation": "Save collected data to file", "expected_output": "Exported 10 items to JSON", "success_criteria": "JSON created"},
-    {"step": 10, "title": "Cleanup and Performance Report", "command": "end_time = time.time(); perf_metrics = driver.execute_script('return performance.timing'); load_time = perf_metrics['loadEventEnd'] - perf_metrics['navigationStart']; print(f'Page load time: {load_time}ms'); driver.quit(); print('Browser closed'); print('Infinite scroll scraping complete')", "explanation": "Close browser and report metrics", "expected_output": "Infinite scroll scraping complete", "success_criteria": "Clean shutdown"}
+  "tools_used": [
+    "selenium",
+    "beautifulsoup",
+    "json",
+    "scrolling"
   ],
-  "learning_objectives": ["Infinite scroll handling", "Dynamic content loading", "Selenium scrolling", "Network monitoring", "Performance tracking"],
-  "mitigation": ["Scroll rate limiting", "Bot detection", "Content pagination", "API access"],
-  "tags": ["scraping", "selenium", "infinite_scroll", "dynamic_content", "automation"]
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Initialize Headless Browser",
+      "command": "from selenium import webdriver; from selenium.webdriver.chrome.options import Options; from bs4 import BeautifulSoup; import json; import time; options = Options(); options.add_argument('--headless'); options.add_argument('--disable-blink-features=AutomationControlled'); driver = webdriver.Chrome(options=options); print('Headless browser started')",
+      "explanation": "Launch Chrome in stealth headless mode",
+      "expected_output": "Headless browser started",
+      "success_criteria": "Driver initialized"
+    },
+    {
+      "step": 2,
+      "title": "Navigate to Target Page",
+      "command": "driver.get('https://the-internet.herokuapp.com/infinite_scroll'); time.sleep(2); initial_height = driver.execute_script('return document.body.scrollHeight'); print(f'Initial page height: {initial_height}px')",
+      "explanation": "Load infinite scroll demo page",
+      "expected_output": "Initial page height: 1000px",
+      "success_criteria": "Page loaded"
+    },
+    {
+      "step": 3,
+      "title": "Scroll and Load Content",
+      "command": "scroll_pause_time = 2; screen_height = driver.execute_script('return window.screen.height'); i = 1; scroll_count = 0; while scroll_count < 5: driver.execute_script(f'window.scrollTo(0, {screen_height * i});'); i += 1; time.sleep(scroll_pause_time); scroll_height = driver.execute_script('return document.body.scrollHeight'); scroll_count += 1; print(f'Scroll {scroll_count}: Height {scroll_height}px')",
+      "explanation": "Incrementally scroll to trigger content loading",
+      "expected_output": "Scroll 1-5: Height increasing",
+      "success_criteria": "Content loaded"
+    },
+    {
+      "step": 4,
+      "title": "Extract All Loaded Content",
+      "command": "page_source = driver.page_source; soup = BeautifulSoup(page_source, 'html.parser'); paragraphs = soup.find_all('div', class_='jscroll-added'); print(f'Loaded paragraphs: {len(paragraphs)}'); [print(f'  P{i+1}: {p.text[:40]}...') for i, p in enumerate(paragraphs[:3])]",
+      "explanation": "Parse dynamically loaded elements",
+      "expected_output": "Loaded paragraphs: 10+",
+      "success_criteria": "Content extracted"
+    },
+    {
+      "step": 5,
+      "title": "Detect End of Scroll",
+      "command": "last_height = driver.execute_script('return document.body.scrollHeight'); driver.execute_script('window.scrollTo(0, document.body.scrollHeight)'); time.sleep(2); new_height = driver.execute_script('return document.body.scrollHeight'); if new_height == last_height: print('Reached end of content'); else: print(f'More content available: {new_height - last_height}px')",
+      "explanation": "Check if more content loads on scroll",
+      "expected_output": "Reached end of content or More content available",
+      "success_criteria": "End detection works"
+    },
+    {
+      "step": 6,
+      "title": "Extract Metadata from Elements",
+      "command": "elements = driver.find_elements('xpath', '//div[@class=\"jscroll-added\"]'); data = []; for el in elements[:10]: data.append({'text': el.text, 'class': el.get_attribute('class'), 'position': el.location['y']}); print(f'Extracted metadata for {len(data)} elements'); print('Sample:', data[0])",
+      "explanation": "Collect element attributes and positions",
+      "expected_output": "Extracted metadata for 10 elements",
+      "success_criteria": "Metadata collected"
+    },
+    {
+      "step": 7,
+      "title": "Capture Network Requests",
+      "command": "logs = driver.get_log('performance'); network_events = [json.loads(log['message'])['message'] for log in logs]; requests = [e for e in network_events if e.get('method') == 'Network.requestWillBeSent']; print(f'Network requests: {len(requests)}'); print(f'XHR requests: {sum(1 for r in requests if \"XHR\" in str(r))}')",
+      "explanation": "Analyze network traffic for AJAX calls",
+      "expected_output": "Network requests: 50+, XHR requests: 5+",
+      "success_criteria": "Requests logged"
+    },
+    {
+      "step": 8,
+      "title": "Take Progress Screenshots",
+      "command": "driver.execute_script('window.scrollTo(0, 0)'); driver.save_screenshot('/tmp/scroll_top.png'); driver.execute_script('window.scrollTo(0, document.body.scrollHeight/2)'); driver.save_screenshot('/tmp/scroll_mid.png'); driver.execute_script('window.scrollTo(0, document.body.scrollHeight)'); driver.save_screenshot('/tmp/scroll_bottom.png'); print('3 screenshots saved')",
+      "explanation": "Capture visual evidence of scrolling",
+      "expected_output": "3 screenshots saved",
+      "success_criteria": "Images created"
+    },
+    {
+      "step": 9,
+      "title": "Export Scraped Data",
+      "command": "output = {'total_items': len(data), 'scroll_count': scroll_count, 'final_height': driver.execute_script('return document.body.scrollHeight'), 'items': data[:20]}; with open('/tmp/scroll_data.json', 'w') as f: json.dump(output, f, indent=2); print(f\"Exported {output['total_items']} items to JSON\")",
+      "explanation": "Save collected data to file",
+      "expected_output": "Exported 10 items to JSON",
+      "success_criteria": "JSON created"
+    },
+    {
+      "step": 10,
+      "title": "Cleanup and Performance Report",
+      "command": "end_time = time.time(); perf_metrics = driver.execute_script('return performance.timing'); load_time = perf_metrics['loadEventEnd'] - perf_metrics['navigationStart']; print(f'Page load time: {load_time}ms'); driver.quit(); print('Browser closed'); print('Infinite scroll scraping complete')",
+      "explanation": "Close browser and report metrics",
+      "expected_output": "Infinite scroll scraping complete",
+      "success_criteria": "Clean shutdown"
+    }
+  ],
+  "learning_objectives": [
+    "Infinite scroll handling",
+    "Dynamic content loading",
+    "Selenium scrolling",
+    "Network monitoring",
+    "Performance tracking"
+  ],
+  "mitigation": [
+    "Scroll rate limiting",
+    "Bot detection",
+    "Content pagination",
+    "API access"
+  ],
+  "tags": [
+    "scraping",
+    "selenium",
+    "infinite_scroll",
+    "dynamic_content",
+    "automation"
+  ]
 }

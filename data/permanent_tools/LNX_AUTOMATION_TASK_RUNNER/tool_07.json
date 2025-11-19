@@ -2,7 +2,12 @@
   "name": "create_anacron_job",
   "description": "Create periodic task using anacron for systems not always on",
   "pattern": "anacron|periodic.*task|laptop.*schedule",
-  "parameters": ["period_days", "delay_minutes", "job_id", "command"],
+  "parameters": [
+    "period_days",
+    "delay_minutes",
+    "job_id",
+    "command"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +15,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "cat",
-        "args": ["/etc/anacrontab"]
+        "args": [
+          "/etc/anacrontab"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo '{{period_days}}\t{{delay_minutes}}\t{{job_id}}\t{{command}}' >> /etc/anacrontab && echo 'Anacron job added'"]
+        "args": [
+          "-c",
+          "echo '{{period_days}}\t{{delay_minutes}}\t{{job_id}}\t{{command}}' >> /etc/anacrontab && echo 'Anacron job added'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "cat /etc/anacrontab | grep '{{job_id}}'"]
+        "args": [
+          "-c",
+          "cat /etc/anacrontab | grep '{{job_id}}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "anacron",
-        "args": ["-T"]
+        "args": [
+          "-T"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +77,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo 'Job {{job_id}} will run every {{period_days}} days with {{delay_minutes}} min delay'"]
+        "args": [
+          "-c",
+          "echo 'Job {{job_id}} will run every {{period_days}} days with {{delay_minutes}} min delay'"
+        ]
       },
       "expected_output": {
         "type": "string",

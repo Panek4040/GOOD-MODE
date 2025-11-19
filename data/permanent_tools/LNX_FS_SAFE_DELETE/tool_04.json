@@ -2,7 +2,10 @@
   "name": "safe_delete_by_age",
   "description": "Delete files older than specified days with verification",
   "pattern": "delete.*old.*files|remove.*older.*than|cleanup.*age",
-  "parameters": ["path", "days_old"],
+  "parameters": [
+    "path",
+    "days_old"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -mtime +{{days_old}} | head -20"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -mtime +{{days_old}} | head -20"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -mtime +{{days_old}} -exec stat -c '%n|%s|%Y' {} \\; | awk -F'|' '{size+=$2; count++; mod=$3} END {print \"Files found: \" count \", Total size: \" size/1024/1024 \"MB, Oldest: \" strftime(\"%Y-%m-%d\", mod)}'"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -mtime +{{days_old}} -exec stat -c '%n|%s|%Y' {} \\; | awk -F'|' '{size+=$2; count++; mod=$3} END {print \"Files found: \" count \", Total size: \" size/1024/1024 \"MB, Oldest: \" strftime(\"%Y-%m-%d\", mod)}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -mtime +{{days_old}} -exec ls -lh {} \\; | awk '{print $9, $5, $6, $7, $8}' | head -10"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -mtime +{{days_old}} -exec ls -lh {} \\; | awk '{print $9, $5, $6, $7, $8}' | head -10"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +61,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "cutoff_date=$(date -d '{{days_old}} days ago' '+%Y-%m-%d %H:%M:%S'); echo \"Deleting files older than: $cutoff_date\""]
+        "args": [
+          "-c",
+          "cutoff_date=$(date -d '{{days_old}} days ago' '+%Y-%m-%d %H:%M:%S'); echo \"Deleting files older than: $cutoff_date\""
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +77,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -mtime +{{days_old}} -delete -print | wc -l"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -mtime +{{days_old}} -delete -print | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",

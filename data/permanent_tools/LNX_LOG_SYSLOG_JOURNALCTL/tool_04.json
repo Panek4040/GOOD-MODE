@@ -2,7 +2,11 @@
   "name": "logrotate_configure_rotation_compression",
   "description": "Configure logrotate for automatic log rotation, compression, and retention",
   "pattern": "logrotate.*config|rotate.*logs|log.*rotation",
-  "parameters": ["log_path", "rotate_count", "rotate_period"],
+  "parameters": [
+    "log_path",
+    "rotate_count",
+    "rotate_period"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "ls",
-        "args": ["-lh", "{{log_path}}"]
+        "args": [
+          "-lh",
+          "{{log_path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "cat > /etc/logrotate.d/custom-app <<EOF\n{{log_path}} {\n    {{rotate_period}}\n    rotate {{rotate_count}}\n    compress\n    delaycompress\n    missingok\n    notifempty\n    create 0640 root adm\n    sharedscripts\n    postrotate\n        systemctl reload app.service > /dev/null 2>&1 || true\n    endscript\n}\nEOF\ncat /etc/logrotate.d/custom-app"]
+        "args": [
+          "-c",
+          "cat > /etc/logrotate.d/custom-app <<EOF\n{{log_path}} {\n    {{rotate_period}}\n    rotate {{rotate_count}}\n    compress\n    delaycompress\n    missingok\n    notifempty\n    create 0640 root adm\n    sharedscripts\n    postrotate\n        systemctl reload app.service > /dev/null 2>&1 || true\n    endscript\n}\nEOF\ncat /etc/logrotate.d/custom-app"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "logrotate",
-        "args": ["-d", "/etc/logrotate.d/custom-app"]
+        "args": [
+          "-d",
+          "/etc/logrotate.d/custom-app"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "logrotate",
-        "args": ["-f", "/etc/logrotate.d/custom-app"]
+        "args": [
+          "-f",
+          "/etc/logrotate.d/custom-app"
+        ]
       },
       "expected_output": {
         "type": "string",

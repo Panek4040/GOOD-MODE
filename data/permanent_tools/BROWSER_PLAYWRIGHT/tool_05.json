@@ -2,21 +2,64 @@
   "name": "playwright_context_isolation",
   "description": "Browser contexts for session isolation and parallel testing",
   "pattern": "playwright.*context|browser.*newContext|session.*isolation",
-  "parameters": ["context_options"],
+  "parameters": [
+    "context_options"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch(); const context1 = await browser.newContext(); const context2 = await browser.newContext(); const page1 = await context1.newPage(); const page2 = await context2.newPage(); await page1.goto('https://example.com'); await page2.goto('https://example.com'); console.log('Two isolated contexts created'); await browser.close(); })();"]},
-      "expected_output": {"type": "string", "example": "Two isolated contexts created\n\nIndependent browser sessions"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch(); const context1 = await browser.newContext(); const context2 = await browser.newContext(); const page1 = await context1.newPage(); const page2 = await context2.newPage(); await page1.goto('https://example.com'); await page2.goto('https://example.com'); console.log('Two isolated contexts created'); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Two isolated contexts created\n\nIndependent browser sessions"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const { chromium, devices } = require('playwright'); (async () => { const browser = await chromium.launch(); const context = await browser.newContext({...devices['iPhone 12'], geolocation: {latitude: 40.7128, longitude: -74.0060}, permissions: ['geolocation']}); const page = await context.newPage(); await page.goto('https://example.com'); console.log('Mobile context with geolocation'); await browser.close(); })();"]},
-      "expected_output": {"type": "string", "example": "Mobile context with geolocation\n\nDevice emulation with location"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const { chromium, devices } = require('playwright'); (async () => { const browser = await chromium.launch(); const context = await browser.newContext({...devices['iPhone 12'], geolocation: {latitude: 40.7128, longitude: -74.0060}, permissions: ['geolocation']}); const page = await context.newPage(); await page.goto('https://example.com'); console.log('Mobile context with geolocation'); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Mobile context with geolocation\n\nDevice emulation with location"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch(); const context = await browser.newContext({recordVideo: {dir: '/tmp/videos/'}, viewport: {width: 1280, height: 720}}); const page = await context.newPage(); await page.goto('https://example.com'); await page.waitForTimeout(2000); await context.close(); console.log('Video recorded'); await browser.close(); })();"]},
-      "expected_output": {"type": "string", "example": "Video recorded\n\nSession video saved"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch(); const context = await browser.newContext({recordVideo: {dir: '/tmp/videos/'}, viewport: {width: 1280, height: 720}}); const page = await context.newPage(); await page.goto('https://example.com'); await page.waitForTimeout(2000); await context.close(); console.log('Video recorded'); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Video recorded\n\nSession video saved"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

