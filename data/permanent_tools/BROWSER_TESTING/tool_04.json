@@ -1,0 +1,22 @@
+{
+  "name": "mocking_stubbing",
+  "description": "Mock objects, stubs, and test doubles for isolated testing",
+  "pattern": "mock|stub|spy|fake",
+  "parameters": ["mock_target"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from unittest.mock import Mock; mock_obj = Mock(); mock_obj.method.return_value = 42; result = mock_obj.method('arg'); print(f'Mock returned: {result}'); assert result == 42; assert mock_obj.method.called; print(f'Called with: {mock_obj.method.call_args}')"]},
+      "expected_output": {"type": "string", "example": "Mock returned: 42\nCalled with: call('arg')\n\nMock object with return value"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from unittest.mock import patch; def get_data(): import random; return random.randint(1, 100); with patch('random.randint', return_value=42): result = __import__('random').randint(1, 100); print(f'Patched result: {result}'); assert result == 42; print('Function behavior mocked')"]},
+      "expected_output": {"type": "string", "example": "Patched result: 42\nFunction behavior mocked\n\nPatching with context manager"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from unittest.mock import MagicMock; api_mock = MagicMock(); api_mock.fetch_user.return_value = {'id': 1, 'name': 'Test'}; api_mock.save_data.return_value = True; user = api_mock.fetch_user(user_id=1); saved = api_mock.save_data(user); print(f'User: {user}'); print(f'Saved: {saved}'); print(f'fetch_user called: {api_mock.fetch_user.call_count} times')"]},
+      "expected_output": {"type": "string", "example": "User: {'id': 1, 'name': 'Test'}\nSaved: True\nfetch_user called: 1 times\n\nAPI mock with call tracking"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}
