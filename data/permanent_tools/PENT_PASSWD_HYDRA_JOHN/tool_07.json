@@ -1,0 +1,30 @@
+{
+  "name": "crunch_custom_wordlist_generation",
+  "description": "Generate custom wordlists with crunch based on patterns and character sets",
+  "pattern": "crunch.*wordlist|wordlist.*generate|custom.*dictionary|pattern.*wordlist",
+  "parameters": ["min_len", "max_len", "charset", "pattern"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "crunch", "args": ["{{min_len}}", "{{max_len}}", "{{charset}}", "-o", "wordlist.txt"]},
+      "expected_output": {"type": "string", "example": "Crunch will now generate the following amount of data: 456 MB\nCrunch will now generate the following number of lines: 11881376\ncrunch: 100% completed generating output\nWordlist saved to wordlist.txt"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "crunch", "args": ["8", "8", "-t", "@@@@@@%%", "-o", "pattern_wordlist.txt"]},
+      "expected_output": {"type": "string", "example": "Pattern: @@@@@@@%% (@ = lowercase, % = numbers)\nGenerating: aaaaaaa00 through zzzzzzzz99\n208827064576 words generated\nSaved to pattern_wordlist.txt"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "crunch {{min_len}} {{max_len}} -f /usr/share/crunch/charset.lst mixalpha-numeric | head -10"]},
+      "expected_output": {"type": "string", "example": "Using charset: mixalpha-numeric\naaa000\naaa001\naaa002\n...\nSample of generated passwords"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "crunch", "args": ["8", "12", "-t", "Pass@@@@%%", "-o", "corporate_wordlist.txt"]},
+      "expected_output": {"type": "string", "example": "Corporate password pattern: Pass + 4 lowercase + 2 digits\nGenerated: Pass0000 through Passzzzz99\n45697600 passwords created for password spray"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "crunch 6 6 0123456789 | wc -l"]},
+      "expected_output": {"type": "string", "example": "1000000 (6-digit numeric PIN codes generated for testing)"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

