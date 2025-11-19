@@ -1,1 +1,64 @@
-{"episode_id":"LNX_BACKUP_TAR_RSYNC_DD_EP01","title":"Episode 01","description":"Task 01","difficulty":"intermediate","steps":[{"step_number":1,"instruction":"Do task","tool":"tool1","parameters":{},"expected_outcome":"Success"}],"success_criteria":"Complete","cleanup":"None"}
+{
+  "episode_id": "LNX_BACKUP_TAR_RSYNC_DD_EP01",
+  "title": "Daily Website Backup and Archive",
+  "description": "Create compressed backup of website files, verify integrity, store offsite",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Check current size of website directory",
+      "tool": "tar_create_extract_compressed_archive",
+      "parameters": {
+        "archive_path": "/backup/website-20241118.tar.gz",
+        "source_dir": "/var/www/html",
+        "operation": "create"
+      },
+      "expected_outcome": "Website directory is 2.4GB with 1247 files"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Create compressed tar archive of website",
+      "tool": "tar_create_extract_compressed_archive",
+      "parameters": {
+        "archive_path": "/backup/website-20241118.tar.gz",
+        "source_dir": "/var/www/html",
+        "operation": "create"
+      },
+      "expected_outcome": "Archive created: 856MB compressed from 2.4GB"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Verify archive integrity and list contents",
+      "tool": "backup_verify_integrity_test_restore",
+      "parameters": {
+        "archive_path": "/backup/website-20241118.tar.gz",
+        "verification_type": "test"
+      },
+      "expected_outcome": "Archive OK - all 1247 files verified"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Copy backup to remote server using rsync over SSH",
+      "tool": "rsync_remote_server_backup_ssh",
+      "parameters": {
+        "local_path": "/backup/website-20241118.tar.gz",
+        "remote_host": "backup-server.example.com",
+        "remote_path": "/backups/websites",
+        "bandwidth_limit": "10000"
+      },
+      "expected_outcome": "Backup transferred to remote server, 856MB sent"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Calculate and save checksum for future verification",
+      "tool": "backup_verify_integrity_test_restore",
+      "parameters": {
+        "archive_path": "/backup/website-20241118.tar.gz",
+        "verification_type": "test"
+      },
+      "expected_outcome": "SHA256 checksum saved for integrity verification"
+    }
+  ],
+  "success_criteria": "Website backed up, compressed, verified, and stored remotely",
+  "cleanup": "Remove local backup after 7 days, keep remote backup for 30 days"
+}

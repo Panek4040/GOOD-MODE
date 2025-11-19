@@ -1,0 +1,30 @@
+{
+  "name": "nmap_network_range_scanning",
+  "description": "Scan entire network ranges and subnets using nmap CIDR notation",
+  "pattern": "network.*scan|subnet.*scan|cidr.*scan|range.*scan",
+  "parameters": ["network", "ports"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sn", "{{network}}"]},
+      "expected_output": {"type": "string", "example": "Nmap scan report for 192.168.1.1 (Host is up)\nNmap scan report for 192.168.1.100 (Host is up)\nNmap scan report for 192.168.1.254 (Host is up)\n23 hosts up out of 256 scanned"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sS", "-p", "{{ports}}", "{{network}}"]},
+      "expected_output": {"type": "string", "example": "Scanned 192.168.1.0/24 (256 hosts)\nFound open ports on 23 hosts:\n192.168.1.100: 22,80,443\n192.168.1.101: 22,3306\n192.168.1.254: 22,80"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "nmap -sn {{network}} -oG - | grep 'Status: Up' | wc -l"]},
+      "expected_output": {"type": "string", "example": "23 (live hosts discovered on network)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sS", "-p", "80,443", "-T4", "{{network}}", "--open"]},
+      "expected_output": {"type": "string", "example": "Scanning for web servers on {{network}}\nFound 45 hosts with port 80 open, 23 hosts with port 443 open"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "nmap -sn {{network}} | grep 'Nmap scan report' | awk '{print $5}'"]},
+      "expected_output": {"type": "string", "example": "192.168.1.1\n192.168.1.100\n192.168.1.101\n192.168.1.254 (list of active IPs)"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

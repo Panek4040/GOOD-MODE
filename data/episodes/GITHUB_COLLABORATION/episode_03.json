@@ -1,0 +1,78 @@
+{
+  "title": "Repository Maintainer Operations and Release Management",
+  "description": "Advanced GitHub workflows for project maintainers including issue triage, code review, and release publishing",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Triage incoming issues with labels and assignment",
+      "command": "gh issue list --label bug --state open --limit 20",
+      "expected_output": "#234  Login fails on Safari     (bug)\n#231  Memory leak in dashboard  (bug)\n#228  API timeout errors        (bug)",
+      "technical_detail": "Filter by label to focus on specific issue types for batch processing"
+    },
+    {
+      "step": 2,
+      "description": "Review and add priority labels to critical bugs",
+      "command": "gh issue edit 234 --add-label 'priority:high' --add-assignee maintainer-user",
+      "expected_output": "✓ Edited issue #234\n  Added labels: priority:high\n  Added assignees: maintainer-user",
+      "technical_detail": "Label hierarchy (priority:high, priority:medium, priority:low) helps team focus"
+    },
+    {
+      "step": 3,
+      "description": "Review open pull requests requiring attention",
+      "command": "gh pr list --state open --json number,title,author,reviewDecision,updatedAt --limit 15",
+      "expected_output": "[{\"number\":456,\"title\":\"Add dark mode\",\"author\":\"contributor1\",\"reviewDecision\":\"REVIEW_REQUIRED\",\"updatedAt\":\"2024-01-15T09:00:00Z\"}]",
+      "technical_detail": "JSON format enables scripting and automation of review workflows"
+    },
+    {
+      "step": 4,
+      "description": "Checkout PR locally for detailed code review",
+      "command": "gh pr checkout 456",
+      "expected_output": "remote: Enumerating objects: 25, done.\nSwitched to branch 'contributor1-dark-mode'\nBranch 'contributor1-dark-mode' set up to track remote branch.",
+      "technical_detail": "Creates local branch tracking the PR for testing and review"
+    },
+    {
+      "step": 5,
+      "description": "Run tests locally to verify PR quality",
+      "command": "npm test",
+      "expected_output": "PASS  src/components/Theme.test.js\nPASS  src/utils/darkMode.test.js\n\nTest Suites: 12 passed, 12 total\nTests:       48 passed, 48 total",
+      "technical_detail": "Local testing complements CI to catch environment-specific issues"
+    },
+    {
+      "step": 6,
+      "description": "Add review comments requesting changes",
+      "command": "gh pr review 456 --request-changes --body 'Great work! Please add TypeScript types to the new functions. See inline comments for details.'",
+      "expected_output": "✓ Review submitted for pull request #456\n  Status: Changes requested",
+      "technical_detail": "Request changes blocks merging until contributor addresses feedback"
+    },
+    {
+      "step": 7,
+      "description": "Monitor contributor's response and updates",
+      "command": "gh pr view 456 --json commits,reviewDecision,statusCheckRollup",
+      "expected_output": "{\"commits\":[{\"messageHeadline\":\"Add dark mode\"},{\"messageHeadline\":\"Add TypeScript types\"}],\"reviewDecision\":\"REVIEW_REQUIRED\",\"statusCheckRollup\":[{\"conclusion\":\"SUCCESS\"}]}",
+      "technical_detail": "New commits appear in the commits array after contributor pushes updates"
+    },
+    {
+      "step": 8,
+      "description": "Approve PR after satisfactory changes",
+      "command": "gh pr review 456 --approve --body 'LGTM! TypeScript types look great. Thanks for the quick turnaround.'",
+      "expected_output": "✓ Review submitted for pull request #456\n  Status: Approved",
+      "technical_detail": "Approval unblocks merging if branch protection requires reviews"
+    },
+    {
+      "step": 9,
+      "description": "Merge approved PR and trigger deployment",
+      "command": "gh pr merge 456 --merge --delete-branch",
+      "expected_output": "✓ Merged pull request #456 (Add dark mode)\n✓ Deleted branch contributor1-dark-mode\n✓ Deploy to Prod workflow triggered",
+      "technical_detail": "Standard merge preserves full commit history for feature tracking"
+    },
+    {
+      "step": 10,
+      "description": "Create release with changelog after merging features",
+      "command": "gh release create v2.5.0 --title 'Version 2.5.0 - Dark Mode Support' --notes 'New Features:\n- Dark mode theme (#456)\n- Improved accessibility\n\nBug Fixes:\n- Safari login issues (#234)\n- Memory leak fixes (#231)' --target main",
+      "expected_output": "✓ Release created: v2.5.0\nhttps://github.com/user/repo/releases/tag/v2.5.0\n✓ Assets uploaded",
+      "technical_detail": "Semantic versioning (MAJOR.MINOR.PATCH) communicates change significance"
+    }
+  ],
+  "impact": "Established maintainer workflow covering issue triage, thorough code review, and professional release management",
+  "created_by": "neural_mesh_v5.2_generator"
+}

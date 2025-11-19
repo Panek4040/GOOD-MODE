@@ -1,0 +1,22 @@
+{
+  "name": "github_releases",
+  "description": "Create and manage releases and tags",
+  "pattern": "gh.*release.*create|gh.*release.*list",
+  "parameters": ["tag_name"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gh", "args": ["release", "create", "v1.0.0", "--title", "Version 1.0.0", "--notes", "Initial release"]},
+      "expected_output": {"type": "string", "example": "https://github.com/user/repo/releases/tag/v1.0.0"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gh", "args": ["release", "list", "--limit", "5"]},
+      "expected_output": {"type": "string", "example": "v1.0.0  Latest  v1.0.0  about 1 minute ago\nv0.9.0          v0.9.0  2 weeks ago"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gh", "args": ["release", "view", "v1.0.0", "--json", "tagName,name,publishedAt"]},
+      "expected_output": {"type": "string", "example": "{\"tagName\":\"v1.0.0\",\"name\":\"Version 1.0.0\",\"publishedAt\":\"2024-01-15T10:30:00Z\"}"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

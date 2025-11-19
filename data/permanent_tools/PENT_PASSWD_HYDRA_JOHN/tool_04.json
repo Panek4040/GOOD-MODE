@@ -1,0 +1,30 @@
+{
+  "name": "hashcat_gpu_accelerated_cracking",
+  "description": "GPU-accelerated password cracking using hashcat",
+  "pattern": "hashcat.*gpu|gpu.*crack|hashcat.*attack|hash.*gpu",
+  "parameters": ["hash_file", "wordlist", "hash_type"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "hashcat", "args": ["-m", "{{hash_type}}", "-a", "0", "{{hash_file}}", "{{wordlist}}"]},
+      "expected_output": {"type": "string", "example": "hashcat (v6.2.6) starting in dictionary mode\nOpenCL Platform #1: NVIDIA Corporation\n* Device #1: NVIDIA GeForce RTX 3080, 9216 MB\nSpeed: 12345.6 MH/s\n\n31d6cfe0d16ae931b73c59d7e0c089c0:password123\n8846f7eaee8fb117ad06bdd830b7586c:admin2024\n\nRecovered: 2/8 (25%) hashes\nTime: 0:02:34"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "hashcat", "args": ["-m", "{{hash_type}}", "-a", "3", "{{hash_file}}", "?l?l?l?l?l?l?l?l"]},
+      "expected_output": {"type": "string", "example": "Mask attack: 8 lowercase letters\nSpeed: 8945.3 MH/s (GPU accelerated)\nProgress: 45678/208827064576 (0.00%)\nCracked: abcdefgh, password, testuser"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "hashcat -m {{hash_type}} {{hash_file}} {{wordlist}} --show"]},
+      "expected_output": {"type": "string", "example": "31d6cfe0d16ae931b73c59d7e0c089c0:password123\n8846f7eaee8fb117ad06bdd830b7586c:admin2024\n5f4dcc3b5aa765d61d8327deb882cf99:password\n3 hashes recovered"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "hashcat", "args": ["-m", "{{hash_type}}", "-a", "0", "{{hash_file}}", "{{wordlist}}", "-r", "best64.rule"]},
+      "expected_output": {"type": "string", "example": "Using rule-based attack with best64.rule\nSpeed: 11234.5 MH/s\nRules applied: 64 mutations per word\n5 additional hashes cracked via rule mutations"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "hashcat -m {{hash_type}} {{hash_file}} {{wordlist}} --force -O"]},
+      "expected_output": {"type": "string", "example": "Optimized kernel enabled (-O)\nSpeed increased to 15678.9 MH/s (27% faster)\nGPU utilization: 98%"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

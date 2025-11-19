@@ -1,0 +1,30 @@
+{
+  "name": "gobuster_directory_vhost_dns_bruteforce",
+  "description": "Fast directory, vhost, and DNS subdomain bruteforcing using gobuster",
+  "pattern": "gobuster.*dir|directory.*brute|vhost.*enum|dns.*brute|gobuster.*scan",
+  "parameters": ["target", "wordlist", "mode"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gobuster", "args": ["dir", "-u", "{{target}}", "-w", "{{wordlist}}"]},
+      "expected_output": {"type": "string", "example": "Found: /admin (Status: 200)\nFound: /backup (Status: 301)\nFound: /api (Status: 200)\nFound: /uploads (Status: 403)\nFound: /.git (Status: 301)\n45 directories discovered"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gobuster", "args": ["dir", "-u", "{{target}}", "-w", "{{wordlist}}", "-x", "php,html,txt,bak"]},
+      "expected_output": {"type": "string", "example": "/admin.php (Status: 200)\n/config.bak (Status: 200)\n/index.html (Status: 200)\n/backup.txt (Status: 200)\n67 files with extensions found"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gobuster", "args": ["vhost", "-u", "{{target}}", "-w", "{{wordlist}}"]},
+      "expected_output": {"type": "string", "example": "Found: admin.example.com (Status: 200)\nFound: dev.example.com (Status: 200)\nFound: staging.example.com (Status: 403)\n12 vhosts discovered"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "gobuster", "args": ["dns", "-d", "{{target}}", "-w", "{{wordlist}}"]},
+      "expected_output": {"type": "string", "example": "Found: www.example.com\nFound: mail.example.com\nFound: ftp.example.com\nFound: vpn.example.com\n23 subdomains enumerated"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "gobuster dir -u {{target}} -w {{wordlist}} -t 50 -o gobuster.txt && grep 'Status: 200' gobuster.txt"]},
+      "expected_output": {"type": "string", "example": "/admin (200), /api (200), /dashboard (200) - accessible endpoints"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

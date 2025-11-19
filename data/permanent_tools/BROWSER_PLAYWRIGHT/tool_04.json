@@ -1,0 +1,22 @@
+{
+  "name": "playwright_network_requests",
+  "description": "Intercept, mock, and monitor network traffic",
+  "pattern": "playwright.*route|network.*mock|request.*intercept",
+  "parameters": ["url_pattern", "mock_response"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch(); const page = await browser.newPage(); page.on('request', req => console.log('→', req.method(), req.url())); page.on('response', res => console.log('←', res.status(), res.url())); await page.goto('https://example.com'); await browser.close(); })();"]},
+      "expected_output": {"type": "string", "example": "→ GET https://example.com/\n← 200 https://example.com/\n\nNetwork traffic monitored"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch(); const page = await browser.newPage(); await page.route('**/*.{png,jpg,jpeg}', route => route.abort()); await page.goto('https://example.com'); console.log('Images blocked'); await browser.close(); })();"]},
+      "expected_output": {"type": "string", "example": "Images blocked\n\nImage requests aborted"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch(); const page = await browser.newPage(); await page.route('**/api/data', route => route.fulfill({status: 200, body: JSON.stringify({mocked: true})})); await page.goto('https://example.com'); console.log('API response mocked'); await browser.close(); })();"]},
+      "expected_output": {"type": "string", "example": "API response mocked\n\nMock response injected"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

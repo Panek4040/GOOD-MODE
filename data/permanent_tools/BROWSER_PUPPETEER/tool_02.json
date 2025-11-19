@@ -1,0 +1,22 @@
+{
+  "name": "puppeteer_selectors_interaction",
+  "description": "Element selection, clicking, typing, and page interaction",
+  "pattern": "puppeteer.*selector|page.*click|element.*type",
+  "parameters": ["selector", "action_type"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const puppeteer = require('puppeteer'); (async () => { const browser = await puppeteer.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); const heading = await page.$('h1'); const text = await page.evaluate(el => el.textContent, heading); console.log('Found:', text); await browser.close(); })();"]},
+      "expected_output": {"type": "string", "example": "Found: Example Domain\n\nElement selected and text extracted"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const puppeteer = require('puppeteer'); (async () => { const browser = await puppeteer.launch(); const page = await browser.newPage(); await page.goto('https://google.com'); await page.type('input[name=\"q\"]', 'Puppeteer automation'); await page.keyboard.press('Enter'); await page.waitForNavigation(); console.log('Search submitted'); await browser.close(); })();"]},
+      "expected_output": {"type": "string", "example": "Search submitted\n\nTyping and form submission completed"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const puppeteer = require('puppeteer'); (async () => { const browser = await puppeteer.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); const links = await page.$$('a'); console.log(`Found ${links.length} links`); for (let link of links) { const href = await page.evaluate(el => el.href, link); console.log('  Link:', href); } await browser.close(); })();"]},
+      "expected_output": {"type": "string", "example": "Found 1 links\n  Link: https://www.iana.org/domains/example\n\nMultiple elements found and iterated"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

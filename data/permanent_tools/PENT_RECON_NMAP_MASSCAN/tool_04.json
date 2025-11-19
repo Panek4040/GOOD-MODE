@@ -1,0 +1,30 @@
+{
+  "name": "nmap_nse_script_scanning",
+  "description": "Nmap Scripting Engine (NSE) for advanced vulnerability detection and enumeration",
+  "pattern": "nse.*script|nmap.*script|vulnerability.*scan|script.*scan",
+  "parameters": ["target", "script_name"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["--script", "{{script_name}}", "-p", "80,443", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "PORT    STATE SERVICE\n80/tcp  open  http\n|_http-title: Welcome\n| http-methods: GET POST HEAD\n443/tcp open  https\n| ssl-cert: Subject: CN=example.com"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["--script", "vuln", "-p", "80,443", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "| http-csrf: Likely vulnerable to CSRF\n| http-sql-injection: Possible SQL injection\n| ssl-heartbleed: NOT vulnerable"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["--script", "discovery", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "Host script results:\n| smb-os-discovery: Windows Server 2019\n| dns-brute: Found subdomains: www, mail, ftp, admin"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "nmap --script http-enum -p 80 {{target}} | grep -A 5 'http-enum'"]},
+      "expected_output": {"type": "string", "example": "| http-enum:\n|   /admin/: Admin panel\n|   /backup/: Backup directory\n|   /phpmyadmin/: phpMyAdmin"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["--script", "ssh-brute", "-p", "22", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "| ssh-brute: \n|   Accounts: \n|     root:password - Valid credentials\n|     admin:admin - Valid credentials"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

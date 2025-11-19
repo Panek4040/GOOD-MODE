@@ -1,0 +1,35 @@
+{"user": "Launch Puppeteer browser instance", "assistant": "const puppeteer = require('puppeteer'); const browser = await puppeteer.launch();"}
+{"user": "Create new page in Puppeteer", "assistant": "const page = await browser.newPage();"}
+{"user": "Navigate to URL with Puppeteer", "assistant": "await page.goto('https://example.com');"}
+{"user": "Get page title", "assistant": "await page.title()"}
+{"user": "Get current URL", "assistant": "page.url()"}
+{"user": "Set viewport size", "assistant": "await page.setViewport({width: 1920, height: 1080});"}
+{"user": "Find element with CSS selector", "assistant": "await page.$('h1')"}
+{"user": "Find multiple elements", "assistant": "await page.$$('a')"}
+{"user": "Click element by selector", "assistant": "await page.click('button#submit')"}
+{"user": "Type text into input field", "assistant": "await page.type('input[name=\"username\"]', 'user123')"}
+{"user": "Press keyboard key", "assistant": "await page.keyboard.press('Enter')"}
+{"user": "Evaluate JavaScript in page context", "assistant": "await page.evaluate(() => document.title)"}
+{"user": "Extract element text content", "assistant": "await page.$eval('h1', el => el.textContent)"}
+{"user": "Extract data from multiple elements", "assistant": "await page.$$eval('a', links => links.map(l => l.href))"}
+{"user": "Wait for navigation to complete", "assistant": "await page.waitForNavigation()"}
+{"user": "Wait for element to appear", "assistant": "await page.waitForSelector('div.content')"}
+{"user": "Wait for specific timeout", "assistant": "await page.waitForTimeout(3000)"}
+{"user": "Take full page screenshot", "assistant": "await page.screenshot({path: 'screenshot.png', fullPage: true})"}
+{"user": "Generate PDF from page", "assistant": "await page.pdf({path: 'page.pdf', format: 'A4'})"}
+{"user": "Get all cookies", "assistant": "await page.cookies()"}
+{"user": "Set cookie", "assistant": "await page.setCookie({name: 'session', value: 'abc123', domain: 'example.com'})"}
+{"user": "Delete cookie", "assistant": "await page.deleteCookie({name: 'session'})"}
+{"user": "Enable request interception", "assistant": "await page.setRequestInterception(true)"}
+{"user": "Block images from loading", "assistant": "page.on('request', req => req.resourceType() === 'image' ? req.abort() : req.continue())"}
+{"user": "Monitor network responses", "assistant": "page.on('response', response => console.log(response.url(), response.status()))"}
+{"user": "Set HTTP authentication", "assistant": "await page.authenticate({username: 'user', password: 'pass'})"}
+{"user": "Set user agent", "assistant": "await page.setUserAgent('Mozilla/5.0...')"}
+{"user": "Emulate mobile device", "assistant": "await page.emulate(puppeteer.devices['iPhone 12'])"}
+{"user": "Set geolocation", "assistant": "await page.setGeolocation({latitude: 40.7128, longitude: -74.0060})"}
+{"user": "Go back in browser history", "assistant": "await page.goBack()"}
+{"user": "Go forward in browser history", "assistant": "await page.goForward()"}
+{"user": "Reload current page", "assistant": "await page.reload()"}
+{"user": "Get page performance metrics", "assistant": "await page.metrics()"}
+{"user": "Close current page", "assistant": "await page.close()"}
+{"user": "Close entire browser", "assistant": "await browser.close()"}

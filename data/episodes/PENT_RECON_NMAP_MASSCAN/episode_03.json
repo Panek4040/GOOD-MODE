@@ -1,0 +1,101 @@
+{
+  "episode_id": "PENT_RECON_NMAP_MASSCAN_EP03",
+  "title": "Targeted Application Server Assessment",
+  "description": "Deep reconnaissance of critical application server at 172.16.0.50",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Full TCP port scan to discover all listening services",
+      "tool": "nmap_tcp_syn_port_scan",
+      "parameters": {
+        "target": "172.16.0.50",
+        "ports": "1-65535",
+        "scan_type": "SYN"
+      },
+      "expected_outcome": "Found 12 open ports: 22 (SSH), 80 (HTTP), 443 (HTTPS), 3306 (MySQL), 5432 (PostgreSQL), 6379 (Redis), 8080 (Tomcat), 9200 (Elasticsearch), 27017 (MongoDB), 9000, 9001, 9999"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Detailed version detection on all discovered services",
+      "tool": "nmap_tcp_syn_port_scan",
+      "parameters": {
+        "target": "172.16.0.50",
+        "ports": "22,80,443,3306,5432,6379,8080,9200,27017",
+        "scan_type": "version"
+      },
+      "expected_outcome": "Versions: OpenSSH 7.6p1, Apache 2.4.29, MySQL 5.7.33, PostgreSQL 12.8, Redis 6.2.5, Tomcat 8.5.68, Elasticsearch 7.10.2, MongoDB 4.4.6"
+    },
+    {
+      "step_number": 3,
+      "instruction": "OS detection and service fingerprinting",
+      "tool": "nmap_os_detection_fingerprint",
+      "parameters": {
+        "target": "172.16.0.50"
+      },
+      "expected_outcome": "OS: Ubuntu 18.04.6 LTS (Bionic Beaver), Linux kernel 4.15.0"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Run comprehensive NSE vulnerability scripts",
+      "tool": "nmap_nse_script_scanning",
+      "parameters": {
+        "target": "172.16.0.50",
+        "script_name": "vuln"
+      },
+      "expected_outcome": "Vulnerabilities: Elasticsearch unpatched (CVE-2021-22145), MongoDB no authentication, Redis without password, Apache mod_proxy vulnerable"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Enumerate HTTP/HTTPS endpoints and directories",
+      "tool": "nmap_nse_script_scanning",
+      "parameters": {
+        "target": "172.16.0.50",
+        "script_name": "http-enum"
+      },
+      "expected_outcome": "Found: /admin/, /api/, /backup/, /phpmyadmin/, /manager/ (Tomcat), /.git/ (exposed)"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Check for database default credentials",
+      "tool": "nmap_nse_script_scanning",
+      "parameters": {
+        "target": "172.16.0.50",
+        "script_name": "mysql-brute"
+      },
+      "expected_outcome": "MySQL: root with empty password - CRITICAL finding!"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Test Redis for anonymous access",
+      "tool": "nmap_nse_script_scanning",
+      "parameters": {
+        "target": "172.16.0.50",
+        "script_name": "redis-info"
+      },
+      "expected_outcome": "Redis info: no authentication required, 234 keys in database, version 6.2.5"
+    },
+    {
+      "step_number": 8,
+      "instruction": "UDP scan for additional services",
+      "tool": "nmap_udp_service_discovery",
+      "parameters": {
+        "target": "172.16.0.50",
+        "ports": "53,123,161,162,514"
+      },
+      "expected_outcome": "UDP: 123/open NTP, 161/open SNMP (community: public)"
+    },
+    {
+      "step_number": 9,
+      "instruction": "Generate detailed report in all formats",
+      "tool": "nmap_output_formats_reporting",
+      "parameters": {
+        "target": "172.16.0.50",
+        "output_file": "critical_app_server_assessment"
+      },
+      "expected_outcome": "Complete report exported for immediate escalation to client"
+    }
+  ],
+  "success_criteria": "Identified 12 services, discovered 5 critical vulnerabilities (no auth on DBs, outdated software, exposed admin), documented for immediate remediation",
+  "cleanup": "CRITICAL FINDINGS REPORT: Unauth DB access, CVEs in Elasticsearch/Apache, exposed .git directory - client notified immediately"
+}

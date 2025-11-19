@@ -1,0 +1,30 @@
+{
+  "name": "masscan_ultra_fast_port_scanner",
+  "description": "Ultra-fast port scanner using masscan - scan entire networks at high speed",
+  "pattern": "masscan.*scan|fast.*scan|mass.*port|network.*scan",
+  "parameters": ["target", "ports", "rate"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "masscan", "args": ["{{target}}", "-p", "{{ports}}", "--rate", "{{rate}}"]},
+      "expected_output": {"type": "string", "example": "Discovered open port 80/tcp on 192.168.1.100\nDiscovered open port 443/tcp on 192.168.1.100\nDiscovered open port 22/tcp on 192.168.1.101\nRate: 10000 packets/sec"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "masscan", "args": ["{{target}}", "-p0-65535", "--rate", "10000"]},
+      "expected_output": {"type": "string", "example": "Scanned 65536 ports on 192.168.1.0/24 in 45 seconds\nFound 234 open ports across 23 hosts"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "masscan", "args": ["{{target}}", "-p", "{{ports}}", "--banners"]},
+      "expected_output": {"type": "string", "example": "Banner on 192.168.1.100:80 - HTTP/1.1 200 OK Server: Apache/2.4.52\nBanner on 192.168.1.100:22 - SSH-2.0-OpenSSH_8.9p1"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "masscan {{target}} -p {{ports}} --rate {{rate}} -oL scan.txt && cat scan.txt"]},
+      "expected_output": {"type": "string", "example": "open tcp 80 192.168.1.100 1234567890\nopen tcp 443 192.168.1.100 1234567891\nopen tcp 22 192.168.1.101 1234567892"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "masscan", "args": ["{{target}}", "-p", "80,443,8080", "--rate", "5000", "--wait", "3"]},
+      "expected_output": {"type": "string", "example": "Scanning web ports on {{target}}, rate 5000 pps, found 45 web servers"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

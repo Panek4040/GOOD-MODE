@@ -1,0 +1,22 @@
+{
+  "name": "playwright_screenshots_trace",
+  "description": "Screenshots, videos, traces for debugging and test artifacts",
+  "pattern": "playwright.*screenshot|trace.*viewer|video.*recording",
+  "parameters": ["output_path", "trace_options"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const { chromium } = require('playwright'); const fs = require('fs'); (async () => { const browser = await chromium.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); await page.screenshot({path: '/tmp/playwright_screenshot.png', fullPage: true}); const stats = fs.statSync('/tmp/playwright_screenshot.png'); console.log('Screenshot:', stats.size, 'bytes'); await browser.close(); })();"]},
+      "expected_output": {"type": "string", "example": "Screenshot: 32145 bytes\n\nFull page screenshot captured"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch(); const context = await browser.newContext(); await context.tracing.start({screenshots: true, snapshots: true}); const page = await context.newPage(); await page.goto('https://example.com'); await page.click('a'); await context.tracing.stop({path: '/tmp/trace.zip'}); console.log('Trace saved'); await browser.close(); })();"]},
+      "expected_output": {"type": "string", "example": "Trace saved\n\nTrace file with screenshots and snapshots"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); const pdf = await page.pdf({path: '/tmp/playwright.pdf', format: 'A4'}); console.log('PDF generated'); await browser.close(); })();"]},
+      "expected_output": {"type": "string", "example": "PDF generated\n\nPage exported as PDF"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

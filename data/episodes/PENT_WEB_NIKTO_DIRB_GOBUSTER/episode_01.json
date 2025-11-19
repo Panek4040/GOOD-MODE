@@ -1,0 +1,15 @@
+{
+  "episode_id": "PENT_WEB_NIKTO_DIRB_GOBUSTER_EP01",
+  "title": "Web Application Reconnaissance and Enumeration",
+  "description": "Comprehensive web app assessment of https://target.com - discover hidden paths, technologies, vulnerabilities",
+  "difficulty": "intermediate",
+  "steps": [
+    {"step_number": 1, "instruction": "Fingerprint web technologies", "tool": "whatweb_technology_fingerprinting", "parameters": {"target": "https://target.com"}, "expected_outcome": "Identified: Apache 2.4.52, PHP 7.4.3, WordPress 6.1.1, jQuery 3.6.0"},
+    {"step_number": 2, "instruction": "Run Nikto vulnerability scan", "tool": "nikto_web_server_vulnerability_scanner", "parameters": {"target": "target.com", "port": "443"}, "expected_outcome": "Found: directory indexing, exposed .git, phpMyAdmin, outdated Apache"},
+    {"step_number": 3, "instruction": "Bruteforce directories with gobuster", "tool": "gobuster_directory_vhost_dns_bruteforce", "parameters": {"target": "https://target.com", "wordlist": "/usr/share/wordlists/dirb/common.txt", "mode": "dir"}, "expected_outcome": "Discovered: /admin, /api, /backup, /uploads, /.git (45 dirs total)"},
+    {"step_number": 4, "instruction": "Enumerate subdomains", "tool": "gobuster_directory_vhost_dns_bruteforce", "parameters": {"target": "target.com", "wordlist": "/usr/share/wordlists/subdomains.txt", "mode": "dns"}, "expected_outcome": "Found subdomains: admin.target.com, dev.target.com, staging.target.com (23 total)"},
+    {"step_number": 5, "instruction": "Fast fuzzing for files", "tool": "ffuf_fast_web_fuzzer", "parameters": {"target": "https://target.com", "wordlist": "/usr/share/wordlists/files.txt", "fuzz_mode": "files"}, "expected_outcome": "Files: config.bak, db.sql, backup.zip, .env (67 sensitive files)"}
+  ],
+  "success_criteria": "Mapped application: 45 directories, 23 subdomains, 67 files, identified WordPress with outdated Apache",
+  "cleanup": "Prioritized: exposed .git repo, config.bak, phpMyAdmin for exploitation phase"
+}

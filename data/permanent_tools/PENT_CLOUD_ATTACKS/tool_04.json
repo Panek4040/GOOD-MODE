@@ -1,0 +1,22 @@
+{
+  "name": "azure_enumeration",
+  "description": "Microsoft Azure reconnaissance and resource enumeration",
+  "pattern": "azure.*enum|az.*cli|azure.*recon",
+  "parameters": ["tenant_id", "subscription"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "az", "args": ["account", "show"]},
+      "expected_output": {"type": "string", "example": "{\n  \"environmentName\": \"AzureCloud\",\n  \"id\": \"12345678-1234-1234-1234-123456789012\",\n  \"name\": \"Production Subscription\",\n  \"tenantId\": \"87654321-4321-4321-4321-210987654321\",\n  \"user\": {\n    \"name\": \"compromised@company.com\",\n    \"type\": \"user\"\n  }\n}\n\nAzure subscription identified"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "az", "args": ["vm", "list", "--output", "table"]},
+      "expected_output": {"type": "string", "example": "Name                ResourceGroup    Location    Status\n------------------  ---------------  ----------  ---------\nprod-web-vm         Production-RG    eastus      VM running\ndb-server-primary   Production-RG    eastus      VM running\ndev-test-vm         Development-RG   westus      VM running\n\n3 VMs discovered"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "az", "args": ["storage", "account", "list"]},
+      "expected_output": {"type": "string", "example": "[\n  {\n    \"name\": \"prodstorageacct\",\n    \"location\": \"eastus\",\n    \"primaryEndpoints\": {\n      \"blob\": \"https://prodstorageacct.blob.core.windows.net/\"\n    }\n  }\n]\n\nStorage account enumerated"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

@@ -1,0 +1,99 @@
+{
+  "episode_id": "PENT_PASSWD_HYDRA_JOHN_EP02",
+  "title": "Database Breach Hash Recovery",
+  "description": "Client database breach - recover passwords from stolen hash dump for impact assessment",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Analyze hash dump format",
+      "tool": "john_the_ripper_hash_cracking",
+      "parameters": {
+        "hashfile": "/evidence/customer_hashes.txt",
+        "wordlist": "",
+        "format": ""
+      },
+      "expected_outcome": "Identified: 50,000 MD5 hashes (unsalted) - weak legacy system, fast cracking expected"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Quick dictionary attack",
+      "tool": "john_the_ripper_hash_cracking",
+      "parameters": {
+        "hashfile": "/evidence/customer_hashes.txt",
+        "wordlist": "/usr/share/wordlists/rockyou.txt",
+        "format": "raw-md5"
+      },
+      "expected_outcome": "John cracked 12,345 passwords (24.7%) in 15 minutes - common passwords widespread"
+    },
+    {
+      "step_number": 3,
+      "instruction": "GPU acceleration for remaining hashes",
+      "tool": "hashcat_gpu_accelerated_cracking",
+      "parameters": {
+        "hash_file": "/evidence/customer_hashes.txt",
+        "wordlist": "rockyou.txt",
+        "hash_type": "0"
+      },
+      "expected_outcome": "Hashcat at 45GH/s cracked additional 18,234 hashes - 30,579 total (61%)"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Rule-based mutations",
+      "tool": "hashcat_gpu_accelerated_cracking",
+      "parameters": {
+        "hash_file": "/evidence/customer_hashes.txt",
+        "wordlist": "rockyou.txt",
+        "hash_type": "0"
+      },
+      "expected_outcome": "best64.rule mutations cracked 5,678 more - password1 -> P@ssw0rd1 variants"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Mask attack on remaining hashes",
+      "tool": "hashcat_gpu_accelerated_cracking",
+      "parameters": {
+        "hash_file": "/evidence/customer_hashes.txt",
+        "wordlist": "",
+        "hash_type": "0"
+      },
+      "expected_outcome": "?l?l?l?l?l?l?d?d pattern cracked 3,421 passwords - 6 letters + 2 digits common"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Generate corporate pattern wordlist",
+      "tool": "crunch_custom_wordlist_generation",
+      "parameters": {
+        "min_len": "8",
+        "max_len": "10",
+        "charset": "",
+        "pattern": "User@@@@%"
+      },
+      "expected_outcome": "Generated custom list: User0000a through Userzzz99 - 45M passwords for final pass"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Final pass with custom wordlist",
+      "tool": "hashcat_gpu_accelerated_cracking",
+      "parameters": {
+        "hash_file": "/evidence/customer_hashes.txt",
+        "wordlist": "corporate_patterns.txt",
+        "hash_type": "0"
+      },
+      "expected_outcome": "Cracked 2,134 more - total 40,246/50,000 (80.5%) passwords recovered"
+    },
+    {
+      "step_number": 8,
+      "instruction": "Analyze recovered passwords",
+      "tool": "john_the_ripper_hash_cracking",
+      "parameters": {
+        "hashfile": "/evidence/customer_hashes.txt",
+        "wordlist": "",
+        "format": ""
+      },
+      "expected_outcome": "Top passwords: 123456 (234 users), password (189 users), qwerty (156 users) - critical findings"
+    }
+  ],
+  "success_criteria": "Recovered 80.5% of 50,000 leaked passwords, identified weak password patterns, provided breach impact report",
+  "cleanup": "Client notified: force password resets for 40,246 accounts, implement bcrypt with salt, minimum 12 characters"
+}

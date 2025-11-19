@@ -1,0 +1,30 @@
+{
+  "name": "nmap_os_detection_fingerprint",
+  "description": "Operating system detection and fingerprinting using nmap -O",
+  "pattern": "os.*detection|fingerprint|nmap.*os|detect.*operating",
+  "parameters": ["target"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-O", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "Running: Linux 5.X\nOS CPE: cpe:/o:linux:linux_kernel:5\nOS details: Linux 5.10 - 5.15\nNetwork Distance: 2 hops"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-O", "--osscan-guess", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "Aggressive OS guesses: Ubuntu Linux 22.04 (95%), Debian 11 (92%), Linux 5.13 (89%)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-A", "-p", "22,80,443", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "OS: Linux 5.15, SSH: OpenSSH 8.9p1, HTTP: Apache 2.4.52, traceroute: 2 hops"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "nmap -O {{target}} | grep -E 'Running:|OS details:'"]},
+      "expected_output": {"type": "string", "example": "Running: Linux 5.X\nOS details: Ubuntu Linux 22.04"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sV", "-O", "-p", "22,80", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "22/tcp open ssh OpenSSH 8.9p1 Ubuntu, OS: Ubuntu Linux 22.04 LTS"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

@@ -1,35 +1,35 @@
-{"instruction":"Task 1","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 2","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 3","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 4","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 5","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 6","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 7","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 8","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 9","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 10","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 11","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 12","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 13","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 14","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 15","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 16","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 17","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 18","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 19","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 20","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 21","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 22","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 23","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 24","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 25","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 26","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 27","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 28","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 29","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 30","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 31","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 32","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 33","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 34","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 35","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
+{"instruction":"Start nginx web server service","input":{},"output":{"tool":"systemctl_start_stop_restart_service","action":"systemctl start nginx","result":"nginx.service started, active (running)"}}
+{"instruction":"Stop apache2 service that's no longer needed","input":{},"output":{"tool":"systemctl_start_stop_restart_service","action":"systemctl stop apache2","result":"apache2.service stopped, inactive (dead)"}}
+{"instruction":"Restart postgresql after config changes","input":{},"output":{"tool":"systemctl_start_stop_restart_service","action":"systemctl restart postgresql","result":"postgresql.service restarted successfully"}}
+{"instruction":"Enable docker service to start at boot","input":{},"output":{"tool":"systemctl_enable_disable_autostart","action":"systemctl enable docker","result":"Created symlink for docker.service in multi-user.target.wants"}}
+{"instruction":"Disable bluetooth service on server (not needed)","input":{},"output":{"tool":"systemctl_enable_disable_autostart","action":"systemctl disable bluetooth","result":"Removed symlink, bluetooth won't start at boot"}}
+{"instruction":"Check status of sshd service","input":{},"output":{"tool":"systemctl_status_logs_journal","action":"systemctl status sshd","result":"active (running) since boot, 3 connections active"}}
+{"instruction":"View logs for failed mysql service","input":{},"output":{"tool":"systemctl_status_logs_journal","action":"journalctl -u mysql -n 50","result":"Error: Can't open file mysql.pid, permission denied"}}
+{"instruction":"List all running services on system","input":{},"output":{"tool":"systemctl_list_all_services_states","action":"systemctl list-units --type=service --state=running","result":"67 services running: nginx, sshd, docker, postgresql..."}}
+{"instruction":"Show all failed services","input":{},"output":{"tool":"systemctl_list_all_services_states","action":"systemctl --failed","result":"2 failed: apache2.service (exit-code), mysql.service (timeout)"}}
+{"instruction":"Create custom service for Python application","input":{},"output":{"tool":"systemd_create_custom_service_unit","action":"Create /etc/systemd/system/pyapp.service","result":"Service file created with ExecStart=/usr/bin/python3 /opt/app.py"}}
+{"instruction":"Reload systemd after editing service file","input":{},"output":{"tool":"systemctl_reload_daemon_and_services","action":"systemctl daemon-reload","result":"Systemd manager reloaded, new configs recognized"}}
+{"instruction":"Reload nginx config without dropping connections","input":{},"output":{"tool":"systemctl_reload_daemon_and_services","action":"systemctl reload nginx","result":"nginx reloaded gracefully, active connections preserved"}}
+{"instruction":"List all systemd timers and their schedules","input":{},"output":{"tool":"systemd_timers_cron_alternative","action":"systemctl list-timers","result":"5 timers: apt-daily (6h left), backup (12h left), certbot (2 days left)"}}
+{"instruction":"Check when backup timer will run next","input":{},"output":{"tool":"systemd_timers_cron_alternative","action":"systemctl status backup.timer","result":"Next trigger: Mon 2024-11-19 00:00:00 (5h 30min left)"}}
+{"instruction":"Enable nginx to start automatically","input":{},"output":{"tool":"systemctl_enable_disable_autostart","action":"systemctl enable nginx","result":"nginx.service enabled, will start at next boot"}}
+{"instruction":"Start and enable redis in one command","input":{},"output":{"tool":"systemctl_enable_disable_autostart","action":"systemctl enable --now redis","result":"redis enabled and started immediately"}}
+{"instruction":"Check if service is enabled","input":{},"output":{"tool":"systemctl_enable_disable_autostart","action":"systemctl is-enabled docker","result":"enabled"}}
+{"instruction":"View last 100 lines of journal for apache2","input":{},"output":{"tool":"systemctl_status_logs_journal","action":"journalctl -u apache2 -n 100","result":"Shows recent access logs and error messages"}}
+{"instruction":"See logs since last boot","input":{},"output":{"tool":"systemctl_status_logs_journal","action":"journalctl -u nginx -b","result":"All nginx logs from current boot session"}}
+{"instruction":"Count how many services are enabled at boot","input":{},"output":{"tool":"systemctl_list_all_services_states","action":"systemctl list-unit-files --state=enabled | wc -l","result":"89 services enabled"}}
+{"instruction":"Show services that are enabled but not running","input":{},"output":{"tool":"systemctl_list_all_services_states","action":"systemctl list-units --type=service --all","result":"5 services enabled but inactive"}}
+{"instruction":"Restart service only if it's already running","input":{},"output":{"tool":"systemctl_reload_daemon_and_services","action":"systemctl try-restart php-fpm","result":"php-fpm restarted (was running)"}}
+{"instruction":"Reload or restart service based on capability","input":{},"output":{"tool":"systemctl_reload_daemon_and_services","action":"systemctl reload-or-restart nginx","result":"nginx reloaded (supports reload)"}}
+{"instruction":"Check active timer and when it last ran","input":{},"output":{"tool":"systemd_timers_cron_alternative","action":"systemctl list-timers --all","result":"logrotate.timer: last run 2h ago, next run 22h"}}
+{"instruction":"View timer configuration file","input":{},"output":{"tool":"systemd_timers_cron_alternative","action":"systemctl cat apt-daily.timer","result":"OnCalendar=*-*-* 6,18:00, Persistent=true"}}
+{"instruction":"Stop running service immediately","input":{},"output":{"tool":"systemctl_start_stop_restart_service","action":"systemctl stop memcached","result":"memcached.service stopped"}}
+{"instruction":"Check if service is active","input":{},"output":{"tool":"systemctl_start_stop_restart_service","action":"systemctl is-active postgresql","result":"active"}}
+{"instruction":"Show service properties and settings","input":{},"output":{"tool":"systemctl_status_logs_journal","action":"systemctl show nginx","result":"Type=forking, Restart=on-failure, RestartSec=5s"}}
+{"instruction":"Follow live logs from service","input":{},"output":{"tool":"systemctl_status_logs_journal","action":"journalctl -u docker -f","result":"Streaming live logs from docker service"}}
+{"instruction":"Create service file for Go application","input":{},"output":{"tool":"systemd_create_custom_service_unit","action":"Create service with ExecStart=/usr/local/bin/app","result":"go-app.service created and configured"}}
+{"instruction":"Check service dependencies","input":{},"output":{"tool":"systemctl_status_logs_journal","action":"systemctl list-dependencies nginx","result":"Requires: network.target, After: network-online.target"}}
+{"instruction":"Mask service to prevent it from starting","input":{},"output":{"tool":"systemctl_enable_disable_autostart","action":"systemctl mask apache2","result":"apache2.service masked, cannot be started"}}
+{"instruction":"Show all timer units with status","input":{},"output":{"tool":"systemd_timers_cron_alternative","action":"systemctl list-units --type=timer","result":"8 timer units loaded and active"}}
+{"instruction":"Get detailed service status information","input":{},"output":{"tool":"systemctl_status_logs_journal","action":"systemctl status -l --no-pager nginx","result":"Full status with complete log lines, no truncation"}}
+{"instruction":"List services in specific state","input":{},"output":{"tool":"systemctl_list_all_services_states","action":"systemctl list-units --state=failed","result":"2 units failed: mysql.service, apache2.service"}}

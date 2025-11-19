@@ -1,0 +1,30 @@
+{
+  "name": "john_the_ripper_hash_cracking",
+  "description": "Crack password hashes using John the Ripper with wordlists and rules",
+  "pattern": "john.*crack|hash.*crack|password.*recovery|john.*ripper",
+  "parameters": ["hashfile", "wordlist", "format"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "john", "args": ["--wordlist={{wordlist}}", "{{hashfile}}"]},
+      "expected_output": {"type": "string", "example": "Loaded 8 password hashes with 8 different salts (SHA512-crypt)\nWill run 4 OpenMP threads\nPress 'q' or Ctrl-C to abort, 'h' for help, almost any other key for status\npassword123      (user1)\nadmin2024        (administrator)\nsecret           (user2)\n3g 0:00:00:45 DONE 2/3 (2025-11-19 14:35) 0.0666g/s 1234Kp/s 1234Kc/s\nSession completed"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "john", "args": ["--format={{format}}", "--wordlist={{wordlist}}", "{{hashfile}}"]},
+      "expected_output": {"type": "string", "example": "Using format: {{format}}\nLoaded 5 password hashes\nroot:toor (cracked)\nadmin:admin123 (cracked)\n2 passwords cracked, 3 left"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "john --show {{hashfile}}"]},
+      "expected_output": {"type": "string", "example": "user1:password123:1001:1001::/home/user1:/bin/bash\nadministrator:admin2024:1002:1002::/home/admin:/bin/bash\n3 password hashes cracked, 5 left"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "john", "args": ["--wordlist={{wordlist}}", "--rules", "{{hashfile}}"]},
+      "expected_output": {"type": "string", "example": "Applying rules for mutations\npassword123 -> P@ssw0rd123 (cracked user3)\nadmin -> @dm1n (cracked user4)\nRules increased crack rate by 45%"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "john --status {{hashfile}} 2>&1 || echo 'No session running'"]},
+      "expected_output": {"type": "string", "example": "Session progress: 67% (670000/1000000)\nTime running: 5 minutes\nETC: 3 minutes remaining\nCracked: 8/15 hashes (53%)"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

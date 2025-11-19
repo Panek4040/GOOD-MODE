@@ -1,35 +1,35 @@
-{"instruction":"Task 1","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 2","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 3","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 4","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 5","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 6","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 7","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 8","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 9","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 10","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 11","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 12","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 13","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 14","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 15","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 16","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 17","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 18","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 19","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 20","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 21","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 22","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 23","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 24","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 25","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 26","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 27","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 28","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 29","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 30","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 31","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 32","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 33","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 34","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 35","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
+{"instruction":"Monitor disk I/O statistics for all devices","input":{},"output":{"tool":"iostat_disk_io_performance_monitor","action":"iostat -x 1 3","result":"Device sda: r/s 45.2, w/s 23.1, util% 45.2 - moderate I/O load"}}
+{"instruction":"Check virtual memory statistics every 2 seconds","input":{},"output":{"tool":"vmstat_memory_cpu_process_statistics","action":"vmstat 2 10","result":"procs: r:2 b:0, memory: free 456MB cache 234MB, cpu: us:12 sy:3 id:83 wa:2"}}
+{"instruction":"Show top CPU-consuming processes","input":{},"output":{"tool":"top_htop_realtime_process_monitor","action":"top -b -n 1 -o %CPU | head -20","result":"nginx 45.2% CPU, postgres 23.4% CPU, node 18.7% CPU"}}
+{"instruction":"Display memory usage in human-readable format","input":{},"output":{"tool":"free_memory_usage_swap_monitor","action":"free -h","result":"Mem: 7.8Gi total, 3.2Gi used, 1.1Gi free, 4.1Gi available"}}
+{"instruction":"Check system load average and uptime","input":{},"output":{"tool":"uptime_load_average_system_monitoring","action":"uptime","result":"up 23 days, load average: 1.23, 1.45, 1.67"}}
+{"instruction":"Monitor per-CPU core utilization","input":{},"output":{"tool":"mpstat_multiprocessor_cpu_statistics","action":"mpstat -P ALL 1 5","result":"CPU0: 45.2% busy, CPU1: 23.4%, CPU2: 67.8%, CPU3: 12.3%"}}
+{"instruction":"Collect CPU usage statistics with sar","input":{},"output":{"tool":"sar_system_activity_reporter","action":"sar -u 1 5","result":"%user: 12.34, %system: 3.21, %iowait: 0.87, %idle: 83.58"}}
+{"instruction":"Check specific disk device performance","input":{},"output":{"tool":"iostat_disk_io_performance_monitor","action":"iostat -xd sda 2 5 | tail -10","result":"sda: await 12.3ms, util% 62.5 - I/O performing well"}}
+{"instruction":"Monitor memory statistics with vmstat","input":{},"output":{"tool":"vmstat_memory_cpu_process_statistics","action":"vmstat -s","result":"8192456 K total memory, 4567890 K used, 2345678 K active"}}
+{"instruction":"Sort processes by memory usage","input":{},"output":{"tool":"top_htop_realtime_process_monitor","action":"top -b -n 1 -o %MEM | head -15","result":"postgres: 2.3GB, mysql: 1.8GB, redis: 567MB"}}
+{"instruction":"Show disk I/O in megabytes","input":{},"output":{"tool":"iostat_disk_io_performance_monitor","action":"iostat -m -x 2 3","result":"Device rMB/s: 23.4, wMB/s: 12.1, throughput 35.5 MB/s"}}
+{"instruction":"Monitor swap activity and usage","input":{},"output":{"tool":"free_memory_usage_swap_monitor","action":"free -m | grep Swap","result":"Swap: 2048MB total, 0MB used - no memory pressure"}}
+{"instruction":"Check load average from /proc","input":{},"output":{"tool":"uptime_load_average_system_monitoring","action":"cat /proc/loadavg","result":"1.23 1.45 1.67 2/234 12345 - healthy load on 8-core system"}}
+{"instruction":"Monitor network statistics with sar","input":{},"output":{"tool":"sar_system_activity_reporter","action":"sar -n DEV 1 3","result":"eth0: rxpck/s 1234.56, txpck/s 987.65, rxkB/s 567.89"}}
+{"instruction":"Show interrupt statistics per CPU","input":{},"output":{"tool":"mpstat_multiprocessor_cpu_statistics","action":"mpstat -I SUM 1 3","result":"CPU intr/s: 4567.89 - moderate interrupt rate"}}
+{"instruction":"Monitor specific user's processes","input":{},"output":{"tool":"top_htop_realtime_process_monitor","action":"top -b -n 1 -u www-data | head -15","result":"User www-data: 12 processes, 234MB total, 5.2% CPU"}}
+{"instruction":"Check memory usage over time","input":{},"output":{"tool":"free_memory_usage_swap_monitor","action":"free -h -s 5 -c 5","result":"Available memory: 4.2GB -> 4.1GB -> 3.9GB (decreasing)"}}
+{"instruction":"Monitor disk statistics with vmstat","input":{},"output":{"tool":"vmstat_memory_cpu_process_statistics","action":"vmstat -d 2 3","result":"sda: reads 45678, writes 23456, I/O operations balanced"}}
+{"instruction":"Display block I/O statistics with sar","input":{},"output":{"tool":"sar_system_activity_reporter","action":"sar -b 1 3","result":"tps: 234.56, bread/s: 4567.89, bwrtn/s: 2345.67"}}
+{"instruction":"Show system uptime in human format","input":{},"output":{"tool":"uptime_load_average_system_monitoring","action":"uptime -p","result":"up 3 weeks, 2 days, 4 hours, 5 minutes"}}
+{"instruction":"Monitor high I/O wait times","input":{},"output":{"tool":"iostat_disk_io_performance_monitor","action":"iostat -x 1 10 | grep -E 'Device|sda'","result":"sda util% at 87.3 - I/O bottleneck detected"}}
+{"instruction":"Check process queue length","input":{},"output":{"tool":"sar_system_activity_reporter","action":"sar -q 1 5","result":"runq-sz: 2, plist-sz: 234, ldavg-1: 1.23 - queue normal"}}
+{"instruction":"Calculate memory usage percentage","input":{},"output":{"tool":"free_memory_usage_swap_monitor","action":"free -h | grep Mem | awk '{print $3\"/\"$2}'","result":"Used: 3.2Gi / 7.8Gi (41%)"}}
+{"instruction":"Monitor CPU average utilization","input":{},"output":{"tool":"mpstat_multiprocessor_cpu_statistics","action":"mpstat 1 10 | grep Average","result":"Average: %usr 15.67, %sys 4.23, %idle 78.45"}}
+{"instruction":"Check for swap thrashing","input":{},"output":{"tool":"vmstat_memory_cpu_process_statistics","action":"vmstat 1 10 | tail -5","result":"si: 234 so: 456 - active swap I/O indicates memory pressure"}}
+{"instruction":"Monitor specific disk device with grep","input":{},"output":{"tool":"iostat_disk_io_performance_monitor","action":"iostat -x 1 5 | grep nvme0n1","result":"nvme0n1: r/s 456.2, w/s 234.1, await 8.5ms - NVMe performing well"}}
+{"instruction":"Show memory statistics with sar","input":{},"output":{"tool":"sar_system_activity_reporter","action":"sar -r 1 3","result":"kbmemfree: 4567890, %memused: 42.31, kbcached: 2345678"}}
+{"instruction":"Detect high load conditions","input":{},"output":{"tool":"uptime_load_average_system_monitoring","action":"uptime | awk -F'load average:' '{print $2}'","result":"8.45, 7.23, 6.12 - HIGH LOAD on 4-core system"}}
+{"instruction":"Monitor processes sorted by CPU continuously","input":{},"output":{"tool":"top_htop_realtime_process_monitor","action":"top -b -d 2 -n 5 -o %CPU","result":"Monitoring top CPU consumers every 2 seconds for pattern analysis"}}
+{"instruction":"Show total memory including swap","input":{},"output":{"tool":"free_memory_usage_swap_monitor","action":"free -m -t","result":"Total: 10240MB (Mem: 8192MB + Swap: 2048MB)"}}
+{"instruction":"Check if swap is being used","input":{},"output":{"tool":"free_memory_usage_swap_monitor","action":"free -h | grep Swap | awk '{print $3}'","result":"456Mi swap in use - memory pressure detected"}}
+{"instruction":"Monitor wide vmstat output","input":{},"output":{"tool":"vmstat_memory_cpu_process_statistics","action":"vmstat -w 1 5","result":"Wide format: detailed memory/CPU/IO stats without truncation"}}
+{"instruction":"Check CPU count for load comparison","input":{},"output":{"tool":"uptime_load_average_system_monitoring","action":"nproc && uptime","result":"8 CPUs, load 1.23 - healthy (load < CPU count)"}}
+{"instruction":"Monitor multicore load distribution","input":{},"output":{"tool":"mpstat_multiprocessor_cpu_statistics","action":"mpstat -P ALL 1 10 | grep -E 'CPU|Average'","result":"Unbalanced: CPU0-1 at 95%, CPU2-3 at 12% - workload not distributed"}}
+{"instruction":"Show processes with statistics","input":{},"output":{"tool":"top_htop_realtime_process_monitor","action":"ps aux --sort=-%cpu | head -10","result":"Top processes: node 23.4%, python 18.7%, java 12.3%"}}

@@ -1,0 +1,91 @@
+{
+  "title": "API Security Assessment Using Burp Suite Proxy",
+  "description": "Comprehensive API security assessment using Burp Suite to intercept, analyze, and exploit vulnerabilities in RESTful API endpoints including IDOR, authentication bypass, and parameter tampering.",
+  "difficulty": "intermediate",
+  "scenario": "TechStartup deployed a RESTful API for their mobile application. Security assessment requested to identify authorization flaws and parameter manipulation vulnerabilities. Goal: Use Burp Suite to intercept API traffic, identify security issues, and demonstrate exploitability.",
+  "steps": [
+    {
+      "step_number": 1,
+      "tool": "burp_suite_proxy_intercept",
+      "action": "Configure Burp Suite proxy and intercept mobile app traffic",
+      "parameters": {"target_url": "api.techstartup.com", "browser": "mobile_simulator"},
+      "expected_result": "Burp proxy running on 127.0.0.1:8080, mobile simulator configured to use proxy, capturing all HTTP/HTTPS traffic from mobile app",
+      "explanation": "Proxy interception enables inspection and modification of API requests before they reach the server"
+    },
+    {
+      "step_number": 2,
+      "tool": "burp_suite_proxy_intercept",
+      "action": "Capture and analyze authentication API call",
+      "parameters": {"target_url": "api.techstartup.com/v1/auth/login"},
+      "expected_result": "Intercepted POST /v1/auth/login with JSON body {\"email\":\"user@test.com\",\"password\":\"Test123!\"}, response contains JWT token in Authorization header",
+      "explanation": "Understanding authentication mechanism is crucial for identifying authorization vulnerabilities"
+    },
+    {
+      "step_number": 3,
+      "tool": "burp_suite_repeater",
+      "action": "Send authentication request to Repeater for manipulation testing",
+      "parameters": {"request_data": "POST /v1/auth/login"},
+      "expected_result": "Request loaded in Repeater tab, can modify email/password fields and replay requests to test different scenarios",
+      "explanation": "Repeater allows unlimited request replay with modifications for thorough testing"
+    },
+    {
+      "step_number": 4,
+      "tool": "burp_suite_repeater",
+      "action": "Test IDOR vulnerability by modifying user ID in profile endpoint",
+      "parameters": {"request_data": "GET /v1/user/profile?userId=123", "modification": "userId=1"},
+      "expected_result": "Changed userId from 123 to 1, response returns admin user profile with full privileges - IDOR vulnerability confirmed, no authorization check",
+      "explanation": "Insecure Direct Object Reference allows accessing other users' data by manipulating IDs"
+    },
+    {
+      "step_number": 5,
+      "tool": "burp_suite_repeater",
+      "action": "Test HTTP method tampering on user deletion endpoint",
+      "parameters": {"request_data": "GET /v1/user/profile?userId=123", "modification": "method=DELETE"},
+      "expected_result": "Changed GET to DELETE method, server responds 200 OK with {\"success\":true,\"message\":\"User deleted\"} - critical vulnerability allowing deletion via GET endpoint",
+      "explanation": "Method tampering bypasses developer assumptions about request methods"
+    },
+    {
+      "step_number": 6,
+      "tool": "burp_suite_intruder",
+      "action": "Use Intruder to enumerate valid user IDs through IDOR",
+      "parameters": {"target_request": "GET /v1/user/profile?userId=§1§", "attack_type": "sniper", "payload_list": "1-1000"},
+      "expected_result": "Intruder tested IDs 1-1000, identified 347 valid user accounts (200 OK responses), extracted all usernames, emails, and profile data",
+      "explanation": "Automated enumeration quantifies the full impact of IDOR vulnerability"
+    },
+    {
+      "step_number": 7,
+      "tool": "burp_suite_repeater",
+      "action": "Test parameter pollution by adding duplicate role parameter",
+      "parameters": {"request_data": "POST /v1/user/update", "modification": "role=user&role=admin"},
+      "expected_result": "Added duplicate role parameter, server processed last value (admin), successfully escalated privileges from user to admin role",
+      "explanation": "Parameter pollution exploits inconsistent parameter parsing between WAF and application"
+    },
+    {
+      "step_number": 8,
+      "tool": "burp_suite_repeater",
+      "action": "Test authorization bypass by removing JWT token",
+      "parameters": {"request_data": "GET /v1/admin/settings", "modification": "remove_auth_header"},
+      "expected_result": "Removed Authorization header, server returned 401 Unauthorized - proper authentication enforced on admin endpoint",
+      "explanation": "Negative testing confirms authentication is properly implemented on sensitive endpoints"
+    }
+  ],
+  "outcome": "Discovered critical IDOR vulnerability allowing access to all 347 user profiles by manipulating userId parameter. Found HTTP method tampering issue enabling user deletion via GET requests. Successfully escalated privileges using parameter pollution (role=user&role=admin). Recommendations: Implement proper authorization checks on all API endpoints, validate user has permission to access requested userId, disable dangerous HTTP methods on read endpoints, use single parameter parsing, implement rate limiting on enumeration attempts, audit all API endpoints for similar issues.",
+  "learning_objectives": [
+    "Configure and use Burp Suite proxy for API traffic interception",
+    "Identify IDOR vulnerabilities through parameter manipulation",
+    "Test HTTP method tampering for unauthorized operations",
+    "Use Burp Repeater for manual security testing",
+    "Automate enumeration with Burp Intruder",
+    "Exploit parameter pollution for privilege escalation",
+    "Provide comprehensive API security remediation"
+  ],
+  "metadata": {
+    "created_by": "neural_mesh_v5.2_generator",
+    "category": "pentesting",
+    "subcategory": "web_proxy_testing",
+    "tools_used": ["burp_suite_proxy_intercept", "burp_suite_repeater", "burp_suite_intruder"],
+    "estimated_time": "45-60 minutes",
+    "authorization_required": true,
+    "severity": "high"
+  }
+}

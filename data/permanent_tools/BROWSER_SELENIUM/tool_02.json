@@ -1,0 +1,22 @@
+{
+  "name": "selenium_element_interaction",
+  "description": "Finding and interacting with web elements using various locators",
+  "pattern": "selenium.*find|element.*click|webdriver.*element",
+  "parameters": ["selector_type", "selector_value"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from selenium import webdriver; from selenium.webdriver.common.by import By; driver = webdriver.Chrome(); driver.get('https://example.com'); element = driver.find_element(By.TAG_NAME, 'h1'); print(f'Found: {element.text}'); driver.quit()"]},
+      "expected_output": {"type": "string", "example": "Found: Example Domain\n\nElement located by TAG_NAME"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from selenium import webdriver; from selenium.webdriver.common.by import By; driver = webdriver.Chrome(); driver.get('https://google.com'); search_box = driver.find_element(By.NAME, 'q'); search_box.send_keys('Selenium WebDriver'); search_box.submit(); print('Search submitted'); driver.quit()"]},
+      "expected_output": {"type": "string", "example": "Search submitted\n\nInput field filled and form submitted"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from selenium import webdriver; from selenium.webdriver.common.by import By; driver = webdriver.Chrome(); driver.get('https://example.com'); links = driver.find_elements(By.TAG_NAME, 'a'); print(f'Found {len(links)} links'); for link in links[:3]: print(f'  - {link.text}: {link.get_attribute(\"href\")}'); driver.quit()"]},
+      "expected_output": {"type": "string", "example": "Found 1 links\n  - More information...: https://www.iana.org/domains/example\n\nMultiple elements found and iterated"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

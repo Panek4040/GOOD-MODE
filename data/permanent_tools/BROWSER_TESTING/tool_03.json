@@ -1,0 +1,22 @@
+{
+  "name": "test_assertions_matchers",
+  "description": "Comprehensive test assertions and matchers for validation",
+  "pattern": "assert|expect|should|matcher",
+  "parameters": ["assertion_type"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "assert 5 > 3, 'Greater than assertion'; assert 'hello' in 'hello world', 'Substring assertion'; assert [1, 2, 3] == [1, 2, 3], 'List equality'; assert {'a': 1} == {'a': 1}, 'Dict equality'; print('All assertions passed')"]},
+      "expected_output": {"type": "string", "example": "All assertions passed\n\nBasic Python assertions"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const assert = require('assert'); assert.strictEqual(1 + 1, 2, 'Strict equality'); assert.deepEqual([1, 2], [1, 2], 'Deep equality'); assert.ok(true, 'Truthy check'); assert.throws(() => { throw new Error('test'); }, Error, 'Exception thrown'); console.log('All assertions passed');"]},
+      "expected_output": {"type": "string", "example": "All assertions passed\n\nNode.js assert module"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "import re; def assert_regex_match(pattern, text): assert re.search(pattern, text), f'Pattern {pattern} not found'; assert_regex_match(r'\\d+', 'abc123'); assert_regex_match(r'test', 'testing'); print('Regex assertions passed'); def assert_type(obj, expected_type): assert isinstance(obj, expected_type), f'Expected {expected_type}'; assert_type(42, int); assert_type('hello', str); print('Type assertions passed')"]},
+      "expected_output": {"type": "string", "example": "Regex assertions passed\nType assertions passed\n\nCustom assertion helpers"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

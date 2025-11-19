@@ -1,1 +1,77 @@
-{"episode_id":"LNX_PERF_IOSTAT_VMSTAT_EP01","title":"Episode 01","description":"Task 01","difficulty":"intermediate","steps":[{"step_number":1,"instruction":"Do task","tool":"tool1","parameters":{},"expected_outcome":"Success"}],"success_criteria":"Complete","cleanup":"None"}
+{
+  "episode_id": "LNX_PERF_IOSTAT_VMSTAT_EP01",
+  "title": "Diagnose Web Server Performance Degradation",
+  "description": "Application response time increased from 200ms to 3000ms - identify bottleneck using performance tools",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Check system load and uptime to see overall stress",
+      "tool": "uptime_load_average_system_monitoring",
+      "parameters": {},
+      "expected_outcome": "Load average: 8.45, 7.23, 6.12 on 4-core system - HIGH LOAD detected"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Identify top CPU-consuming processes",
+      "tool": "top_htop_realtime_process_monitor",
+      "parameters": {
+        "sort_by": "%cpu",
+        "user": "www-data"
+      },
+      "expected_outcome": "nginx worker processes consuming 85% CPU - CPU bottleneck confirmed"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Check memory usage and swap activity",
+      "tool": "free_memory_usage_swap_monitor",
+      "parameters": {
+        "interval": "2",
+        "unit": "h"
+      },
+      "expected_outcome": "Memory 92% used, swap 1.2GB active - memory pressure causing swap thrashing"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Monitor disk I/O to check for storage bottleneck",
+      "tool": "iostat_disk_io_performance_monitor",
+      "parameters": {
+        "interval": "2",
+        "device": "sda"
+      },
+      "expected_outcome": "sda util% at 98%, await: 234ms - disk I/O is severely saturated"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Use vmstat to see combined CPU/memory/swap metrics",
+      "tool": "vmstat_memory_cpu_process_statistics",
+      "parameters": {
+        "interval": "1",
+        "count": "10"
+      },
+      "expected_outcome": "High 'wa' (iowait): 45%, swap in/out active - confirmed I/O bottleneck with memory pressure"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Check per-CPU core utilization for load distribution",
+      "tool": "mpstat_multiprocessor_cpu_statistics",
+      "parameters": {
+        "interval": "1",
+        "cpu_id": "ALL"
+      },
+      "expected_outcome": "CPU cores 0-1: 95% busy, cores 2-3: 12% idle - uneven load distribution"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Use sar to review historical system activity",
+      "tool": "sar_system_activity_reporter",
+      "parameters": {
+        "interval": "5",
+        "metric_type": "u"
+      },
+      "expected_outcome": "CPU usage spiked at 14:30 when backup job started - identified root cause"
+    }
+  ],
+  "success_criteria": "Identified bottleneck: disk I/O saturation (98% util) combined with memory pressure causing swap - solution: reschedule backup job, add RAM, optimize queries",
+  "cleanup": "Added monitoring alerts for disk util > 80%, load > CPU count, swap usage > 10%"
+}

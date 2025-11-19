@@ -1,0 +1,30 @@
+{
+  "name": "nikto_web_server_vulnerability_scanner",
+  "description": "Comprehensive web server vulnerability scanner using Nikto - detect misconfigurations, outdated software",
+  "pattern": "nikto.*scan|web.*vulnerability|server.*scan|nikto.*test",
+  "parameters": ["target", "port"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nikto", "args": ["-h", "{{target}}", "-p", "{{port}}"]},
+      "expected_output": {"type": "string", "example": "+ Target IP: {{target}}\n+ Target Hostname: example.com\n+ Target Port: {{port}}\n+ Server: Apache/2.4.41 (Ubuntu)\n+ Retrieved x-powered-by header: PHP/7.4.3\n+ OSVDB-3268: /admin/: Directory indexing found\n+ OSVDB-3092: /phpmyadmin/: phpMyAdmin found"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nikto", "args": ["-h", "{{target}}", "-Tuning", "1,2,3"]},
+      "expected_output": {"type": "string", "example": "+ Interesting files found: /.git/HEAD, /backup/, /old/\n+ Potentially dangerous HTTP methods: PUT, DELETE\n+ Server allows TRACE method (XST vulnerability)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "nikto -h {{target}} -output nikto_scan.txt && cat nikto_scan.txt | grep '+'"]},
+      "expected_output": {"type": "string", "example": "23 issues found: outdated Apache, directory listing, exposed admin panel, default files"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nikto", "args": ["-h", "{{target}}", "-ssl", "-p", "443"]},
+      "expected_output": {"type": "string", "example": "+ SSL Info: Subject: /CN=example.com, Issuer: /C=US/O=Let's Encrypt\n+ SSL warning: Self-signed certificate\n+ Weak ciphers supported: TLS 1.0, TLS 1.1"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nikto", "args": ["-h", "{{target}}", "-Format", "xml", "-output", "nikto.xml"]},
+      "expected_output": {"type": "string", "example": "Scan saved to nikto.xml in XML format for import into vulnerability scanners"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

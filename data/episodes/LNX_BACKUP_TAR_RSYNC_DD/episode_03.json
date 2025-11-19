@@ -1,1 +1,73 @@
-{"episode_id":"LNX_BACKUP_TAR_RSYNC_DD_EP03","title":"Episode 03","description":"Task 03","difficulty":"intermediate","steps":[{"step_number":1,"instruction":"Do task","tool":"tool1","parameters":{},"expected_outcome":"Success"}],"success_criteria":"Complete","cleanup":"None"}
+{
+  "episode_id": "LNX_BACKUP_TAR_RSYNC_DD_EP03",
+  "title": "Clone Server Disk for Disaster Recovery",
+  "description": "Create complete disk image using dd, compress, store for bare-metal recovery",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Check disk size and partition layout",
+      "tool": "dd_disk_image_clone_backup",
+      "parameters": {
+        "input_device": "/dev/sda",
+        "output_file": "/mnt/external/server-disk-backup.img",
+        "block_size": "4M"
+      },
+      "expected_outcome": "Disk /dev/sda: 239GB with 2 partitions (boot + root)"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Create full disk image using dd",
+      "tool": "dd_disk_image_clone_backup",
+      "parameters": {
+        "input_device": "/dev/sda",
+        "output_file": "/mnt/external/server-disk-backup.img",
+        "block_size": "4M"
+      },
+      "expected_outcome": "239GB disk imaged in 908 seconds at 282 MB/s"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Compress disk image for storage efficiency",
+      "tool": "tar_different_compression_formats",
+      "parameters": {
+        "source_dir": "/mnt/external/server-disk-backup.img",
+        "output_base": "/mnt/external/server-disk"
+      },
+      "expected_outcome": "Compressed to 89GB using xz (took 45 minutes)"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Verify disk image file integrity",
+      "tool": "backup_verify_integrity_test_restore",
+      "parameters": {
+        "archive_path": "/mnt/external/server-disk.img.xz",
+        "verification_type": "test"
+      },
+      "expected_outcome": "Disk image verified, SHA256 checksum recorded"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Copy disk backup to network storage with progress",
+      "tool": "rsync_incremental_sync_backup",
+      "parameters": {
+        "source": "/mnt/external/server-disk.img.xz",
+        "destination": "/mnt/nas/disaster-recovery",
+        "sync_options": "-av --progress"
+      },
+      "expected_outcome": "89GB disk image copied to NAS successfully"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Document recovery procedure",
+      "tool": "backup_verify_integrity_test_restore",
+      "parameters": {
+        "archive_path": "/mnt/external/server-disk.img.xz",
+        "verification_type": "test"
+      },
+      "expected_outcome": "Recovery notes: boot from rescue USB, dd restore to new disk, expand partition"
+    }
+  ],
+  "success_criteria": "Complete disk image created, compressed, verified, stored for disaster recovery",
+  "cleanup": "Test bare-metal restore on spare hardware quarterly"
+}

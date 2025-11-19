@@ -1,0 +1,78 @@
+{
+  "title": "Open Source Contribution Workflow",
+  "description": "Complete workflow for contributing to an open source project on GitHub",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Fork the target repository to your account",
+      "command": "gh repo fork microsoft/vscode --clone=false",
+      "expected_output": "✓ Created fork user/vscode\nhttps://github.com/user/vscode",
+      "technical_detail": "Creates a fork without cloning, allowing you to clone from your fork later"
+    },
+    {
+      "step": 2,
+      "description": "Clone the forked repository locally",
+      "command": "gh repo clone user/vscode",
+      "expected_output": "Cloning into 'vscode'...\nremote: Enumerating objects: 150000, done.\n✓ Repository cloned to vscode/",
+      "technical_detail": "Uses GitHub CLI to clone with proper authentication and upstream configuration"
+    },
+    {
+      "step": 3,
+      "description": "Create a feature branch for the contribution",
+      "command": "cd vscode && git checkout -b fix-typo-readme",
+      "expected_output": "Switched to a new branch 'fix-typo-readme'",
+      "technical_detail": "Feature branches keep changes isolated and make PR management easier"
+    },
+    {
+      "step": 4,
+      "description": "Make code changes and stage them",
+      "command": "echo 'Fix typo in README.md' > changes.txt && git add README.md",
+      "expected_output": "Changes staged for commit",
+      "technical_detail": "Stage only the files relevant to this specific fix"
+    },
+    {
+      "step": 5,
+      "description": "Commit changes with descriptive message",
+      "command": "git commit -m 'docs: fix typo in installation instructions'",
+      "expected_output": "[fix-typo-readme abc1234] docs: fix typo in installation instructions\n 1 file changed, 1 insertion(+), 1 deletion(-)",
+      "technical_detail": "Follow conventional commit format for clear change history"
+    },
+    {
+      "step": 6,
+      "description": "Push the feature branch to your fork",
+      "command": "git push -u origin fix-typo-readme",
+      "expected_output": "Enumerating objects: 5, done.\nTo github.com:user/vscode.git\n * [new branch]      fix-typo-readme -> fix-typo-readme",
+      "technical_detail": "The -u flag sets upstream tracking for future pushes"
+    },
+    {
+      "step": 7,
+      "description": "Create a pull request to the upstream repository",
+      "command": "gh pr create --title 'Fix typo in README installation section' --body 'Corrects spelling mistake in installation instructions' --base main --head user:fix-typo-readme",
+      "expected_output": "Creating pull request for user:fix-typo-readme into main in microsoft/vscode\nhttps://github.com/microsoft/vscode/pull/12345\n✓ Pull request created",
+      "technical_detail": "Specifies the head as user:branch for cross-repository PRs"
+    },
+    {
+      "step": 8,
+      "description": "Monitor PR status and CI checks",
+      "command": "gh pr view 12345 --json state,statusCheckRollup,reviews",
+      "expected_output": "{\"state\":\"OPEN\",\"statusCheckRollup\":[{\"name\":\"CI\",\"conclusion\":\"SUCCESS\"}],\"reviews\":[]}",
+      "technical_detail": "JSON output shows CI status and review state for automation"
+    },
+    {
+      "step": 9,
+      "description": "Respond to review feedback with additional commits",
+      "command": "git commit -am 'Apply review suggestions' && git push",
+      "expected_output": "[fix-typo-readme def5678] Apply review suggestions\nTo github.com:user/vscode.git\n   abc1234..def5678  fix-typo-readme -> fix-typo-readme",
+      "technical_detail": "Additional commits automatically update the existing PR"
+    },
+    {
+      "step": 10,
+      "description": "View merged PR and delete feature branch",
+      "command": "gh pr view 12345 --json state,mergedAt && git branch -d fix-typo-readme",
+      "expected_output": "{\"state\":\"MERGED\",\"mergedAt\":\"2024-01-15T10:30:00Z\"}\nDeleted branch fix-typo-readme (was def5678).",
+      "technical_detail": "Clean up local branches after successful merge to keep workspace tidy"
+    }
+  ],
+  "impact": "Successfully contributed documentation fix to major open source project, demonstrating proper GitHub collaboration workflow",
+  "created_by": "neural_mesh_v5.2_generator"
+}

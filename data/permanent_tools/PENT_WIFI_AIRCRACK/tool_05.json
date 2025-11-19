@@ -1,0 +1,30 @@
+{
+  "name": "wash_wps_scanner",
+  "description": "Scan for WPS-enabled access points vulnerable to PIN attacks using wash",
+  "pattern": "wash.*wps|wps.*scan|wps.*vulnerable|reaver.*scan",
+  "parameters": ["interface"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "wash", "args": ["-i", "{{interface}}mon"]},
+      "expected_output": {"type": "string", "example": "BSSID               Ch  dBm  WPS  Lck  Vendor    ESSID\n--------------------------------------------------------------------------------\nAA:BB:CC:DD:EE:FF    6  -45  2.0  No   Linksys   MyNetwork\n11:22:33:44:55:66   11  -67  2.0  Yes  TP-Link   Office_WiFi\n22:33:44:55:66:77    1  -82  1.0  No   Netgear   Home_Router\n\n3 WPS-enabled networks found, 1 locked"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "wash", "args": ["-i", "{{interface}}mon", "-C"]},
+      "expected_output": {"type": "string", "example": "Continuous scan mode enabled\nBSSID               Ch  dBm  WPS  Lck  Vendor    ESSID\nAA:BB:CC:DD:EE:FF    6  -45  2.0  No   Linksys   MyNetwork (WPS unlocked - vulnerable)\n11:22:33:44:55:66   11  -67  2.0  Yes  TP-Link   Office_WiFi (WPS locked)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "wash -i {{interface}}mon | grep -v 'Yes' | grep -v 'Lck'"]},
+      "expected_output": {"type": "string", "example": "Filtering WPS locked networks\nAA:BB:CC:DD:EE:FF    6  -45  2.0  No   Linksys   MyNetwork\n22:33:44:55:66:77    1  -82  1.0  No   Netgear   Home_Router\n2 unlocked WPS networks - potential targets"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "wash", "args": ["-i", "{{interface}}mon", "-s"]},
+      "expected_output": {"type": "string", "example": "Scan with signal strength filtering\nOnly showing networks with -70 dBm or better\nAA:BB:CC:DD:EE:FF    6  -45  2.0  No   Linksys   MyNetwork\n11:22:33:44:55:66   11  -67  2.0  Yes  TP-Link   Office_WiFi"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "timeout 60 wash -i {{interface}}mon 2>&1 | tee wash_results.txt && wc -l wash_results.txt"]},
+      "expected_output": {"type": "string", "example": "60 second scan completed\n15 lines in wash_results.txt - 12 WPS-enabled APs discovered"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

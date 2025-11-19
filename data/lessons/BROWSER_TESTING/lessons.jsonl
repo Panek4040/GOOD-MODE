@@ -1,0 +1,35 @@
+{"user": "Write basic pytest test function", "assistant": "def test_addition(): assert 1 + 1 == 2"}
+{"user": "Run pytest on specific file", "assistant": "pytest test_file.py"}
+{"user": "Run pytest with verbose output", "assistant": "pytest -v"}
+{"user": "Run specific test by name", "assistant": "pytest test_file.py::test_function_name"}
+{"user": "Create pytest fixture", "assistant": "@pytest.fixture\ndef sample_data(): return {'key': 'value'}"}
+{"user": "Use fixture in test", "assistant": "def test_with_fixture(sample_data): assert sample_data['key'] == 'value'"}
+{"user": "Parametrize test with multiple inputs", "assistant": "@pytest.mark.parametrize('input,expected', [(1, 2), (2, 3)])\ndef test_increment(input, expected): assert input + 1 == expected"}
+{"user": "Skip a test conditionally", "assistant": "@pytest.mark.skipif(condition, reason='reason')\ndef test_skipped(): pass"}
+{"user": "Mark test as expected to fail", "assistant": "@pytest.mark.xfail\ndef test_expected_failure(): assert False"}
+{"user": "Create mock object", "assistant": "from unittest.mock import Mock; mock = Mock(); mock.method.return_value = 42"}
+{"user": "Patch function with mock", "assistant": "from unittest.mock import patch; with patch('module.function', return_value=42): result = module.function()"}
+{"user": "Assert mock was called", "assistant": "mock.method.assert_called_once()"}
+{"user": "Check mock call arguments", "assistant": "mock.method.assert_called_with('expected', 'args')"}
+{"user": "Create MagicMock with attributes", "assistant": "from unittest.mock import MagicMock; mock = MagicMock(); mock.attr.return_value = 'value'"}
+{"user": "Set side effect for mock", "assistant": "mock.method.side_effect = [1, 2, 3]"}
+{"user": "Write Jest test", "assistant": "test('description', () => { expect(value).toBe(expected); });"}
+{"user": "Create Jest test suite", "assistant": "describe('Suite', () => { test('test 1', () => {}); test('test 2', () => {}); });"}
+{"user": "Use beforeEach in Jest", "assistant": "beforeEach(() => { // setup code });"}
+{"user": "Mock module in Jest", "assistant": "jest.mock('./module'); const mockedModule = require('./module');"}
+{"user": "Assert equality in Jest", "assistant": "expect(value).toBe(expected)"}
+{"user": "Assert deep equality Jest", "assistant": "expect(object).toEqual({key: 'value'})"}
+{"user": "Assert array contains Jest", "assistant": "expect(array).toContain(item)"}
+{"user": "Assert exception thrown Jest", "assistant": "expect(() => { throw new Error(); }).toThrow()"}
+{"user": "Create Page Object class", "assistant": "class LoginPage: def __init__(self, driver): self.driver = driver; self.username = ('id', 'user')"}
+{"user": "Implement page object method", "assistant": "def login(self, user, pwd): self.driver.find_element(*self.username).send_keys(user)"}
+{"user": "Setup test class", "assistant": "class TestLogin: def setup_method(self): print('Setup'); def teardown_method(self): print('Teardown')"}
+{"user": "Assert value is True", "assistant": "assert value is True"}
+{"user": "Assert value in list", "assistant": "assert item in my_list"}
+{"user": "Assert exception raised", "assistant": "with pytest.raises(ValueError): function_that_raises()"}
+{"user": "Run tests with coverage", "assistant": "pytest --cov=mymodule tests/"}
+{"user": "Generate HTML coverage report", "assistant": "pytest --cov=mymodule --cov-report=html"}
+{"user": "Run tests matching pattern", "assistant": "pytest -k 'test_login'"}
+{"user": "Run tests in parallel", "assistant": "pytest -n auto"}
+{"user": "Stop on first failure", "assistant": "pytest -x"}
+{"user": "Show local variables on failure", "assistant": "pytest -l"}

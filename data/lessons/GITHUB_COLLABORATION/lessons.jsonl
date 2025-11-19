@@ -1,0 +1,35 @@
+{"user": "View repository details", "assistant": "gh repo view owner/repo"}
+{"user": "Clone a repository", "assistant": "gh repo clone owner/repo"}
+{"user": "Create a new repository", "assistant": "gh repo create my-new-repo --public"}
+{"user": "Fork a repository", "assistant": "gh repo fork owner/repo"}
+{"user": "List your repositories", "assistant": "gh repo list"}
+{"user": "Create a pull request", "assistant": "gh pr create --title 'Fix bug' --body 'Description'"}
+{"user": "List open pull requests", "assistant": "gh pr list --state open"}
+{"user": "View pull request details", "assistant": "gh pr view 123"}
+{"user": "Checkout a pull request locally", "assistant": "gh pr checkout 123"}
+{"user": "Review a pull request", "assistant": "gh pr review 123 --approve"}
+{"user": "Merge a pull request", "assistant": "gh pr merge 123 --squash"}
+{"user": "Create an issue", "assistant": "gh issue create --title 'Bug report' --body 'Details'"}
+{"user": "List open issues", "assistant": "gh issue list --state open"}
+{"user": "Close an issue", "assistant": "gh issue close 456"}
+{"user": "Add labels to an issue", "assistant": "gh issue edit 456 --add-label bug,priority:high"}
+{"user": "Assign an issue to someone", "assistant": "gh issue edit 456 --add-assignee username"}
+{"user": "Comment on an issue", "assistant": "gh issue comment 456 --body 'Additional information'"}
+{"user": "List GitHub Actions workflows", "assistant": "gh workflow list"}
+{"user": "View workflow runs", "assistant": "gh run list --limit 20"}
+{"user": "View workflow run details", "assistant": "gh run view 789"}
+{"user": "Watch workflow run status", "assistant": "gh pr checks 123 --watch"}
+{"user": "Rerun a failed workflow", "assistant": "gh run rerun 789"}
+{"user": "Create a release", "assistant": "gh release create v1.0.0 --title 'Release 1.0.0' --notes 'Changelog'"}
+{"user": "List releases", "assistant": "gh release list"}
+{"user": "View release details", "assistant": "gh release view v1.0.0"}
+{"user": "Download release assets", "assistant": "gh release download v1.0.0"}
+{"user": "Search repositories", "assistant": "gh search repos 'machine learning' --language python"}
+{"user": "Search code in repositories", "assistant": "gh search code 'import tensorflow' --language python"}
+{"user": "Search issues across GitHub", "assistant": "gh search issues 'bug in:title state:open'"}
+{"user": "Make a REST API call", "assistant": "gh api repos/owner/repo/issues"}
+{"user": "Make a GraphQL API call", "assistant": "gh api graphql -f query='query { viewer { login } }'"}
+{"user": "View pull request diff", "assistant": "gh pr diff 123"}
+{"user": "List repository collaborators", "assistant": "gh api repos/owner/repo/collaborators"}
+{"user": "View repository statistics", "assistant": "gh api repos/owner/repo --jq '.stargazers_count,.forks_count'"}
+{"user": "Check PR status checks", "assistant": "gh pr checks 123"}
