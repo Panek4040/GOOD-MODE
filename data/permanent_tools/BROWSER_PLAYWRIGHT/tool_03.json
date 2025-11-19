@@ -1,0 +1,22 @@
+{
+  "name": "playwright_auto_waiting",
+  "description": "Playwright's auto-wait mechanism and explicit waits for stable tests",
+  "pattern": "playwright.*wait|auto.*wait|expect.*visible",
+  "parameters": ["wait_condition", "timeout"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch(); const page = await browser.newPage(); await page.goto('https://the-internet.herokuapp.com/dynamic_loading/2'); await page.click('#start button'); await page.locator('#finish h4').waitFor(); const text = await page.locator('#finish h4').textContent(); console.log('Loaded:', text); await browser.close(); })();"]},
+      "expected_output": {"type": "string", "example": "Loaded: Hello World!\n\nAuto-wait for dynamic content"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const { chromium, expect } = require('@playwright/test'); (async () => { const browser = await chromium.launch(); const page = await browser.newPage(); await page.goto('https://the-internet.herokuapp.com/dynamic_controls'); await page.click('button:has-text(\"Enable\")'); await expect(page.locator('input[type=\"text\"]')).toBeEnabled(); console.log('Input enabled'); await browser.close(); })();"]},
+      "expected_output": {"type": "string", "example": "Input enabled\n\nExpect assertion with auto-wait"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "node", "args": ["-e", "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); await page.waitForLoadState('networkidle'); console.log('Page fully loaded with networkidle'); await browser.close(); })();"]},
+      "expected_output": {"type": "string", "example": "Page fully loaded with networkidle\n\nNetwork idle state achieved"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

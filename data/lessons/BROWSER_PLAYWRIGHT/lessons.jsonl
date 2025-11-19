@@ -1,0 +1,35 @@
+{"user": "Launch Chromium browser with Playwright", "assistant": "const { chromium } = require('playwright'); const browser = await chromium.launch();"}
+{"user": "Launch Firefox browser with Playwright", "assistant": "const { firefox } = require('playwright'); const browser = await firefox.launch();"}
+{"user": "Launch WebKit browser with Playwright", "assistant": "const { webkit } = require('playwright'); const browser = await webkit.launch();"}
+{"user": "Create new browser context", "assistant": "const context = await browser.newContext();"}
+{"user": "Create new page in context", "assistant": "const page = await context.newPage();"}
+{"user": "Navigate to URL", "assistant": "await page.goto('https://example.com');"}
+{"user": "Get page title", "assistant": "await page.title()"}
+{"user": "Get current URL", "assistant": "page.url()"}
+{"user": "Find element with locator", "assistant": "page.locator('button#submit')"}
+{"user": "Click element", "assistant": "await page.locator('button').click();"}
+{"user": "Fill input field", "assistant": "await page.locator('input[name=\"email\"]').fill('test@example.com');"}
+{"user": "Get element text content", "assistant": "await page.locator('h1').textContent();"}
+{"user": "Find element by role", "assistant": "page.getByRole('button', {name: 'Submit'})"}
+{"user": "Find element by text", "assistant": "page.getByText('Click here')"}
+{"user": "Find element by label", "assistant": "page.getByLabel('Email address')"}
+{"user": "Wait for element to be visible", "assistant": "await page.locator('.content').waitFor({state: 'visible'});"}
+{"user": "Wait for network idle", "assistant": "await page.waitForLoadState('networkidle');"}
+{"user": "Take screenshot", "assistant": "await page.screenshot({path: 'screenshot.png'});"}
+{"user": "Take full page screenshot", "assistant": "await page.screenshot({path: 'fullpage.png', fullPage: true});"}
+{"user": "Generate PDF", "assistant": "await page.pdf({path: 'page.pdf', format: 'A4'});"}
+{"user": "Press keyboard key", "assistant": "await page.keyboard.press('Enter');"}
+{"user": "Select dropdown option", "assistant": "await page.selectOption('select#dropdown', 'option1');"}
+{"user": "Check checkbox", "assistant": "await page.locator('input[type=\"checkbox\"]').check();"}
+{"user": "Get all matching elements", "assistant": "await page.locator('.item').all();"}
+{"user": "Count matching elements", "assistant": "await page.locator('.item').count();"}
+{"user": "Intercept network request", "assistant": "await page.route('**/api/**', route => route.abort());"}
+{"user": "Mock API response", "assistant": "await page.route('**/api/data', route => route.fulfill({status: 200, body: '{\"data\": \"mock\"}'}));"}
+{"user": "Get all cookies", "assistant": "await context.cookies();"}
+{"user": "Set cookie", "assistant": "await context.addCookies([{name: 'session', value: 'abc', domain: 'example.com', path: '/'}]);"}
+{"user": "Start trace recording", "assistant": "await context.tracing.start({screenshots: true, snapshots: true});"}
+{"user": "Stop trace and save", "assistant": "await context.tracing.stop({path: 'trace.zip'});"}
+{"user": "Emulate mobile device", "assistant": "const { devices } = require('playwright'); await browser.newContext(devices['iPhone 12']);"}
+{"user": "Set geolocation", "assistant": "await context.setGeolocation({latitude: 40.7128, longitude: -74.0060});"}
+{"user": "Handle dialog", "assistant": "page.once('dialog', dialog => dialog.accept());"}
+{"user": "Upload file", "assistant": "await page.locator('input[type=\"file\"]').setInputFiles('path/to/file.pdf');"}
