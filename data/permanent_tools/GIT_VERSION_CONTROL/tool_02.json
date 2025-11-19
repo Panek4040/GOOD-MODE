@@ -1,0 +1,22 @@
+{
+  "name": "git_branching_merging",
+  "description": "Create, switch, merge, and manage Git branches",
+  "pattern": "git.*branch|git.*checkout|git.*merge|git.*switch",
+  "parameters": ["branch_name"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cd /tmp/test-repo && git branch feature-1 && git branch feature-2 && git branch --list"]},
+      "expected_output": {"type": "string", "example": "  feature-1\n  feature-2\n* main"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cd /tmp/test-repo && git switch feature-1 && echo 'Feature code' > feature.txt && git add feature.txt && git commit -m 'Add feature' && git log --oneline --graph"]},
+      "expected_output": {"type": "string", "example": "Switched to branch 'feature-1'\n* def456 Add feature\n* abc123 Initial commit"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cd /tmp/test-repo && git switch main && git merge feature-1 --no-edit && git log --oneline --all --graph"]},
+      "expected_output": {"type": "string", "example": "Updating abc123..def456\nFast-forward\n feature.txt | 1 +"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

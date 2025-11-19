@@ -1,0 +1,22 @@
+{
+  "title": "Feature Branch Workflow with Pull Request",
+  "description": "Complete feature development workflow from branch to merge",
+  "difficulty": "intermediate",
+  "estimated_time": "40 minutes",
+  "tools_used": ["git", "github", "branch_workflow"],
+  "attack_chain": [
+    {"step": 1, "title": "Clone Repository", "command": "git clone https://github.com/user/project.git && cd project", "explanation": "Get local copy of repository", "expected_output": "Cloning into 'project'...", "success_criteria": "Repo cloned"},
+    {"step": 2, "title": "Create Feature Branch", "command": "git checkout -b feature/user-authentication", "explanation": "Create and switch to new feature branch", "expected_output": "Switched to a new branch 'feature/user-authentication'", "success_criteria": "Branch created"},
+    {"step": 3, "title": "Make Code Changes", "command": "echo 'def authenticate_user(): pass' > auth.py && git add auth.py", "explanation": "Develop feature code", "expected_output": "Changes staged", "success_criteria": "Files added"},
+    {"step": 4, "title": "Commit Changes", "command": "git commit -m 'Add user authentication module'", "explanation": "Save changes with descriptive message", "expected_output": "1 file changed, 1 insertion(+)", "success_criteria": "Commit created"},
+    {"step": 5, "title": "Add More Commits", "command": "echo 'import hashlib' >> auth.py && git commit -am 'Add password hashing'", "explanation": "Continue development with incremental commits", "expected_output": "1 file changed, 1 insertion(+)", "success_criteria": "Multiple commits"},
+    {"step": 6, "title": "Fetch Latest Changes", "command": "git fetch origin main", "explanation": "Get updates from remote main branch", "expected_output": "From https://github.com/user/project", "success_criteria": "Fetched successfully"},
+    {"step": 7, "title": "Rebase on Main", "command": "git rebase origin/main", "explanation": "Integrate latest main changes into feature", "expected_output": "Successfully rebased and updated refs", "success_criteria": "Rebased cleanly"},
+    {"step": 8, "title": "Push Feature Branch", "command": "git push -u origin feature/user-authentication", "explanation": "Upload feature branch to remote", "expected_output": "Branch 'feature/user-authentication' set up to track remote branch", "success_criteria": "Pushed to origin"},
+    {"step": 9, "title": "Create Pull Request", "command": "gh pr create --title 'Add user authentication' --body 'Implements login/logout functionality' --base main --head feature/user-authentication", "explanation": "Open PR for code review", "expected_output": "https://github.com/user/project/pull/123", "success_criteria": "PR created"},
+    {"step": 10, "title": "Merge After Approval", "command": "gh pr merge 123 --squash --delete-branch", "explanation": "Squash commits and merge to main", "expected_output": "Merged #123 into main", "success_criteria": "Feature merged"}
+  ],
+  "learning_objectives": ["Feature branch workflow", "Git rebase", "Pull requests", "Code review process", "Branch cleanup"],
+  "mitigation": ["Not applicable - development workflow"],
+  "tags": ["git", "workflow", "feature_branch", "pull_request", "collaboration"]
+}

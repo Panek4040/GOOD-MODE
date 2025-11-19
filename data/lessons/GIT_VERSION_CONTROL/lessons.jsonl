@@ -1,0 +1,35 @@
+{"user": "Initialize new Git repository", "assistant": "git init"}
+{"user": "Clone existing repository", "assistant": "git clone https://github.com/user/repo.git"}
+{"user": "Check repository status", "assistant": "git status"}
+{"user": "Stage all changes", "assistant": "git add ."}
+{"user": "Stage specific file", "assistant": "git add filename.txt"}
+{"user": "Commit staged changes", "assistant": "git commit -m 'Commit message'"}
+{"user": "Commit all tracked changes", "assistant": "git commit -am 'Message'"}
+{"user": "View commit history", "assistant": "git log"}
+{"user": "View concise commit history", "assistant": "git log --oneline"}
+{"user": "Create new branch", "assistant": "git branch branch-name"}
+{"user": "Switch to branch", "assistant": "git checkout branch-name"}
+{"user": "Create and switch to new branch", "assistant": "git checkout -b branch-name"}
+{"user": "List all branches", "assistant": "git branch -a"}
+{"user": "Delete local branch", "assistant": "git branch -d branch-name"}
+{"user": "Merge branch into current", "assistant": "git merge branch-name"}
+{"user": "Add remote repository", "assistant": "git remote add origin https://github.com/user/repo.git"}
+{"user": "Push to remote branch", "assistant": "git push origin branch-name"}
+{"user": "Pull latest changes", "assistant": "git pull origin main"}
+{"user": "Fetch remote changes", "assistant": "git fetch origin"}
+{"user": "View diff of changes", "assistant": "git diff"}
+{"user": "View staged diff", "assistant": "git diff --staged"}
+{"user": "Unstage file", "assistant": "git restore --staged filename"}
+{"user": "Discard local changes", "assistant": "git restore filename"}
+{"user": "Stash current changes", "assistant": "git stash"}
+{"user": "Apply stashed changes", "assistant": "git stash pop"}
+{"user": "List stashes", "assistant": "git stash list"}
+{"user": "Revert commit", "assistant": "git revert commit-hash"}
+{"user": "Reset to previous commit", "assistant": "git reset --hard HEAD~1"}
+{"user": "View reflog", "assistant": "git reflog"}
+{"user": "Cherry-pick commit", "assistant": "git cherry-pick commit-hash"}
+{"user": "Rebase on branch", "assistant": "git rebase branch-name"}
+{"user": "Interactive rebase", "assistant": "git rebase -i HEAD~3"}
+{"user": "Set global username", "assistant": "git config --global user.name 'Your Name'"}
+{"user": "Set global email", "assistant": "git config --global user.email 'email@example.com'"}
+{"user": "Create git alias", "assistant": "git config --global alias.st status"}
