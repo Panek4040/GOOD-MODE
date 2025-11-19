@@ -1,0 +1,22 @@
+{
+  "name": "requests_html_rendering",
+  "description": "Render JavaScript with requests-html library",
+  "pattern": "requests.*html|render.*javascript|htmlsession",
+  "parameters": ["url"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from requests_html import HTMLSession; session = HTMLSession(); r = session.get('https://example.com'); print('Title:', r.html.find('title', first=True).text); print('Links:', len(r.html.absolute_links)); print('HTML length:', len(r.text))"]},
+      "expected_output": {"type": "string", "example": "Title: Example Domain\nLinks: 1\nHTML length: 1200+\n\nHTML fetched and parsed"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from requests_html import HTMLSession; session = HTMLSession(); r = session.get('https://example.com'); heading = r.html.find('h1', first=True).text; paragraphs = [p.text for p in r.html.find('p')]; print(f'Heading: {heading}'); print(f'Paragraphs: {len(paragraphs)}')"]},
+      "expected_output": {"type": "string", "example": "Heading: Example Domain\nParagraphs: 2\n\nContent extracted with CSS selectors"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from requests_html import HTMLSession; session = HTMLSession(); r = session.get('https://example.com'); links = [(link.text, link.attrs.get('href')) for link in r.html.find('a')]; print('Links found:', len(links)); [print(f'  {text}: {href}') for text, href in links]"]},
+      "expected_output": {"type": "string", "example": "Links found: 1\n  More information...: https://www.iana.org/domains/example\n\nLinks extracted with text and URLs"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

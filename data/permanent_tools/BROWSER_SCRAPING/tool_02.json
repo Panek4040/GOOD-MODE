@@ -1,0 +1,22 @@
+{
+  "name": "scrapy_spider_framework",
+  "description": "Build scalable web scrapers with Scrapy framework",
+  "pattern": "scrapy.*spider|crawl.*framework|scrapy.*item",
+  "parameters": ["start_url", "item_selector"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "import scrapy; from scrapy.crawler import CrawlerProcess; class ExampleSpider(scrapy.Spider): name = 'example'; start_urls = ['https://example.com']; def parse(self, response): yield {'title': response.css('title::text').get(), 'heading': response.css('h1::text').get()}; process = CrawlerProcess(settings={'LOG_LEVEL': 'ERROR'}); process.crawl(ExampleSpider); process.start()"]},
+      "expected_output": {"type": "string", "example": "{'title': 'Example Domain', 'heading': 'Example Domain'}\n\nScrapy spider executed"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "import scrapy; from scrapy.crawler import CrawlerProcess; class LinkSpider(scrapy.Spider): name = 'links'; start_urls = ['https://example.com']; def parse(self, response): for link in response.css('a::attr(href)').getall(): print(f'Link: {link}'); process = CrawlerProcess(settings={'LOG_LEVEL': 'ERROR'}); process.crawl(LinkSpider); process.start()"]},
+      "expected_output": {"type": "string", "example": "Link: https://www.iana.org/domains/example\n\nAll links extracted by Scrapy"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "import scrapy; from scrapy.crawler import CrawlerProcess; import json; class DataSpider(scrapy.Spider): name = 'data'; start_urls = ['https://jsonplaceholder.typicode.com/posts/1']; def parse(self, response): data = json.loads(response.text); print(f'Post title: {data[\"title\"]}'); print(f'Body length: {len(data[\"body\"])} chars'); process = CrawlerProcess(settings={'LOG_LEVEL': 'ERROR'}); process.crawl(DataSpider); process.start()"]},
+      "expected_output": {"type": "string", "example": "Post title: sunt aut facere...\nBody length: 100+ chars\n\nJSON API scraped"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}
