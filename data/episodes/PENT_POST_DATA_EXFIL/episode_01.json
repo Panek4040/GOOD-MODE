@@ -1,0 +1,1 @@
+{"episode_id":"PENT_POST_DATA_EXFIL_EP01","title":"Pentest episode 01","description":"Security testing scenario","difficulty":"advanced","steps":[{"step_number":1,"instruction":"Execute test","tool":"pentool","parameters":{"target":"192.168.1.100"},"expected_outcome":"Vulnerability found"}],"success_criteria":"Assessment complete","cleanup":"Document findings"}
