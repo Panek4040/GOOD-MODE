@@ -1,0 +1,22 @@
+{
+  "name": "selenium_screenshots_alerts",
+  "description": "Capture screenshots, handle alerts, popups, and browser dialogs",
+  "pattern": "selenium.*screenshot|alert.*handle|webdriver.*dialog",
+  "parameters": ["screenshot_path", "alert_action"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from selenium import webdriver; import os; driver = webdriver.Chrome(); driver.get('https://example.com'); screenshot_path = '/tmp/selenium_screenshot.png'; driver.save_screenshot(screenshot_path); print(f'Screenshot saved: {screenshot_path}'); print(f'File size: {os.path.getsize(screenshot_path)} bytes'); driver.quit()"]},
+      "expected_output": {"type": "string", "example": "Screenshot saved: /tmp/selenium_screenshot.png\nFile size: 45231 bytes\n\nFull page screenshot captured"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from selenium import webdriver; from selenium.webdriver.common.by import By; from selenium.webdriver.support.ui import WebDriverWait; from selenium.webdriver.support import expected_conditions as EC; driver = webdriver.Chrome(); driver.get('https://the-internet.herokuapp.com/javascript_alerts'); driver.find_element(By.XPATH, '//button[text()=\"Click for JS Alert\"]').click(); alert = WebDriverWait(driver, 3).until(EC.alert_is_present()); print(f'Alert text: {alert.text}'); alert.accept(); print('Alert accepted'); driver.quit()"]},
+      "expected_output": {"type": "string", "example": "Alert text: I am a JS Alert\nAlert accepted\n\nJavaScript alert handled"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "python3", "args": ["-c", "from selenium import webdriver; from selenium.webdriver.common.by import By; driver = webdriver.Chrome(); driver.get('https://the-internet.herokuapp.com/javascript_alerts'); driver.find_element(By.XPATH, '//button[text()=\"Click for JS Prompt\"]').click(); prompt = driver.switch_to.alert; prompt.send_keys('Automated input'); prompt.accept(); print('Prompt filled and accepted'); driver.quit()"]},
+      "expected_output": {"type": "string", "example": "Prompt filled and accepted\n\nJavaScript prompt received input and confirmed"}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

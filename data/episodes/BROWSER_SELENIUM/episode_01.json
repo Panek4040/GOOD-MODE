@@ -1,0 +1,22 @@
+{
+  "title": "E-commerce Checkout Automation End-to-End",
+  "description": "Complete automated shopping workflow from product search to payment",
+  "difficulty": "intermediate",
+  "estimated_time": "45 minutes",
+  "tools_used": ["selenium", "python", "webdriver"],
+  "attack_chain": [
+    {"step": 1, "title": "Initialize WebDriver", "command": "from selenium import webdriver; driver = webdriver.Chrome(); driver.maximize_window()", "explanation": "Create Chrome browser instance", "expected_output": "Chrome browser window opened", "success_criteria": "Browser ready"},
+    {"step": 2, "title": "Navigate to E-commerce Site", "command": "driver.get('https://www.saucedemo.com')", "explanation": "Open target e-commerce website", "expected_output": "Login page loaded", "success_criteria": "Page displayed"},
+    {"step": 3, "title": "Perform Login", "command": "driver.find_element(By.ID, 'user-name').send_keys('standard_user'); driver.find_element(By.ID, 'password').send_keys('secret_sauce'); driver.find_element(By.ID, 'login-button').click()", "explanation": "Enter credentials and submit login form", "expected_output": "Redirected to products page", "success_criteria": "Login successful"},
+    {"step": 4, "title": "Search and Filter Products", "command": "from selenium.webdriver.support.ui import Select; dropdown = Select(driver.find_element(By.CLASS_NAME, 'product_sort_container')); dropdown.select_by_value('lohi')", "explanation": "Sort products by price low to high", "expected_output": "Products reordered", "success_criteria": "Sorting applied"},
+    {"step": 5, "title": "Add Items to Cart", "command": "add_buttons = driver.find_elements(By.CSS_SELECTOR, '.btn_inventory')[:3]; [btn.click() for btn in add_buttons]", "explanation": "Add first 3 products to shopping cart", "expected_output": "Cart badge shows '3'", "success_criteria": "3 items in cart"},
+    {"step": 6, "title": "Navigate to Cart", "command": "driver.find_element(By.CLASS_NAME, 'shopping_cart_link').click()", "explanation": "Open shopping cart page", "expected_output": "Cart page with 3 items displayed", "success_criteria": "Cart page loaded"},
+    {"step": 7, "title": "Verify Cart Contents", "command": "cart_items = driver.find_elements(By.CLASS_NAME, 'cart_item'); print(f'Cart has {len(cart_items)} items')", "explanation": "Count items in cart", "expected_output": "Cart has 3 items", "success_criteria": "Item count verified"},
+    {"step": 8, "title": "Proceed to Checkout", "command": "driver.find_element(By.ID, 'checkout').click()", "explanation": "Click checkout button", "expected_output": "Checkout information form displayed", "success_criteria": "Form loaded"},
+    {"step": 9, "title": "Fill Checkout Form", "command": "driver.find_element(By.ID, 'first-name').send_keys('John'); driver.find_element(By.ID, 'last-name').send_keys('Doe'); driver.find_element(By.ID, 'postal-code').send_keys('12345'); driver.find_element(By.ID, 'continue').click()", "explanation": "Enter shipping information", "expected_output": "Checkout overview page", "success_criteria": "Information accepted"},
+    {"step": 10, "title": "Complete Order", "command": "driver.find_element(By.ID, 'finish').click(); confirmation = driver.find_element(By.CLASS_NAME, 'complete-header').text; print(f'Order status: {confirmation}'); driver.quit()", "explanation": "Finalize order and verify confirmation", "expected_output": "Order status: THANK YOU FOR YOUR ORDER", "success_criteria": "Order confirmed"}
+  ],
+  "learning_objectives": ["WebDriver initialization", "Form automation", "Element location strategies", "Multi-step workflows", "State verification"],
+  "mitigation": ["Not applicable - legitimate automation"],
+  "tags": ["selenium", "e-commerce", "automation", "testing", "checkout"]
+}

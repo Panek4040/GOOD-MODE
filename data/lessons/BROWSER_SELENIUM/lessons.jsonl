@@ -1,0 +1,35 @@
+{"user": "Initialize Chrome WebDriver in Selenium", "assistant": "from selenium import webdriver; driver = webdriver.Chrome()"}
+{"user": "Navigate to a URL with Selenium", "assistant": "driver.get('https://example.com')"}
+{"user": "Get current page title", "assistant": "driver.title"}
+{"user": "Get current URL from browser", "assistant": "driver.current_url"}
+{"user": "Maximize browser window", "assistant": "driver.maximize_window()"}
+{"user": "Find element by ID", "assistant": "driver.find_element(By.ID, 'element_id')"}
+{"user": "Find element by CSS selector", "assistant": "driver.find_element(By.CSS_SELECTOR, '.class-name')"}
+{"user": "Find element by XPath", "assistant": "driver.find_element(By.XPATH, '//div[@class=\"example\"]')"}
+{"user": "Find multiple elements by tag name", "assistant": "driver.find_elements(By.TAG_NAME, 'a')"}
+{"user": "Click on an element", "assistant": "element.click()"}
+{"user": "Send text to input field", "assistant": "element.send_keys('text input')"}
+{"user": "Clear input field content", "assistant": "element.clear()"}
+{"user": "Get element text content", "assistant": "element.text"}
+{"user": "Get element attribute value", "assistant": "element.get_attribute('href')"}
+{"user": "Check if element is displayed", "assistant": "element.is_displayed()"}
+{"user": "Set implicit wait timeout", "assistant": "driver.implicitly_wait(10)"}
+{"user": "Create explicit wait with WebDriverWait", "assistant": "from selenium.webdriver.support.ui import WebDriverWait; wait = WebDriverWait(driver, 10)"}
+{"user": "Wait for element to be present", "assistant": "wait.until(EC.presence_of_element_located((By.ID, 'element_id')))"}
+{"user": "Wait for element to be clickable", "assistant": "wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button')))"}
+{"user": "Execute JavaScript in browser", "assistant": "driver.execute_script('return document.title;')"}
+{"user": "Scroll to bottom of page", "assistant": "driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')"}
+{"user": "Take screenshot of current page", "assistant": "driver.save_screenshot('/tmp/screenshot.png')"}
+{"user": "Handle JavaScript alert", "assistant": "alert = driver.switch_to.alert; alert.accept()"}
+{"user": "Switch to iframe", "assistant": "driver.switch_to.frame('iframe_name')"}
+{"user": "Switch back to main content from iframe", "assistant": "driver.switch_to.default_content()"}
+{"user": "Open new browser tab", "assistant": "driver.execute_script('window.open(\"https://example.com\", \"_blank\");')"}
+{"user": "Switch to another window by handle", "assistant": "driver.switch_to.window(driver.window_handles[1])"}
+{"user": "Get all cookies from browser", "assistant": "driver.get_cookies()"}
+{"user": "Add cookie to browser", "assistant": "driver.add_cookie({'name': 'cookie_name', 'value': 'cookie_value'})"}
+{"user": "Delete specific cookie", "assistant": "driver.delete_cookie('cookie_name')"}
+{"user": "Select dropdown option by visible text", "assistant": "from selenium.webdriver.support.ui import Select; Select(element).select_by_visible_text('Option 1')"}
+{"user": "Select dropdown by value attribute", "assistant": "Select(element).select_by_value('option_value')"}
+{"user": "Navigate back in browser history", "assistant": "driver.back()"}
+{"user": "Navigate forward in browser history", "assistant": "driver.forward()"}
+{"user": "Refresh current page", "assistant": "driver.refresh()"}
