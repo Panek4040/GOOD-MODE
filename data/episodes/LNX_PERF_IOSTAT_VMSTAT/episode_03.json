@@ -1,1 +1,87 @@
-{"episode_id":"LNX_PERF_IOSTAT_VMSTAT_EP03","title":"Episode 03","description":"Task 03","difficulty":"intermediate","steps":[{"step_number":1,"instruction":"Do task","tool":"tool1","parameters":{},"expected_outcome":"Success"}],"success_criteria":"Complete","cleanup":"None"}
+{
+  "episode_id": "LNX_PERF_IOSTAT_VMSTAT_EP03",
+  "title": "Memory Leak Detection in Application Server",
+  "description": "Node.js application server crashes after 48 hours uptime - detect memory leak",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Establish baseline - check system uptime and current state",
+      "tool": "uptime_load_average_system_monitoring",
+      "parameters": {},
+      "expected_outcome": "System up 2 days, 3 hours - approaching typical crash time at 48 hours"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Monitor memory usage patterns over time",
+      "tool": "free_memory_usage_swap_monitor",
+      "parameters": {
+        "interval": "60",
+        "unit": "h"
+      },
+      "expected_outcome": "Available memory: 1.2GB (was 6.8GB at startup) - steady decrease pattern"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Identify memory-consuming processes",
+      "tool": "top_htop_realtime_process_monitor",
+      "parameters": {
+        "sort_by": "%mem",
+        "user": "nodejs"
+      },
+      "expected_outcome": "node process: 5.6GB RSS (resident set size) and growing steadily"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Use vmstat to monitor swap activity indicating memory pressure",
+      "tool": "vmstat_memory_cpu_process_statistics",
+      "parameters": {
+        "interval": "5",
+        "count": "20"
+      },
+      "expected_outcome": "si (swap in): 234 KB/s, so (swap out): 456 KB/s - active swapping indicates memory exhaustion"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Check historical memory usage with sar",
+      "tool": "sar_system_activity_reporter",
+      "parameters": {
+        "interval": "300",
+        "metric_type": "r"
+      },
+      "expected_outcome": "%memused increasing linearly: 42% -> 67% -> 89% over 24 hours - confirmed leak"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Monitor CPU to rule out CPU leak or busy loops",
+      "tool": "mpstat_multiprocessor_cpu_statistics",
+      "parameters": {
+        "interval": "3",
+        "cpu_id": "ALL"
+      },
+      "expected_outcome": "CPU usage stable at 12-15% - not a CPU issue, purely memory leak"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Check disk I/O for excessive logging or temp files",
+      "tool": "iostat_disk_io_performance_monitor",
+      "parameters": {
+        "interval": "2",
+        "device": "sda"
+      },
+      "expected_outcome": "I/O normal: util 15%, no excessive writes - leak is in-memory only"
+    },
+    {
+      "step_number": 8,
+      "instruction": "Final verification - continuous memory monitoring",
+      "tool": "free_memory_usage_swap_monitor",
+      "parameters": {
+        "interval": "10",
+        "unit": "m"
+      },
+      "expected_outcome": "Memory consumption rate: ~50MB per hour - will exhaust in 6 hours"
+    }
+  ],
+  "success_criteria": "Confirmed memory leak in Node.js app: 50MB/hour consumption, identified via heap snapshot analysis, fixed event listener accumulation",
+  "cleanup": "Added heap monitoring, set --max-old-space-size limit, implemented automatic restart every 24h as safeguard"
+}

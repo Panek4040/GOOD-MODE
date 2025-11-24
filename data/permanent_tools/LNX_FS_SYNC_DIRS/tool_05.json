@@ -2,7 +2,10 @@
   "name": "sync_dirs_compressed",
   "description": "Sync directories with compression for faster transfer",
   "pattern": "sync.*compress|compressed.*sync|fast.*sync",
-  "parameters": ["source_path", "dest_path"],
+  "parameters": [
+    "source_path",
+    "dest_path"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sb '{{source_path}}' | awk '{print \"Source size: \" $1/1024/1024 \"MB\"}'"]
+        "args": [
+          "-c",
+          "du -sb '{{source_path}}' | awk '{print \"Source size: \" $1/1024/1024 \"MB\"}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo 'Starting compressed sync at: '$(date +'%Y-%m-%d %H:%M:%S')"]
+        "args": [
+          "-c",
+          "echo 'Starting compressed sync at: '$(date +'%Y-%m-%d %H:%M:%S')"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "rsync",
-        "args": ["-avz", "--stats", "{{source_path}}/", "{{dest_path}}/"]
+        "args": [
+          "-avz",
+          "--stats",
+          "{{source_path}}/",
+          "{{dest_path}}/"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +63,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo 'Completed at: '$(date +'%Y-%m-%d %H:%M:%S')"]
+        "args": [
+          "-c",
+          "echo 'Completed at: '$(date +'%Y-%m-%d %H:%M:%S')"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +79,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "diff -rq '{{source_path}}' '{{dest_path}}' | wc -l"]
+        "args": [
+          "-c",
+          "diff -rq '{{source_path}}' '{{dest_path}}' | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",

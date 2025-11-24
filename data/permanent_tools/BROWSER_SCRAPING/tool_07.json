@@ -1,0 +1,66 @@
+{
+  "name": "data_cleaning_export",
+  "description": "Clean scraped data and export to various formats",
+  "pattern": "clean.*data|export.*csv|pandas.*scrape",
+  "parameters": [
+    "data",
+    "output_format"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "import pandas as pd; import requests; response = requests.get('https://jsonplaceholder.typicode.com/users'); users = response.json(); df = pd.DataFrame(users); df_clean = df[['name', 'email', 'phone']]; df_clean.to_csv('/tmp/users.csv', index=False); print(f'Exported {len(df_clean)} users to CSV'); print(df_clean.head(3).to_string())"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Exported 10 users to CSV\n            name                email           phone\n0  Leanne Graham  Sincere@april.biz  1-770-736-8031 x56442\n\nData exported to CSV"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "import json; import requests; response = requests.get('https://jsonplaceholder.typicode.com/posts'); posts = response.json()[:5]; cleaned = [{'id': p['id'], 'title': p['title'][:30] + '...', 'body_length': len(p['body'])} for p in posts]; with open('/tmp/posts.json', 'w') as f: json.dump(cleaned, f, indent=2); print(f'Exported {len(cleaned)} posts to JSON'); print(json.dumps(cleaned[0], indent=2))"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Exported 5 posts to JSON\n{\n  \"id\": 1,\n  \"title\": \"sunt aut facere repellat pr...\",\n  \"body_length\": 100\n}\n\nCleaned data to JSON"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "import pandas as pd; import requests; from datetime import datetime; response = requests.get('https://jsonplaceholder.typicode.com/posts'); posts = response.json()[:10]; df = pd.DataFrame(posts); df['title_length'] = df['title'].str.len(); df['body_length'] = df['body'].str.len(); stats = {'total_posts': len(df), 'avg_title_length': df['title_length'].mean(), 'avg_body_length': df['body_length'].mean(), 'scraped_at': datetime.now().isoformat()}; print('Statistics:'); [print(f'  {k}: {v}') for k, v in stats.items()]"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Statistics:\n  total_posts: 10\n  avg_title_length: 35.2\n  avg_body_length: 180.5\n  scraped_at: 2024-01-15T10:30:00\n\nData analysis and statistics"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

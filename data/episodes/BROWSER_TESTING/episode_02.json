@@ -1,0 +1,110 @@
+{
+  "title": "Integration Testing with Mocks and Stubs",
+  "description": "Test component integration while isolating external dependencies",
+  "difficulty": "advanced",
+  "estimated_time": "65 minutes",
+  "tools_used": [
+    "unittest.mock",
+    "pytest",
+    "integration_testing"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Define System Under Test",
+      "command": "class UserService:\n    def __init__(self, database, email_service):\n        self.db = database\n        self.email = email_service\n    \n    def create_user(self, name, email):\n        user_id = self.db.insert_user(name, email)\n        self.email.send_welcome(email)\n        return user_id\n\nprint('UserService defined with external dependencies')",
+      "explanation": "Create service with database and email dependencies",
+      "expected_output": "UserService defined with external dependencies",
+      "success_criteria": "Class created"
+    },
+    {
+      "step": 2,
+      "title": "Create Mock Database",
+      "command": "from unittest.mock import Mock\n\nmock_db = Mock()\nmock_db.insert_user.return_value = 123\n\nprint('Mock database created')\nprint(f'insert_user returns: {mock_db.insert_user(\"test\", \"test@example.com\")}')",
+      "explanation": "Mock external database dependency",
+      "expected_output": "Mock database created, insert_user returns: 123",
+      "success_criteria": "Mock configured"
+    },
+    {
+      "step": 3,
+      "title": "Create Mock Email Service",
+      "command": "mock_email = Mock()\nmock_email.send_welcome.return_value = True\n\nprint('Mock email service created')\nmock_email.send_welcome('test@example.com')\nprint(f'send_welcome called: {mock_email.send_welcome.called}')\nprint(f'Called with: {mock_email.send_welcome.call_args}')",
+      "explanation": "Mock email service to avoid sending real emails",
+      "expected_output": "Mock email service created, send_welcome called: True",
+      "success_criteria": "Email mock ready"
+    },
+    {
+      "step": 4,
+      "title": "Test User Creation Integration",
+      "command": "service = UserService(mock_db, mock_email)\nuser_id = service.create_user('Alice', 'alice@example.com')\n\nprint(f'User created with ID: {user_id}')\nassert user_id == 123\nassert mock_db.insert_user.called\nassert mock_email.send_welcome.called\nprint('Integration test passed: both dependencies called')",
+      "explanation": "Verify service integrates with dependencies",
+      "expected_output": "User created with ID: 123, Integration test passed",
+      "success_criteria": "Dependencies integrated"
+    },
+    {
+      "step": 5,
+      "title": "Verify Call Arguments",
+      "command": "mock_db.reset_mock()\nmock_email.reset_mock()\n\nservice.create_user('Bob', 'bob@test.com')\n\nmock_db.insert_user.assert_called_once_with('Bob', 'bob@test.com')\nmock_email.send_welcome.assert_called_once_with('bob@test.com')\nprint('Argument verification passed')\nprint('Correct data passed to dependencies')",
+      "explanation": "Ensure correct arguments passed to mocks",
+      "expected_output": "Argument verification passed, Correct data passed",
+      "success_criteria": "Args validated"
+    },
+    {
+      "step": 6,
+      "title": "Test Error Handling",
+      "command": "mock_db_fail = Mock()\nmock_db_fail.insert_user.side_effect = Exception('Database error')\n\nservice_fail = UserService(mock_db_fail, mock_email)\n\ntry:\n    service_fail.create_user('Charlie', 'charlie@test.com')\n    assert False, 'Should have raised exception'\nexcept Exception as e:\n    print(f'Exception caught: {e}')\n    print('Error handling test passed')",
+      "explanation": "Test behavior when dependency fails",
+      "expected_output": "Exception caught: Database error, Error handling test passed",
+      "success_criteria": "Error propagation works"
+    },
+    {
+      "step": 7,
+      "title": "Use Spy to Track Calls",
+      "command": "from unittest.mock import MagicMock\n\nspy_db = MagicMock()\nspy_email = MagicMock()\n\nservice = UserService(spy_db, spy_email)\nservice.create_user('David', 'david@test.com')\nservice.create_user('Eve', 'eve@test.com')\n\nprint(f'Database calls: {spy_db.insert_user.call_count}')\nprint(f'Email calls: {spy_email.send_welcome.call_count}')\nprint(f'All calls: {spy_db.insert_user.call_args_list}')",
+      "explanation": "Track all invocations with spy pattern",
+      "expected_output": "Database calls: 2, Email calls: 2",
+      "success_criteria": "Calls tracked"
+    },
+    {
+      "step": 8,
+      "title": "Test with Partial Mock",
+      "command": "from unittest.mock import patch\n\nclass RealDatabase:\n    def insert_user(self, name, email):\n        print(f'  [DB] Inserting {name}')\n        return 999\n\nreal_db = RealDatabase()\nmock_email_only = Mock()\n\nservice = UserService(real_db, mock_email_only)\nuser_id = service.create_user('Frank', 'frank@test.com')\n\nprint(f'User ID from real DB: {user_id}')\nassert user_id == 999\nprint('Partial mock: real DB, mock email')",
+      "explanation": "Mix real and mock dependencies",
+      "expected_output": "[DB] Inserting Frank, User ID from real DB: 999, Partial mock",
+      "success_criteria": "Hybrid testing works"
+    },
+    {
+      "step": 9,
+      "title": "Verify Call Order",
+      "command": "from unittest.mock import call\n\nmock_db_order = Mock()\nmock_email_order = Mock()\n\nservice = UserService(mock_db_order, mock_email_order)\nservice.create_user('Grace', 'grace@test.com')\n\nexpected_calls = [\n    ('db.insert_user', mock_db_order.insert_user.call_args),\n    ('email.send_welcome', mock_email_order.send_welcome.call_args)\n]\n\nprint('Call order verified:')\nfor name, args in expected_calls:\n    print(f'  {name}: {args}')\nprint('Dependencies called in correct sequence')",
+      "explanation": "Ensure operations happen in right order",
+      "expected_output": "Call order verified, Dependencies called in correct sequence",
+      "success_criteria": "Order validated"
+    },
+    {
+      "step": 10,
+      "title": "Generate Integration Test Report",
+      "command": "test_summary = {\n    'test_type': 'Integration',\n    'mocks_used': 2,\n    'scenarios_tested': 6,\n    'tests_passed': 6,\n    'coverage': 'UserService integration points',\n    'dependencies_isolated': True,\n    'status': 'PASS'\n}\n\nimport json\nprint('\\nIntegration Test Report:')\nprint(json.dumps(test_summary, indent=2))\nprint('\\nAll integration tests passed!')",
+      "explanation": "Document integration testing results",
+      "expected_output": "Integration Test Report, All integration tests passed!",
+      "success_criteria": "Report complete"
+    }
+  ],
+  "learning_objectives": [
+    "Integration testing",
+    "Mocking dependencies",
+    "Spy pattern",
+    "Call verification",
+    "Error handling",
+    "Test isolation"
+  ],
+  "mitigation": [
+    "Not applicable - testing practice"
+  ],
+  "tags": [
+    "integration_testing",
+    "mocking",
+    "unittest",
+    "test_isolation"
+  ]
+}

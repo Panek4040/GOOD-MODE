@@ -1,0 +1,126 @@
+{
+  "name": "npm_install_basics",
+  "description": "Installing and managing Node.js dependencies with npm",
+  "sequences": [
+    {
+      "id": "seq_1",
+      "description": "Initialize new Node.js project and install dependencies",
+      "steps": [
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "init",
+              "-y"
+            ]
+          },
+          "expected_output": "Wrote to package.json:\n{\n  \"name\": \"my-project\",\n  \"version\": \"1.0.0\"\n}",
+          "explanation": "Creates package.json with default values"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "install",
+              "express"
+            ]
+          },
+          "expected_output": "added 57 packages, and audited 58 packages in 3s\nfound 0 vulnerabilities",
+          "explanation": "Installs express and its dependencies, updates package.json and package-lock.json"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "list",
+              "--depth=0"
+            ]
+          },
+          "expected_output": "my-project@1.0.0\n└── express@4.18.2",
+          "explanation": "Lists installed top-level dependencies"
+        }
+      ]
+    },
+    {
+      "id": "seq_2",
+      "description": "Install development dependencies and global packages",
+      "steps": [
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "install",
+              "--save-dev",
+              "jest",
+              "eslint"
+            ]
+          },
+          "expected_output": "added 234 packages, and audited 292 packages in 8s",
+          "explanation": "Installs dev dependencies in devDependencies section"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "install",
+              "-g",
+              "typescript"
+            ]
+          },
+          "expected_output": "added 1 package in 2s",
+          "explanation": "Installs TypeScript globally, available system-wide"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "list",
+              "-g",
+              "--depth=0"
+            ]
+          },
+          "expected_output": "/usr/local/lib\n├── npm@9.8.1\n└── typescript@5.2.2",
+          "explanation": "Lists globally installed packages"
+        }
+      ]
+    },
+    {
+      "id": "seq_3",
+      "description": "Install specific versions and update dependencies",
+      "steps": [
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "install",
+              "lodash@4.17.20"
+            ]
+          },
+          "expected_output": "added 1 package, and audited 59 packages in 2s",
+          "explanation": "Installs exact version of lodash"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "outdated"
+            ]
+          },
+          "expected_output": "Package  Current  Wanted  Latest\nlodash   4.17.20  4.17.21 4.17.21\nexpress  4.18.2   4.18.2  4.19.0",
+          "explanation": "Shows outdated packages with available updates"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "update",
+              "lodash"
+            ]
+          },
+          "expected_output": "changed 1 package, and audited 59 packages in 2s",
+          "explanation": "Updates lodash to latest compatible version"
+        }
+      ]
+    }
+  ]
+}

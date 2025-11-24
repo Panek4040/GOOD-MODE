@@ -2,7 +2,12 @@
   "name": "kubectl_create_deployment_with_replicas",
   "description": "Create Kubernetes deployment with specified image and replica count",
   "pattern": "create.*deployment|kubectl.*deploy|k8s.*deployment.*create",
-  "parameters": ["deployment_name", "image", "replicas", "namespace"],
+  "parameters": [
+    "deployment_name",
+    "image",
+    "replicas",
+    "namespace"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +15,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["get", "deployments", "-n", "{{namespace}}"]
+        "args": [
+          "get",
+          "deployments",
+          "-n",
+          "{{namespace}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +33,15 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["create", "deployment", "{{deployment_name}}", "--image={{image}}", "--replicas={{replicas}}", "-n", "{{namespace}}"]
+        "args": [
+          "create",
+          "deployment",
+          "{{deployment_name}}",
+          "--image={{image}}",
+          "--replicas={{replicas}}",
+          "-n",
+          "{{namespace}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +54,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["rollout", "status", "deployment/{{deployment_name}}", "-n", "{{namespace}}"]
+        "args": [
+          "rollout",
+          "status",
+          "deployment/{{deployment_name}}",
+          "-n",
+          "{{namespace}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +73,15 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["get", "deployment", "{{deployment_name}}", "-n", "{{namespace}}", "-o", "wide"]
+        "args": [
+          "get",
+          "deployment",
+          "{{deployment_name}}",
+          "-n",
+          "{{namespace}}",
+          "-o",
+          "wide"
+        ]
       },
       "expected_output": {
         "type": "string",

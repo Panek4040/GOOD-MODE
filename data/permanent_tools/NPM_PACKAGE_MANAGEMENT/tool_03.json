@@ -1,0 +1,123 @@
+{
+  "name": "npm_scripts_automation",
+  "description": "Defining and running npm scripts for project automation",
+  "sequences": [
+    {
+      "id": "seq_1",
+      "description": "Create and run custom npm scripts",
+      "steps": [
+        {
+          "action": {
+            "command": "bash",
+            "args": [
+              "-c",
+              "cat > package.json << 'EOF'\n{\n  \"scripts\": {\n    \"start\": \"node server.js\",\n    \"test\": \"jest\",\n    \"build\": \"webpack --mode production\"\n  }\n}\nEOF"
+            ]
+          },
+          "expected_output": "package.json updated with scripts",
+          "explanation": "Defines reusable scripts in package.json"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "run",
+              "build"
+            ]
+          },
+          "expected_output": "> my-project@1.0.0 build\n> webpack --mode production\n\nwebpack 5.88.0 compiled successfully in 2341 ms",
+          "explanation": "Executes the build script defined in package.json"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "start"
+            ]
+          },
+          "expected_output": "> my-project@1.0.0 start\n> node server.js\n\nServer listening on port 3000",
+          "explanation": "npm start is alias for npm run start"
+        }
+      ]
+    },
+    {
+      "id": "seq_2",
+      "description": "Use pre and post script hooks",
+      "steps": [
+        {
+          "action": {
+            "command": "bash",
+            "args": [
+              "-c",
+              "cat >> package.json << 'EOF'\n{\n  \"scripts\": {\n    \"prebuild\": \"rm -rf dist\",\n    \"build\": \"webpack\",\n    \"postbuild\": \"echo Build complete\"\n  }\n}\nEOF"
+            ]
+          },
+          "expected_output": "Added pre and post hooks",
+          "explanation": "pre/post scripts run automatically before/after main script"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "run",
+              "build"
+            ]
+          },
+          "expected_output": "> prebuild\n> rm -rf dist\n\n> build\n> webpack\n\n> postbuild\n> echo Build complete\nBuild complete",
+          "explanation": "Runs prebuild, build, and postbuild in sequence"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "run"
+            ]
+          },
+          "expected_output": "Lifecycle scripts:\n  start\n    node server.js\n  test\n    jest\n\nAvailable scripts:\n  build\n    webpack",
+          "explanation": "Lists all available npm scripts"
+        }
+      ]
+    },
+    {
+      "id": "seq_3",
+      "description": "Pass arguments and chain multiple scripts",
+      "steps": [
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "run",
+              "test",
+              "--",
+              "--coverage"
+            ]
+          },
+          "expected_output": "> jest --coverage\n\nTest Suites: 5 passed\nCoverage: 87%",
+          "explanation": "Passes --coverage argument to jest through npm"
+        },
+        {
+          "action": {
+            "command": "bash",
+            "args": [
+              "-c",
+              "cat >> package.json << 'EOF'\n{\n  \"scripts\": {\n    \"lint\": \"eslint src/\",\n    \"format\": \"prettier --write src/\",\n    \"validate\": \"npm run lint && npm run test\"\n  }\n}\nEOF"
+            ]
+          },
+          "expected_output": "Added chained scripts",
+          "explanation": "Chain multiple scripts with && for sequential execution"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "run",
+              "validate"
+            ]
+          },
+          "expected_output": "> lint\n> eslint src/\n✓ No errors\n\n> test\n> jest\n✓ All tests passed",
+          "explanation": "Runs lint then test, stops if any command fails"
+        }
+      ]
+    }
+  ]
+}

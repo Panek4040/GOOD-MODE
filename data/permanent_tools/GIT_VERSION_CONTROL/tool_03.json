@@ -1,0 +1,65 @@
+{
+  "name": "git_remote_operations",
+  "description": "Push, pull, fetch from remote repositories",
+  "pattern": "git.*remote|git.*push|git.*pull|git.*fetch|git.*clone",
+  "parameters": [
+    "remote_url"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cd /tmp/test-repo && git remote add origin https://github.com/user/repo.git && git remote -v"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "origin\thttps://github.com/user/repo.git (fetch)\norigin\thttps://github.com/user/repo.git (push)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cd /tmp && git clone --depth 1 https://github.com/torvalds/linux.git /tmp/linux-shallow 2>&1 | head -5"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Cloning into '/tmp/linux-shallow'...\nremote: Enumerating objects"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cd /tmp/test-repo && git fetch --dry-run origin 2>&1 || echo 'Fetch dry-run completed (simulated)'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Fetch dry-run completed"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

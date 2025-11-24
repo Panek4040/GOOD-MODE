@@ -1,1 +1,93 @@
-{"episode_id":"LNX_DISK_FDISK_LVM_MOUNT_EP02","title":"Episode 02","description":"Task 02","difficulty":"intermediate","steps":[{"step_number":1,"instruction":"Do task","tool":"tool1","parameters":{},"expected_outcome":"Success"}],"success_criteria":"Complete","cleanup":"None"}
+{
+  "episode_id": "LNX_DISK_FDISK_LVM_MOUNT_EP02",
+  "title": "Extend Full Filesystem Using LVM",
+  "description": "/home partition at 95% capacity - extend logical volume and filesystem",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Check current disk space usage",
+      "tool": "df_du_disk_space_usage_analyzer",
+      "parameters": {
+        "path": "/home",
+        "unit": "h"
+      },
+      "expected_outcome": "/home: 100GB total, 95GB used, 5GB free (95% full) - CRITICAL"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Identify largest directories consuming space",
+      "tool": "df_du_disk_space_usage_analyzer",
+      "parameters": {
+        "path": "/home",
+        "unit": "h"
+      },
+      "expected_outcome": "/home/user1: 45GB, /home/user2: 30GB, /home/backups: 15GB"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Check volume group for free space",
+      "tool": "lvm_physical_volume_group_logical",
+      "parameters": {
+        "vg_name": "vg-system",
+        "lv_name": "home",
+        "size": ""
+      },
+      "expected_outcome": "VG vg-system: 237GB total, 20GB free - sufficient space to extend"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Verify current logical volume size",
+      "tool": "lvm_physical_volume_group_logical",
+      "parameters": {
+        "vg_name": "vg-system",
+        "lv_name": "home",
+        "size": ""
+      },
+      "expected_outcome": "LV /dev/vg-system/home: 100GB current size"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Check filesystem before extending",
+      "tool": "mount_umount_filesystem_operations",
+      "parameters": {
+        "device": "/dev/vg-system/home",
+        "mount_point": "/home",
+        "fs_type": "ext4"
+      },
+      "expected_outcome": "/dev/vg-system/home mounted on /home type ext4 (rw,relatime)"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Extend logical volume by 50GB",
+      "tool": "lvm_physical_volume_group_logical",
+      "parameters": {
+        "vg_name": "vg-system",
+        "lv_name": "home",
+        "size": "+50G"
+      },
+      "expected_outcome": "LV extended: 100GB -> 150GB, VG free space: 20GB -> 0GB (fully allocated)"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Verify new disk space after resize",
+      "tool": "df_du_disk_space_usage_analyzer",
+      "parameters": {
+        "path": "/home",
+        "unit": "h"
+      },
+      "expected_outcome": "/home: 150GB total, 95GB used, 55GB free (63% full) - healthy space restored"
+    },
+    {
+      "step_number": 8,
+      "instruction": "Confirm filesystem UUID unchanged",
+      "tool": "blkid_uuid_filesystem_identifier",
+      "parameters": {
+        "device": "/dev/vg-system/home"
+      },
+      "expected_outcome": "UUID unchanged after resize - /etc/fstab still valid, no reboot required"
+    }
+  ],
+  "success_criteria": "Successfully extended /home from 100GB to 150GB online, freed 50GB space, reduced usage from 95% to 63%",
+  "cleanup": "Notified users, implemented quota system to prevent future space issues"
+}

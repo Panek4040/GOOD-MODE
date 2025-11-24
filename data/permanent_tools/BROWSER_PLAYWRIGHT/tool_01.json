@@ -1,0 +1,66 @@
+{
+  "name": "playwright_multi_browser_basics",
+  "description": "Launch and control Chromium, Firefox, and WebKit browsers",
+  "pattern": "playwright.*launch|browser.*type|multi.*browser",
+  "parameters": [
+    "browser_type",
+    "url"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); console.log('Chromium - Title:', await page.title()); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Chromium - Title: Example Domain\n\nChromium browser tested"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const { firefox } = require('playwright'); (async () => { const browser = await firefox.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); console.log('Firefox - Title:', await page.title()); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Firefox - Title: Example Domain\n\nFirefox browser tested"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const { webkit } = require('playwright'); (async () => { const browser = await webkit.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); console.log('WebKit - Title:', await page.title()); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "WebKit - Title: Example Domain\n\nWebKit (Safari) browser tested"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

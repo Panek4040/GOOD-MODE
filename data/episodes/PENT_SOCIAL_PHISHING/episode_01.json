@@ -1,0 +1,97 @@
+{
+  "title": "Corporate Phishing Campaign - C-Suite Credential Harvesting",
+  "description": "Targeted phishing assessment against executive team using Gophish and custom landing pages. Demonstrates effectiveness of sophisticated social engineering against high-value targets.",
+  "difficulty": "intermediate",
+  "scenario": "Security awareness assessment for financial services company. Client requested phishing simulation targeting executive team (C-suite and VPs) to measure susceptibility and identify training needs. Authorized engagement with full executive awareness and consent.",
+  "steps": [
+    {
+      "step_number": 1,
+      "tool": "osint_pretexting_recon",
+      "action": "Gather intelligence on executive team",
+      "parameters": {
+        "company": "FinanceCorpExec"
+      },
+      "expected_result": "Identified 12 executives with LinkedIn profiles, email addresses, interests (golf, Harvard alumni), communication patterns",
+      "explanation": "OSINT provides personalization data for convincing pretexts"
+    },
+    {
+      "step_number": 2,
+      "tool": "gophish_phishing_campaign",
+      "action": "Create personalized phishing campaign in Gophish",
+      "parameters": {
+        "target_group": "C-Suite",
+        "template": "Office365 Password Reset"
+      },
+      "expected_result": "Campaign configured with 12 targets, personalized emails using {{.FirstName}}, branded Office 365 template",
+      "explanation": "Gophish enables tracking of opens, clicks, submissions"
+    },
+    {
+      "step_number": 3,
+      "tool": "credential_harvester_pages",
+      "action": "Clone Microsoft Office 365 login page",
+      "parameters": {
+        "target_site": "https://login.microsoftonline.com"
+      },
+      "expected_result": "Pixel-perfect clone deployed at https://office-security-update.com, SSL certificate from Let's Encrypt",
+      "explanation": "Authentic appearance increases success rate significantly"
+    },
+    {
+      "step_number": 4,
+      "tool": "email_spoofing_smtp",
+      "action": "Send emails from spoofed IT Security address",
+      "parameters": {
+        "from": "security@financecorp.com",
+        "smtp": "smtp.sendgrid.net"
+      },
+      "expected_result": "12 emails delivered successfully, SPF/DKIM passed, landed in inbox (not spam)",
+      "explanation": "Proper SPF alignment prevents spam filtering"
+    },
+    {
+      "step_number": 5,
+      "tool": "gophish_phishing_campaign",
+      "action": "Monitor campaign results in real-time",
+      "parameters": {},
+      "expected_result": "After 4 hours: 10/12 opened (83%), 7/12 clicked (58%), 4/12 submitted credentials (33%)",
+      "explanation": "High success rate typical for targeted C-suite campaigns"
+    },
+    {
+      "step_number": 6,
+      "tool": "credential_harvester_pages",
+      "action": "Review harvested credentials",
+      "parameters": {},
+      "expected_result": "Captured 4 sets of credentials including CFO (john.doe / P@ssw0rd123), CTO, VP Finance, VP Operations",
+      "explanation": "Demonstrates real-world impact of successful phishing"
+    },
+    {
+      "step_number": 7,
+      "tool": "gophish_phishing_campaign",
+      "action": "Generate executive summary report",
+      "parameters": {},
+      "expected_result": "PDF report: 33% credential submission rate, recommendations for security awareness training, MFA enforcement, email security controls",
+      "explanation": "Comprehensive reporting demonstrates value and drives remediation"
+    }
+  ],
+  "outcome": "Successful demonstration of phishing vulnerability at executive level. 4 of 12 executives (33%) submitted credentials within 4 hours. CFO, CTO, and 2 VPs compromised. Zero executives reported suspicious email. Recommendations implemented: mandatory security awareness training for all executives, enforced MFA on all accounts, advanced email filtering with link rewriting, regular phishing simulations, executive-specific security briefings. Follow-up simulation 3 months later showed 90% reduction in credential submission (only 1 of 12 clicked).",
+  "learning_objectives": [
+    "Deploy Gophish phishing framework",
+    "Create convincing landing pages",
+    "Use OSINT for personalization",
+    "Monitor campaign metrics",
+    "Generate professional reports",
+    "Provide effective remediation guidance"
+  ],
+  "metadata": {
+    "created_by": "neural_mesh_v5.2_generator",
+    "category": "pentesting",
+    "subcategory": "social_engineering",
+    "tools_used": [
+      "gophish_phishing_campaign",
+      "credential_harvester_pages",
+      "osint_pretexting_recon",
+      "email_spoofing_smtp"
+    ],
+    "estimated_time": "2-3 days",
+    "authorization_required": true,
+    "severity": "high"
+  }
+}

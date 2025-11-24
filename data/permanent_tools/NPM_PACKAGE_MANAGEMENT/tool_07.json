@@ -1,0 +1,132 @@
+{
+  "name": "npm_configuration",
+  "description": "Configuring npm behavior with config and npmrc files",
+  "sequences": [
+    {
+      "id": "seq_1",
+      "description": "View and set npm configuration",
+      "steps": [
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "config",
+              "list"
+            ]
+          },
+          "expected_output": "; \"user\" config from /home/user/.npmrc\n\nregistry = \"https://registry.npmjs.org/\"\nsave-exact = true\ninit-author-name = \"Your Name\"",
+          "explanation": "Lists all npm configuration values"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "config",
+              "get",
+              "registry"
+            ]
+          },
+          "expected_output": "https://registry.npmjs.org/",
+          "explanation": "Gets specific configuration value"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "config",
+              "set",
+              "save-exact",
+              "true"
+            ]
+          },
+          "expected_output": "",
+          "explanation": "Sets config to save exact versions in package.json"
+        }
+      ]
+    },
+    {
+      "id": "seq_2",
+      "description": "Configure custom registry and scopes",
+      "steps": [
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "config",
+              "set",
+              "registry",
+              "https://npm.company.com/"
+            ]
+          },
+          "expected_output": "",
+          "explanation": "Sets custom npm registry for private packages"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "config",
+              "set",
+              "@myorg:registry",
+              "https://npm.company.com/"
+            ]
+          },
+          "expected_output": "",
+          "explanation": "Sets scope-specific registry for organization packages"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "config",
+              "delete",
+              "registry"
+            ]
+          },
+          "expected_output": "",
+          "explanation": "Removes custom registry, reverts to default"
+        }
+      ]
+    },
+    {
+      "id": "seq_3",
+      "description": "Manage project-level and global configuration",
+      "steps": [
+        {
+          "action": {
+            "command": "bash",
+            "args": [
+              "-c",
+              "cat > .npmrc << 'EOF'\npackage-lock=true\nsave-exact=true\nengine-strict=true\nEOF"
+            ]
+          },
+          "expected_output": "Created project .npmrc",
+          "explanation": "Creates project-specific npm configuration"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "config",
+              "get",
+              "userconfig"
+            ]
+          },
+          "expected_output": "/home/user/.npmrc",
+          "explanation": "Shows location of user-level npmrc file"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "config",
+              "edit"
+            ]
+          },
+          "expected_output": "Opening /home/user/.npmrc in editor",
+          "explanation": "Opens user npmrc in default editor for manual editing"
+        }
+      ]
+    }
+  ]
+}

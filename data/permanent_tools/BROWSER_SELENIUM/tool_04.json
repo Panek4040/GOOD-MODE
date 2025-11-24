@@ -1,0 +1,67 @@
+{
+  "name": "selenium_forms_authentication",
+  "description": "Automated form filling, login sequences, and authentication workflows",
+  "pattern": "selenium.*form|login.*automation|webdriver.*auth",
+  "parameters": [
+    "username",
+    "password",
+    "form_url"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "from selenium import webdriver; from selenium.webdriver.common.by import By; driver = webdriver.Chrome(); driver.get('https://the-internet.herokuapp.com/login'); driver.find_element(By.ID, 'username').send_keys('tomsmith'); driver.find_element(By.ID, 'password').send_keys('SuperSecretPassword!'); driver.find_element(By.CSS_SELECTOR, 'button[type=\"submit\"]').click(); print('Login submitted'); driver.quit()"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Login submitted\n\nCredentials entered and form submitted successfully"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "from selenium import webdriver; from selenium.webdriver.common.by import By; from selenium.webdriver.support.ui import Select; driver = webdriver.Chrome(); driver.get('https://the-internet.herokuapp.com/dropdown'); dropdown = Select(driver.find_element(By.ID, 'dropdown')); dropdown.select_by_visible_text('Option 1'); print(f'Selected: {dropdown.first_selected_option.text}'); driver.quit()"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Selected: Option 1\n\nDropdown option selected"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "from selenium import webdriver; from selenium.webdriver.common.by import By; driver = webdriver.Chrome(); driver.get('https://the-internet.herokuapp.com/checkboxes'); checkboxes = driver.find_elements(By.CSS_SELECTOR, 'input[type=\"checkbox\"]'); for cb in checkboxes: if not cb.is_selected(): cb.click(); print('All checkboxes checked'); driver.quit()"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "All checkboxes checked\n\nCheckbox states toggled programmatically"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

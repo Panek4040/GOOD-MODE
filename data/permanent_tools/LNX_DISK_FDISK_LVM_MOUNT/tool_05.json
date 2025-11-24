@@ -1,1 +1,98 @@
-{"name":"lnx_disk_fdisk_lvm_mount_t05","description":"LNX_DISK_FDISK_LVM_MOUNT tool 05","pattern":"tool","parameters":["p"],"sequence":[{"action":{"type":"system_command","tool":"shell","operation":"run","command":"ls","args":["-la"]},"expected_output":{"type":"string","example":"total 0"}}],"stats":{"uses":0,"successes":0,"failures":0,"success_rate":0.0},"created_by":"neural_mesh_v5.2_generator"}
+{
+  "name": "mkfs_filesystem_creation_formatting",
+  "description": "Create and format filesystems - ext4, xfs, btrfs with mkfs commands",
+  "pattern": "mkfs.*create|format.*filesystem|create.*ext4|filesystem.*format",
+  "parameters": [
+    "device",
+    "fs_type",
+    "label"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "lsblk {{device}} -o NAME,SIZE,FSTYPE"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "NAME            SIZE FSTYPE\nvg-system-data  50G  (empty - ready for formatting)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "blkid {{device}} || echo 'No filesystem detected'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "No filesystem detected - device is unformatted"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "mkfs.{{fs_type}} -L '{{label}}' {{device}} 2>&1 | grep -E 'Creating|Allocating|Writing'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Creating filesystem with 13107200 4k blocks and 3276800 inodes\nAllocating group tables: done\nWriting inode tables: done\nCreating journal (65536 blocks): done\nFilesystem UUID: a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "blkid",
+        "args": [
+          "{{device}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "/dev/mapper/vg-system-data: LABEL=\"{{label}}\" UUID=\"a1b2c3d4-e5f6-7890-abcd-ef1234567890\" TYPE=\"{{fs_type}}\""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "tune2fs -l {{device}} | grep -E 'Filesystem created|Block count|Inode count|Block size'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Filesystem created:       Mon Nov 18 14:30:45 2025\nBlock count:              13107200\nInode count:              3276800\nBlock size:               4096"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

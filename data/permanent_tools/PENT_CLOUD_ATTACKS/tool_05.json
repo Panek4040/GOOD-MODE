@@ -1,0 +1,66 @@
+{
+  "name": "gcp_exploitation",
+  "description": "Google Cloud Platform reconnaissance and exploitation",
+  "pattern": "gcp.*enum|gcloud.*exploit|google.*cloud",
+  "parameters": [
+    "project_id",
+    "service_account"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "gcloud",
+        "args": [
+          "projects",
+          "list"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "PROJECT_ID          NAME                PROJECT_NUMBER\nproduction-app-123  Production App      123456789012\ndev-environment-456 Development Env     234567890123\n\n2 GCP projects discovered"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "gcloud",
+        "args": [
+          "compute",
+          "instances",
+          "list"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "NAME            ZONE        MACHINE_TYPE  STATUS\nweb-server-1    us-east1-b  n1-standard-2 RUNNING\ndatabase-vm     us-east1-b  n1-standard-4 RUNNING\n\n2 compute instances found"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "gsutil",
+        "args": [
+          "ls"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "gs://prod-application-data/\ngs://backup-storage-bucket/\ngs://customer-uploads/\n\n3 GCS buckets enumerated"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

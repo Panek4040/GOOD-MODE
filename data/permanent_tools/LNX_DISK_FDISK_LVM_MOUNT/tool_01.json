@@ -1,1 +1,98 @@
-{"name":"lnx_disk_fdisk_lvm_mount_t01","description":"LNX_DISK_FDISK_LVM_MOUNT tool 01","pattern":"tool","parameters":["p"],"sequence":[{"action":{"type":"system_command","tool":"shell","operation":"run","command":"ls","args":["-la"]},"expected_output":{"type":"string","example":"total 0"}}],"stats":{"uses":0,"successes":0,"failures":0,"success_rate":0.0},"created_by":"neural_mesh_v5.2_generator"}
+{
+  "name": "fdisk_partition_disk_management",
+  "description": "Manage disk partitions using fdisk - list, create, delete, modify partition tables",
+  "pattern": "fdisk.*partition|disk.*partition|partition.*table|create.*partition",
+  "parameters": [
+    "device",
+    "operation"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "fdisk",
+        "args": [
+          "-l",
+          "{{device}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Disk /dev/sda: 238.5 GiB, 256060514304 bytes, 500118192 sectors\nUnits: sectors of 1 * 512 = 512 bytes\nDevice     Boot   Start       End   Sectors   Size Id Type\n/dev/sda1  *       2048   1050623   1048576   512M 83 Linux\n/dev/sda2       1050624 500118191 499067568 237.9G 8e Linux LVM"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "fdisk -l {{device}} | grep -E 'Disk |Device'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Disk /dev/sda: 238.5 GiB\nDevice: /dev/sda1 (512M), /dev/sda2 (237.9G)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "lsblk {{device}} -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINT"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "NAME   SIZE TYPE FSTYPE MOUNTPOINT\nsda    238.5G disk\n├─sda1  512M part ext4   /boot\n└─sda2  237.9G part LVM2_member"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "fdisk -l {{device}} | grep 'Disk model'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Disk model: Samsung SSD 970 EVO Plus 250GB"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "parted {{device}} print 2>/dev/null | grep -E 'Model|Partition Table|Number'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Model: ATA Samsung SSD 970\nPartition Table: gpt\nNumber  Start   End    Size   File system  Name  Flags"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

@@ -1,0 +1,66 @@
+{
+  "name": "playwright_selectors_actions",
+  "description": "Advanced element selection with Playwright locators and actions",
+  "pattern": "playwright.*locator|page.*getBy|element.*action",
+  "parameters": [
+    "selector_strategy",
+    "action_type"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); const heading = await page.locator('h1').textContent(); console.log('Found:', heading); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Found: Example Domain\n\nElement located and text extracted"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch(); const page = await browser.newPage(); await page.goto('https://google.com'); await page.getByRole('textbox', {name: /search/i}).fill('Playwright automation'); await page.keyboard.press('Enter'); await page.waitForLoadState('networkidle'); console.log('Search performed'); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Search performed\n\nRole-based selector with fill action"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const { chromium } = require('playwright'); (async () => { const browser = await chromium.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); const links = await page.getByRole('link').all(); console.log(`Found ${links.length} links`); for (const link of links) { console.log('  -', await link.textContent()); } await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Found 1 links\n  - More information...\n\nMultiple elements iterated"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

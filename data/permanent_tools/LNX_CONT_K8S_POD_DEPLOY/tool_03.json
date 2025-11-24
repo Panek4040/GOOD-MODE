@@ -2,7 +2,10 @@
   "name": "kubectl_apply_manifest_yaml_files",
   "description": "Apply Kubernetes resources from YAML manifest files declaratively",
   "pattern": "kubectl.*apply|apply.*manifest|k8s.*yaml.*apply",
-  "parameters": ["manifest_path", "namespace"],
+  "parameters": [
+    "manifest_path",
+    "namespace"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "cat",
-        "args": ["{{manifest_path}}"]
+        "args": [
+          "{{manifest_path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +28,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["apply", "-f", "{{manifest_path}}", "-n", "{{namespace}}"]
+        "args": [
+          "apply",
+          "-f",
+          "{{manifest_path}}",
+          "-n",
+          "{{namespace}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +47,14 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["get", "all", "-n", "{{namespace}}", "-l", "app=nginx"]
+        "args": [
+          "get",
+          "all",
+          "-n",
+          "{{namespace}}",
+          "-l",
+          "app=nginx"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +67,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["diff", "-f", "{{manifest_path}}", "-n", "{{namespace}}"]
+        "args": [
+          "diff",
+          "-f",
+          "{{manifest_path}}",
+          "-n",
+          "{{namespace}}"
+        ]
       },
       "expected_output": {
         "type": "string",

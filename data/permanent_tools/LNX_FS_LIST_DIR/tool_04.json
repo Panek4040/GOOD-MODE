@@ -2,7 +2,10 @@
   "name": "list_by_modification_time",
   "description": "List files sorted by modification time with detailed timestamps",
   "pattern": "recent.*files|sort.*time|newest.*files|modified.*last",
-  "parameters": ["path", "limit"],
+  "parameters": [
+    "path",
+    "limit"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["{{path}}", "-type", "f", "-printf", "%T@|%p|%s|%TY-%Tm-%Td %TH:%TM:%TS\\n"]
+        "args": [
+          "{{path}}",
+          "-type",
+          "f",
+          "-printf",
+          "%T@|%p|%s|%TY-%Tm-%Td %TH:%TM:%TS\\n"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +32,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -printf '%T@|%p|%s|%TY-%Tm-%Td %TH:%TM:%TS\\n' | sort -rn"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -printf '%T@|%p|%s|%TY-%Tm-%Td %TH:%TM:%TS\\n' | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +48,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -printf '%T@|%p|%s|%TY-%Tm-%Td %TH:%TM:%TS\\n' | sort -rn | head -n {{limit}}"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -printf '%T@|%p|%s|%TY-%Tm-%Td %TH:%TM:%TS\\n' | sort -rn | head -n {{limit}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +64,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "ls -lt '{{path}}' | head -n {{limit}}"]
+        "args": [
+          "-c",
+          "ls -lt '{{path}}' | head -n {{limit}}"
+        ]
       },
       "expected_output": {
         "type": "string",

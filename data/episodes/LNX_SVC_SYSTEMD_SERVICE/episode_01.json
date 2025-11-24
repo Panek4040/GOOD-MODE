@@ -1,1 +1,70 @@
-{"episode_id":"LNX_SVC_SYSTEMD_SERVICE_EP01","title":"Episode 01","description":"Task 01","difficulty":"intermediate","steps":[{"step_number":1,"instruction":"Do task","tool":"tool1","parameters":{},"expected_outcome":"Success"}],"success_criteria":"Complete","cleanup":"None"}
+{
+  "episode_id": "LNX_SVC_SYSTEMD_SERVICE_EP01",
+  "title": "Deploy and Configure New Web Application Service",
+  "description": "Create custom systemd service for web app, configure autostart, monitor logs",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Check if nginx is running and enabled for our reverse proxy",
+      "tool": "systemctl_start_stop_restart_service",
+      "parameters": {
+        "service_name": "nginx",
+        "action": "status"
+      },
+      "expected_outcome": "nginx active (running), enabled at boot"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Create custom systemd service for Node.js application",
+      "tool": "systemd_create_custom_service_unit",
+      "parameters": {
+        "service_name": "myapp",
+        "exec_command": "/usr/bin/node /opt/myapp/server.js",
+        "description": "My Node.js Web Application"
+      },
+      "expected_outcome": "Service file created at /etc/systemd/system/myapp.service"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Reload systemd daemon to recognize new service",
+      "tool": "systemctl_reload_daemon_and_services",
+      "parameters": {
+        "service_name": "myapp",
+        "reload_type": "reload"
+      },
+      "expected_outcome": "daemon-reload executed, new service recognized"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Enable myapp service to start automatically at boot",
+      "tool": "systemctl_enable_disable_autostart",
+      "parameters": {
+        "service_name": "myapp",
+        "enable_action": "enable"
+      },
+      "expected_outcome": "Symlink created, myapp will start at boot"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Start the application service",
+      "tool": "systemctl_start_stop_restart_service",
+      "parameters": {
+        "service_name": "myapp",
+        "action": "start"
+      },
+      "expected_outcome": "myapp.service started successfully, active (running)"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Check service logs to verify successful startup",
+      "tool": "systemctl_status_logs_journal",
+      "parameters": {
+        "service_name": "myapp"
+      },
+      "expected_outcome": "Logs show 'Server started on port 3000', no errors"
+    }
+  ],
+  "success_criteria": "Custom application service created, enabled, started, logs show healthy state",
+  "cleanup": "Configure nginx reverse proxy to point to localhost:3000"
+}

@@ -2,7 +2,10 @@
   "name": "schedule_at_job",
   "description": "Schedule one-time task execution using at command",
   "pattern": "schedule.*once|at.*command|one.*time.*task",
-  "parameters": ["time_spec", "command"],
+  "parameters": [
+    "time_spec",
+    "command"
+  ],
   "sequence": [
     {
       "action": {
@@ -23,7 +26,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo '{{command}}' | at {{time_spec}}"]
+        "args": [
+          "-c",
+          "echo '{{command}}' | at {{time_spec}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +55,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "at -c 12 | tail -5"]
+        "args": [
+          "-c",
+          "at -c 12 | tail -5"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +71,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo 'Scheduled job 12 for: {{time_spec}}'"]
+        "args": [
+          "-c",
+          "echo 'Scheduled job 12 for: {{time_spec}}'"
+        ]
       },
       "expected_output": {
         "type": "string",

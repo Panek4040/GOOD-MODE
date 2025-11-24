@@ -1,0 +1,65 @@
+{
+  "name": "xpath_advanced_selection",
+  "description": "Complex data extraction using XPath expressions",
+  "pattern": "xpath.*query|lxml.*xpath|xml.*path",
+  "parameters": [
+    "xpath_expression"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "import requests; from lxml import html; response = requests.get('https://example.com'); tree = html.fromstring(response.content); title = tree.xpath('//title/text()')[0]; heading = tree.xpath('//h1/text()')[0]; print(f'Title: {title}'); print(f'Heading: {heading}')"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Title: Example Domain\nHeading: Example Domain\n\nXPath extraction successful"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "import requests; from lxml import html; response = requests.get('https://example.com'); tree = html.fromstring(response.content); links = tree.xpath('//a/@href'); link_texts = tree.xpath('//a/text()'); print(f'Links: {len(links)}'); [print(f'  {text}: {href}') for text, href in zip(link_texts, links)]"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Links: 1\n  More information...: https://www.iana.org/domains/example\n\nXPath attribute and text extraction"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "import requests; from lxml import html; response = requests.get('https://example.com'); tree = html.fromstring(response.content); paragraphs = tree.xpath('//p'); print(f'Paragraphs found: {len(paragraphs)}'); [print(f'P{i+1}: {p.text_content()[:50]}...') for i, p in enumerate(paragraphs)]"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Paragraphs found: 2\nP1: This domain is for use in illustrative examples...\nP2: More information...\n\nComplex XPath query"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

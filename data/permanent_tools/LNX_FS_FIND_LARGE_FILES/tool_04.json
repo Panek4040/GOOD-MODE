@@ -2,7 +2,11 @@
   "name": "find_large_with_age",
   "description": "Find large files older than specified days",
   "pattern": "old.*large.*files|large.*files.*older|size.*age",
-  "parameters": ["path", "min_size_mb", "days_old"],
+  "parameters": [
+    "path",
+    "min_size_mb",
+    "days_old"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,15 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["{{path}}", "-type", "f", "-size", "+{{min_size_mb}}M", "-mtime", "+{{days_old}}"]
+        "args": [
+          "{{path}}",
+          "-type",
+          "f",
+          "-size",
+          "+{{min_size_mb}}M",
+          "-mtime",
+          "+{{days_old}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +35,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -mtime +{{days_old}} -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -size +{{min_size_mb}}M -mtime +{{days_old}} -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +51,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -mtime +{{days_old}} -exec stat -c '%s|%n|%y' {} \\;"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -size +{{min_size_mb}}M -mtime +{{days_old}} -exec stat -c '%s|%n|%y' {} \\;"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +67,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -mtime +{{days_old}} -printf '%s %p\\n' | awk '{sum+=$1; count++; print} END {print \"Total files: \"count; print \"Total size: \"sum}'"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -size +{{min_size_mb}}M -mtime +{{days_old}} -printf '%s %p\\n' | awk '{sum+=$1; count++; print} END {print \"Total files: \"count; print \"Total size: \"sum}'"
+        ]
       },
       "expected_output": {
         "type": "string",

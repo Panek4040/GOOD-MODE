@@ -1,1 +1,87 @@
-{"episode_id":"LNX_PERF_IOSTAT_VMSTAT_EP02","title":"Episode 02","description":"Task 02","difficulty":"intermediate","steps":[{"step_number":1,"instruction":"Do task","tool":"tool1","parameters":{},"expected_outcome":"Success"}],"success_criteria":"Complete","cleanup":"None"}
+{
+  "episode_id": "LNX_PERF_IOSTAT_VMSTAT_EP02",
+  "title": "Optimize Database Server Resource Usage",
+  "description": "PostgreSQL server running slow queries - analyze and optimize CPU, memory, I/O usage",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Baseline measurement - check current system load",
+      "tool": "uptime_load_average_system_monitoring",
+      "parameters": {},
+      "expected_outcome": "8 CPU system with load: 12.34, 11.23, 10.45 - sustained high load"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Monitor memory usage patterns",
+      "tool": "free_memory_usage_swap_monitor",
+      "parameters": {
+        "interval": "3",
+        "unit": "g"
+      },
+      "expected_outcome": "16GB total, 14.2GB used, only 1.8GB available - PostgreSQL using 12GB"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Check all CPU cores for balanced utilization",
+      "tool": "mpstat_multiprocessor_cpu_statistics",
+      "parameters": {
+        "interval": "2",
+        "cpu_id": "ALL"
+      },
+      "expected_outcome": "CPUs 0-3: 78% user, CPUs 4-7: 23% user - parallel query execution unbalanced"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Analyze disk I/O performance for database partition",
+      "tool": "iostat_disk_io_performance_monitor",
+      "parameters": {
+        "interval": "1",
+        "device": "nvme0n1"
+      },
+      "expected_outcome": "nvme0n1: r/s 456, w/s 234, await 12ms, util 45% - disk performance acceptable"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Use sar to check network activity for remote queries",
+      "tool": "sar_system_activity_reporter",
+      "parameters": {
+        "interval": "2",
+        "metric_type": "n"
+      },
+      "expected_output": "eth0: 2345 pck/s in, 1234 pck/s out, 45MB/s throughput - network not bottleneck"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Monitor vmstat for comprehensive system metrics",
+      "tool": "vmstat_memory_cpu_process_statistics",
+      "parameters": {
+        "interval": "2",
+        "count": "15"
+      },
+      "expected_outcome": "High 'us' (user CPU): 67%, low 'wa': 3%, no swap - CPU-bound workload confirmed"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Identify specific postgres processes consuming resources",
+      "tool": "top_htop_realtime_process_monitor",
+      "parameters": {
+        "sort_by": "%cpu",
+        "user": "postgres"
+      },
+      "expected_outcome": "Found: 4 postgres processes at 95% CPU each running complex JOIN queries"
+    },
+    {
+      "step_number": 8,
+      "instruction": "Monitor system activity over 5 minutes for pattern analysis",
+      "tool": "sar_system_activity_reporter",
+      "parameters": {
+        "interval": "10",
+        "metric_type": "q"
+      },
+      "expected_outcome": "Queue size averaging 8-12 processes, matches CPU count - optimal parallelism"
+    }
+  ],
+  "success_criteria": "Identified CPU-bound workload with unbalanced core usage - optimized queries, added indexes, enabled parallel workers",
+  "cleanup": "Query optimization reduced avg CPU from 67% to 23%, added pg_stat_statements monitoring"
+}

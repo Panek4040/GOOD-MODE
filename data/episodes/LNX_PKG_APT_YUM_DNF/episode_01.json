@@ -1,1 +1,69 @@
-{"episode_id":"LNX_PKG_APT_YUM_DNF_EP01","title":"Setup New Web Server with Required Packages","description":"Install nginx, configure repos, update system, install dependencies","difficulty":"intermediate","steps":[{"step_number":1,"instruction":"Update package lists to get latest versions","tool":"apt_install_update_packages","parameters":{"package_name":"","operation":"update"},"expected_outcome":"Package lists updated from all repositories"},{"step_number":2,"instruction":"Upgrade all installed packages to latest versions","tool":"apt_install_update_packages","parameters":{"package_name":"","operation":"upgrade"},"expected_outcome":"System upgraded, 47 packages updated"},{"step_number":3,"instruction":"Install nginx web server","tool":"apt_install_update_packages","parameters":{"package_name":"nginx","operation":"install"},"expected_outcome":"nginx 1.18.0 installed with dependencies"},{"step_number":4,"instruction":"Install PHP-FPM for dynamic content","tool":"apt_install_update_packages","parameters":{"package_name":"php-fpm","operation":"install"},"expected_outcome":"PHP 8.1 with FPM installed"},{"step_number":5,"instruction":"Search for available SSL/TLS packages","tool":"apt_search_show_package_info","parameters":{"search_term":"certbot"},"expected_outcome":"Found certbot for Let's Encrypt certificates"},{"step_number":6,"instruction":"Install certbot for SSL certificates","tool":"apt_install_update_packages","parameters":{"package_name":"certbot","operation":"install"},"expected_outcome":"certbot installed for HTTPS configuration"}],"success_criteria":"Web server stack installed: nginx, PHP, SSL tools configured","cleanup":"systemctl enable nginx php-fpm"}
+{
+  "episode_id": "LNX_PKG_APT_YUM_DNF_EP01",
+  "title": "Setup New Web Server with Required Packages",
+  "description": "Install nginx, configure repos, update system, install dependencies",
+  "difficulty": "intermediate",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Update package lists to get latest versions",
+      "tool": "apt_install_update_packages",
+      "parameters": {
+        "package_name": "",
+        "operation": "update"
+      },
+      "expected_outcome": "Package lists updated from all repositories"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Upgrade all installed packages to latest versions",
+      "tool": "apt_install_update_packages",
+      "parameters": {
+        "package_name": "",
+        "operation": "upgrade"
+      },
+      "expected_outcome": "System upgraded, 47 packages updated"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Install nginx web server",
+      "tool": "apt_install_update_packages",
+      "parameters": {
+        "package_name": "nginx",
+        "operation": "install"
+      },
+      "expected_outcome": "nginx 1.18.0 installed with dependencies"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Install PHP-FPM for dynamic content",
+      "tool": "apt_install_update_packages",
+      "parameters": {
+        "package_name": "php-fpm",
+        "operation": "install"
+      },
+      "expected_outcome": "PHP 8.1 with FPM installed"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Search for available SSL/TLS packages",
+      "tool": "apt_search_show_package_info",
+      "parameters": {
+        "search_term": "certbot"
+      },
+      "expected_outcome": "Found certbot for Let's Encrypt certificates"
+    },
+    {
+      "step_number": 6,
+      "instruction": "Install certbot for SSL certificates",
+      "tool": "apt_install_update_packages",
+      "parameters": {
+        "package_name": "certbot",
+        "operation": "install"
+      },
+      "expected_outcome": "certbot installed for HTTPS configuration"
+    }
+  ],
+  "success_criteria": "Web server stack installed: nginx, PHP, SSL tools configured",
+  "cleanup": "systemctl enable nginx php-fpm"
+}

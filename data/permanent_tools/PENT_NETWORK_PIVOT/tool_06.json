@@ -1,0 +1,147 @@
+{
+  "name": "sshuttle_vpn",
+  "description": "SSHuttle transparent proxy VPN over SSH for network pivoting",
+  "pattern": "sshuttle|ssh.*vpn|transparent.*proxy",
+  "parameters": [
+    "ssh_host",
+    "target_network"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "sshuttle",
+        "args": [
+          "-r",
+          "user@10.10.10.100",
+          "192.168.10.0/24",
+          "-v"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Starting sshuttle proxy (version 1.1.1).\nc : Connected to server.\nfw: Starting firewall with Python version 3.10.6\nfw: ready method name nat.\nfw: setting up.\nfw: iptables -t nat -N sshuttle-12345\nfw: iptables -t nat -F sshuttle-12345\nfw: iptables -t nat -I OUTPUT 1 -j sshuttle-12345\nfw: iptables -t nat -I PREROUTING 1 -j sshuttle-12345\nfw: iptables -t nat -A sshuttle-12345 -d 192.168.10.0/24 -j REDIRECT --to-ports 12300\n\nSSHuttle VPN established:\n  Remote: user@10.10.10.100\n  Network: 192.168.10.0/24\n  Method: iptables NAT redirection\n  Mode: Transparent proxy\n\nAll traffic to 192.168.10.0/24 automatically routed:\n  ping 192.168.10.20        ✓ No proxy needed\n  curl http://192.168.10.50 ✓ No proxy needed\n  nmap -sS 192.168.10.0/24  ✓ No proxy needed\n\nAdvantages:\n  - No application configuration\n  - No proxychains\n  - Works with all TCP applications\n  - DNS tunneled through SSH\n\nPress Ctrl+C to disconnect"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "sshuttle",
+        "args": [
+          "-r",
+          "user@10.10.10.100",
+          "192.168.10.0/24",
+          "172.16.5.0/24",
+          "--dns"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "c : Connected to server.\nfw: Starting firewall with Python version 3.10.6\nfw: ready method name nat.\nfw: setting up.\nfw: iptables -t nat -A sshuttle-12346 -d 192.168.10.0/24 -j REDIRECT --to-ports 12300\nfw: iptables -t nat -A sshuttle-12346 -d 172.16.5.0/24 -j REDIRECT --to-ports 12300\nfw: iptables -t nat -A sshuttle-12346 -p udp --dport 53 -j REDIRECT --to-ports 12299\n\nMultiple networks tunneled:\n  Network 1: 192.168.10.0/24\n  Network 2: 172.16.5.0/24\n  DNS: Enabled (--dns flag)\n\nDNS queries tunneled:\n  - UDP port 53 redirected\n  - Resolves internal hostnames\n  - Uses pivot's DNS servers\n\nExample:\n  nslookup dc01.corp.local\n  Server:   192.168.10.10\n  Address:  192.168.10.10#53\n  \n  Name: dc01.corp.local\n  Address: 192.168.10.10\n\nAccess by hostname:\n  ping dc01.corp.local\n  curl http://intranet.corp.local\n  crackmapexec smb dc01.corp.local"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "sshuttle",
+        "args": [
+          "-r",
+          "user@10.10.10.100",
+          "0.0.0.0/0",
+          "-x",
+          "10.10.10.100"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "c : Connected to server.\nfw: Starting firewall with Python version 3.10.6\nfw: ready method name nat.\nfw: setting up.\nfw: iptables -t nat -A sshuttle-12347 -d 0.0.0.0/0 -j REDIRECT --to-ports 12300\nfw: iptables -t nat -I sshuttle-12347 -d 10.10.10.100/32 -j RETURN\n\nFull tunnel mode (0.0.0.0/0):\n  All traffic routed through SSH tunnel\n  Exception: 10.10.10.100 (-x flag excludes SSH host)\n\nUse case:\n  - Route ALL internet traffic through pivot\n  - Appear as originating from pivot's network\n  - Bypass geo-restrictions\n  - Hide attacker's IP\n\nPublic IP check:\n  curl ifconfig.me\n  10.10.10.100  (pivot's public IP)\n\nWarning:\n  - Very slow for general browsing\n  - Only use for specific testing\n  - Ctrl+C to restore normal routing"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "sshuttle",
+        "args": [
+          "-r",
+          "user@10.10.10.100",
+          "192.168.10.0/24",
+          "--daemon",
+          "--pidfile=/tmp/sshuttle.pid"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "c : Connected to server.\nfw: Starting firewall with Python version 3.10.6\nfw: ready method name nat.\nfw: setting up.\nfw: iptables rules applied.\nc : Background mode enabled. PID file: /tmp/sshuttle.pid\n\nSSHuttle running in background:\n  PID file: /tmp/sshuttle.pid\n  Status: Active\n  Network: 192.168.10.0/24\n\nManagement:\n  Check status: ps aux | grep sshuttle\n  View PID:     cat /tmp/sshuttle.pid\n  Kill tunnel:  kill $(cat /tmp/sshuttle.pid)\n\nPersistence:\n  Add to startup script or systemd service\n\nVerify tunnel:\n  ping 192.168.10.20\n  netstat -tlnp | grep 12300\n\nTunnel remains active until killed or system reboot"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "sshuttle",
+        "args": [
+          "-r",
+          "user@10.10.10.100",
+          "192.168.10.0/24",
+          "-e",
+          "ssh -i ~/.ssh/pivot_key"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "c : Connected to server.\nfw: Starting firewall with Python version 3.10.6\nfw: ready method name nat.\nfw: setting up.\n\nSSHuttle with SSH key authentication:\n  SSH command: ssh -i ~/.ssh/pivot_key\n  Remote: user@10.10.10.100\n  Network: 192.168.10.0/24\n\nCustom SSH options (-e flag):\n  - SSH key: ~/.ssh/pivot_key\n  - No password prompt\n  - Useful for automation\n\nOther SSH options:\n  -e 'ssh -p 2222'                 (Custom port)\n  -e 'ssh -o StrictHostKeyChecking=no'  (Skip host key check)\n  -e 'ssh -J jumphost'             (Jump host/bastion)\n\nExample with jump host:\n  sshuttle -r user@internal.srv 192.168.10.0/24 -e 'ssh -J user@bastion.com'\n\nTraffic flow:\n  Attacker -> bastion.com -> internal.srv -> 192.168.10.0/24"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "sshuttle",
+        "args": [
+          "-r",
+          "user@10.10.10.100",
+          "192.168.10.0/24",
+          "--python",
+          "/usr/bin/python3"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "c : Connected to server.\nc : Using Python: /usr/bin/python3\nfw: Starting firewall with Python version 3.10.6\nfw: ready method name nat.\nfw: setting up.\n\nSSHuttle with custom Python interpreter:\n  Local Python: Default system Python\n  Remote Python: /usr/bin/python3\n\nUse case:\n  Remote system has Python in non-standard location\n  Multiple Python versions on target\n  Python2 vs Python3 compatibility\n\nCommon remote Python paths:\n  --python /usr/bin/python3\n  --python /usr/local/bin/python3\n  --python /opt/python3/bin/python3\n\nFind Python on target:\n  ssh user@10.10.10.100 'which python3'\n  /usr/bin/python3\n\nNote: SSHuttle requires Python on both attacker and target"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > /etc/systemd/system/sshuttle.service << 'EOF'\n[Unit]\nDescription=SSHuttle VPN to Internal Network\nAfter=network.target\n\n[Service]\nType=simple\nUser=root\nExecStart=/usr/bin/sshuttle -r user@10.10.10.100 192.168.10.0/24 --dns --daemon --pidfile=/var/run/sshuttle.pid\nExecStop=/bin/kill $MAINPID\nRestart=always\nRestartSec=10\n\n[Install]\nWantedBy=multi-user.target\nEOF\nsystemctl daemon-reload && systemctl enable sshuttle.service"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Created symlink /etc/systemd/system/multi-user.target.wants/sshuttle.service → /etc/systemd/system/sshuttle.service.\n\nSSHuttle systemd service created:\n  Service: sshuttle.service\n  Status: Enabled\n  Network: 192.168.10.0/24\n  Remote: user@10.10.10.100\n\nFeatures:\n  - Auto-start on boot\n  - Auto-restart on failure\n  - DNS tunneling enabled\n  - Persistent tunnel\n\nManagement:\n  systemctl start sshuttle\n  systemctl stop sshuttle\n  systemctl status sshuttle\n  journalctl -u sshuttle -f\n\nRequirements:\n  - SSH key authentication (no password)\n  - Add SSH key: ssh-copy-id user@10.10.10.100\n\nTest:\n  systemctl start sshuttle\n  ping 192.168.10.20\n\nProduction VPN:\n  Always-on access to internal network\n  Survives network interruptions\n  Automatic reconnection"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

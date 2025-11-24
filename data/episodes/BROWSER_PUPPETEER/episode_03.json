@@ -1,0 +1,114 @@
+{
+  "title": "Multi-Account Testing with Device Emulation",
+  "description": "Test application across multiple accounts, devices, and geolocations simultaneously",
+  "difficulty": "expert",
+  "estimated_time": "80 minutes",
+  "tools_used": [
+    "puppeteer",
+    "browser_contexts",
+    "device_emulation"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Launch Browser with Multiple Contexts",
+      "command": "const puppeteer = require('puppeteer'); const browser = await puppeteer.launch({headless: true, args: ['--no-sandbox']}); const contexts = []; for (let i = 0; i < 3; i++) { contexts[i] = await browser.createIncognitoBrowserContext(); } console.log('Created contexts:', contexts.length);",
+      "explanation": "Create isolated browser contexts (like profiles)",
+      "expected_output": "Created contexts: 3",
+      "success_criteria": "Isolation ready"
+    },
+    {
+      "step": 2,
+      "title": "Setup Account 1: Desktop Chrome",
+      "command": "const page1 = await contexts[0].newPage(); await page1.setViewport({width: 1920, height: 1080}); await page1.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0'); await page1.goto('https://httpbin.org/user-agent'); const ua1 = await page1.evaluate(() => document.body.innerText); console.log('Account 1 UA:', ua1.includes('Windows'));",
+      "explanation": "Configure first context as desktop user",
+      "expected_output": "Account 1 UA: true",
+      "success_criteria": "Desktop profile set"
+    },
+    {
+      "step": 3,
+      "title": "Setup Account 2: Mobile iPhone",
+      "command": "const devices = puppeteer.devices; const page2 = await contexts[1].newPage(); await page2.emulate(devices['iPhone 13 Pro']); await page2.goto('https://httpbin.org/user-agent'); const ua2 = await page2.evaluate(() => document.body.innerText); console.log('Account 2 mobile:', ua2.includes('iPhone'));",
+      "explanation": "Emulate iPhone device profile",
+      "expected_output": "Account 2 mobile: true",
+      "success_criteria": "Mobile emulation active"
+    },
+    {
+      "step": 4,
+      "title": "Setup Account 3: Tablet with Geolocation",
+      "command": "const page3 = await contexts[2].newPage(); await page3.emulate(devices['iPad Pro']); await page3.setGeolocation({latitude: 51.5074, longitude: -0.1278}); await contexts[2].overridePermissions('https://example.com', ['geolocation']); console.log('Account 3: iPad in London');",
+      "explanation": "iPad with London geolocation",
+      "expected_output": "Account 3: iPad in London",
+      "success_criteria": "Location spoofed"
+    },
+    {
+      "step": 5,
+      "title": "Login All Accounts Simultaneously",
+      "command": "const accounts = [{user: 'user1@test.com', pass: 'Pass1'}, {user: 'user2@test.com', pass: 'Pass2'}, {user: 'user3@test.com', pass: 'Pass3'}]; const pages = [page1, page2, page3]; await Promise.all(pages.map(async (page, i) => { await page.goto('https://the-internet.herokuapp.com/login'); await page.type('#username', accounts[i].user.split('@')[0]); await page.type('#password', accounts[i].pass); })); console.log('All accounts filled login forms');",
+      "explanation": "Parallel login form population",
+      "expected_output": "All accounts filled login forms",
+      "success_criteria": "Forms ready"
+    },
+    {
+      "step": 6,
+      "title": "Set Different Cookies Per Account",
+      "command": "await page1.setCookie({name: 'account_type', value: 'premium', domain: '.herokuapp.com'}); await page2.setCookie({name: 'account_type', value: 'free', domain: '.herokuapp.com'}); await page3.setCookie({name: 'account_type', value: 'trial', domain: '.herokuapp.com'}); console.log('Cookies set for different account tiers');",
+      "explanation": "Simulate different subscription levels",
+      "expected_output": "Cookies set for different account tiers",
+      "success_criteria": "Session differentiation"
+    },
+    {
+      "step": 7,
+      "title": "Capture Screenshots of Each View",
+      "command": "await page1.screenshot({path: '/tmp/desktop_view.png', fullPage: true}); await page2.screenshot({path: '/tmp/mobile_view.png', fullPage: true}); await page3.screenshot({path: '/tmp/tablet_view.png', fullPage: true}); console.log('Screenshots captured for all devices');",
+      "explanation": "Visual comparison across devices",
+      "expected_output": "Screenshots captured for all devices",
+      "success_criteria": "Images saved"
+    },
+    {
+      "step": 8,
+      "title": "Test Feature Availability",
+      "command": "const features = await Promise.all(pages.map(async (page) => { await page.goto('https://example.com'); return await page.evaluate(() => ({ width: window.innerWidth, height: window.innerHeight, hasTouch: 'ontouchstart' in window, cookieEnabled: navigator.cookieEnabled })); })); console.log('Features:', features);",
+      "explanation": "Compare browser capabilities",
+      "expected_output": "Different widths and touch support",
+      "success_criteria": "Device differences detected"
+    },
+    {
+      "step": 9,
+      "title": "Monitor Network Performance Per Device",
+      "command": "const networkMetrics = []; for (let i = 0; i < pages.length; i++) { await pages[i].goto('https://jsonplaceholder.typicode.com/posts'); const metrics = await pages[i].metrics(); networkMetrics.push({device: ['desktop', 'mobile', 'tablet'][i], heapSize: (metrics.JSHeapUsedSize / 1048576).toFixed(2) + 'MB'}); } console.log('Network metrics:', networkMetrics);",
+      "explanation": "Performance comparison across devices",
+      "expected_output": "Different heap usage per device",
+      "success_criteria": "Metrics collected"
+    },
+    {
+      "step": 10,
+      "title": "Export Session Data and Cleanup",
+      "command": "const fs = require('fs'); const sessionData = await Promise.all(contexts.map(async (ctx, i) => ({ contextId: i, cookies: await (await ctx.pages())[0].cookies(), userAgent: await (await ctx.pages())[0].evaluate(() => navigator.userAgent) }))); fs.writeFileSync('/tmp/sessions.json', JSON.stringify(sessionData, null, 2)); console.log('Sessions exported'); await Promise.all(contexts.map(ctx => ctx.close())); await browser.close(); console.log('All contexts closed');",
+      "explanation": "Save all session states and cleanup",
+      "expected_output": "Sessions exported, All contexts closed",
+      "success_criteria": "Clean shutdown"
+    }
+  ],
+  "learning_objectives": [
+    "Browser contexts",
+    "Device emulation",
+    "Geolocation spoofing",
+    "Multi-account testing",
+    "Parallel automation",
+    "Cross-device testing"
+  ],
+  "mitigation": [
+    "Device fingerprinting",
+    "Geolocation validation",
+    "Session integrity checks",
+    "Concurrent login detection"
+  ],
+  "tags": [
+    "puppeteer",
+    "multi-account",
+    "device_emulation",
+    "testing",
+    "contexts"
+  ]
+}

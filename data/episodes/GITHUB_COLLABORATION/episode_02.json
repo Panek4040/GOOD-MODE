@@ -1,0 +1,78 @@
+{
+  "title": "GitHub Actions CI/CD Pipeline Setup and Debugging",
+  "description": "Setting up automated testing and deployment with GitHub Actions",
+  "steps": [
+    {
+      "step": 1,
+      "description": "List existing workflows in the repository",
+      "command": "gh workflow list",
+      "expected_output": "CI               active  1234567\nDeploy to Prod   active  1234568\nSecurity Scan    active  1234569",
+      "technical_detail": "Shows all workflows with their status and workflow ID for reference"
+    },
+    {
+      "step": 2,
+      "description": "View recent workflow runs to identify failures",
+      "command": "gh run list --limit 10",
+      "expected_output": "✗  main  CI  Update tests         2m ago\n✓  main  CI  Add new feature      1h ago\n✗  dev   CI  Experimental change  3h ago",
+      "technical_detail": "Red X indicates failed runs, green check shows successful runs"
+    },
+    {
+      "step": 3,
+      "description": "View detailed logs for failed workflow run",
+      "command": "gh run view 9876543 --log",
+      "expected_output": "build  Install dependencies\nbuild  npm install\nbuild  Run tests\ntest   ✗ Error: Module 'axios' not found\ntest   npm ERR! Test failed",
+      "technical_detail": "Logs show the failing test step with specific error messages"
+    },
+    {
+      "step": 4,
+      "description": "View workflow file to understand the issue",
+      "command": "gh workflow view CI --yaml",
+      "expected_output": "name: CI\non: [push, pull_request]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v3\n      - run: npm install\n      - run: npm test",
+      "technical_detail": "YAML output shows workflow structure and job definitions"
+    },
+    {
+      "step": 5,
+      "description": "Create feature branch to fix CI configuration",
+      "command": "git checkout -b fix-ci-missing-dependency",
+      "expected_output": "Switched to a new branch 'fix-ci-missing-dependency'",
+      "technical_detail": "Isolate CI fixes in separate branch for clean PR"
+    },
+    {
+      "step": 6,
+      "description": "Update package.json to include missing dependency",
+      "command": "echo '{\"dependencies\":{\"axios\":\"^1.6.0\"}}' >> package.json && git add package.json",
+      "expected_output": "Changes staged for commit",
+      "technical_detail": "Add axios dependency that was missing and causing test failures"
+    },
+    {
+      "step": 7,
+      "description": "Commit fix and push to trigger new workflow run",
+      "command": "git commit -m 'ci: add missing axios dependency' && git push -u origin fix-ci-missing-dependency",
+      "expected_output": "[fix-ci-missing-dependency 123abc] ci: add missing axios dependency\nTo github.com:user/repo.git\n * [new branch]      fix-ci-missing-dependency -> fix-ci-missing-dependency",
+      "technical_detail": "Push triggers GitHub Actions to run workflow on new branch"
+    },
+    {
+      "step": 8,
+      "description": "Create PR and automatically trigger CI",
+      "command": "gh pr create --title 'Fix CI: add missing axios dependency' --body 'Resolves test failures by adding axios to dependencies' --base main",
+      "expected_output": "Creating pull request for fix-ci-missing-dependency into main\nhttps://github.com/user/repo/pull/456\n✓ Pull request created\n✓ CI workflow triggered",
+      "technical_detail": "PR creation automatically triggers configured workflows"
+    },
+    {
+      "step": 9,
+      "description": "Monitor PR checks in real-time",
+      "command": "gh pr checks 456 --watch",
+      "expected_output": "Refreshing checks every 10 seconds...\nCI               pending  https://github.com/user/repo/runs/789\n...\nCI               ✓ passed https://github.com/user/repo/runs/789",
+      "technical_detail": "Watch mode continuously polls for check status updates"
+    },
+    {
+      "step": 10,
+      "description": "Merge PR after successful CI run",
+      "command": "gh pr merge 456 --squash --delete-branch",
+      "expected_output": "✓ Squashed and merged pull request #456 (Fix CI: add missing axios dependency)\n✓ Deleted branch fix-ci-missing-dependency",
+      "technical_detail": "Squash merge combines all commits into one, cleanup removes branch"
+    }
+  ],
+  "impact": "Fixed broken CI pipeline, restored automated testing, and established proper workflow debugging process",
+  "created_by": "neural_mesh_v5.2_generator"
+}

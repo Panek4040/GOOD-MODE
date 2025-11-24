@@ -1,0 +1,66 @@
+{
+  "name": "selenium_basic_navigation",
+  "description": "Basic browser navigation and page interaction with Selenium WebDriver",
+  "pattern": "selenium.*navigate|browser.*open|webdriver.*get",
+  "parameters": [
+    "url",
+    "browser_type"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "from selenium import webdriver; driver = webdriver.Chrome(); driver.get('https://example.com'); print(f'Title: {driver.title}'); print(f'URL: {driver.current_url}'); driver.quit()"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Title: Example Domain\nURL: https://example.com/\n\nPage loaded successfully"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "from selenium import webdriver; driver = webdriver.Chrome(); driver.get('https://google.com'); driver.back(); driver.forward(); driver.refresh(); print('Navigation complete'); driver.quit()"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Navigation complete\n\nBrowser navigation: back, forward, refresh executed"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "from selenium import webdriver; driver = webdriver.Chrome(); driver.maximize_window(); driver.get('https://example.com'); size = driver.get_window_size(); print(f'Window size: {size}'); driver.quit()"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Window size: {'width': 1920, 'height': 1080}\n\nWindow maximized"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

@@ -10,7 +10,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sh /home/* | sort -rh"]
+        "args": [
+          "-c",
+          "du -sh /home/* | sort -rh"
+        ]
       },
       "observation": "156G\t/home/alice\n89G\t/home/bob\n45G\t/home/carol\n23G\t/home/dave\n12G\t/home/eve\n8.5G\t/home/frank"
     },
@@ -21,7 +24,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find /home/alice -type f -printf '%s|%p\\n' | sort -rn | head -n 20"]
+        "args": [
+          "-c",
+          "find /home/alice -type f -printf '%s|%p\\n' | sort -rn | head -n 20"
+        ]
       },
       "observation": "21474836480|/home/alice/videos/project_final_4k.mkv\n10737418240|/home/alice/videos/conference_recording.mp4\n8589934592|/home/alice/backups/laptop_backup_2025-10.tar.gz\n5368709120|/home/alice/work/datasets/training_data.zip\n3221225472|/home/alice/videos/presentation_master.mov\n2147483648|/home/alice/Documents/virtual_machines/ubuntu_dev.vdi\n1073741824|/home/alice/Downloads/linux_distro.iso\n858993459|/home/alice/work/ml_models/model_weights.h5\n536870912|/home/alice/Pictures/photo_library.zip\n419430400|/home/alice/backups/documents_2025.tar.gz"
     },
@@ -32,7 +38,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find /home -type f -size +1G -printf '%s|%u|%p\\n' | sort -rn | head -n 25"]
+        "args": [
+          "-c",
+          "find /home -type f -size +1G -printf '%s|%u|%p\\n' | sort -rn | head -n 25"
+        ]
       },
       "observation": "21474836480|alice|/home/alice/videos/project_final_4k.mkv\n10737418240|alice|/home/alice/videos/conference_recording.mp4\n8589934592|alice|/home/alice/backups/laptop_backup_2025-10.tar.gz\n7516192768|bob|/home/bob/VirtualBox/Windows10.vdi\n5368709120|alice|/home/alice/work/datasets/training_data.zip\n4294967296|bob|/home/bob/Downloads/game_installer.exe\n3221225472|alice|/home/alice/videos/presentation_master.mov\n2684354560|carol|/home/carol/projects/node_modules.tar.gz\n2147483648|alice|/home/alice/Documents/virtual_machines/ubuntu_dev.vdi\n2147483648|bob|/home/bob/backups/full_backup_nov.tar.gz\n1879048192|carol|/home/carol/Downloads/software_bundle.zip\n1610612736|dave|/home/dave/media/family_videos.mp4\n1073741824|alice|/home/alice/Downloads/linux_distro.iso\n1073741824|bob|/home/bob/games/steam_game.tar\n1073741824|carol|/home/carol/work/database_dump.sql"
     },
@@ -43,7 +52,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find /home -type f -size +500M -printf '%u|%s\\n' | awk -F'|' '{user=$1; size=$2; sum[user]+=size; count[user]++} END {for (u in sum) printf \"%d|%d|%s\\n\", sum[u], count[u], u}' | sort -rn"]
+        "args": [
+          "-c",
+          "find /home -type f -size +500M -printf '%u|%s\\n' | awk -F'|' '{user=$1; size=$2; sum[user]+=size; count[user]++} END {for (u in sum) printf \"%d|%d|%s\\n\", sum[u], count[u], u}' | sort -rn"
+        ]
       },
       "observation": "78925168640|15|alice\n45097156608|12|bob\n23622320128|8|carol\n12884901888|5|dave\n5905580032|3|eve\n3221225472|2|frank"
     },
@@ -54,7 +66,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find /home -type f -size +500M -name '*.*' -printf '%f\\n' | sed 's/.*\\.//' | sort | uniq -c | sort -rn"]
+        "args": [
+          "-c",
+          "find /home -type f -size +500M -name '*.*' -printf '%f\\n' | sed 's/.*\\.//' | sort | uniq -c | sort -rn"
+        ]
       },
       "observation": "     18 mp4\n     12 mkv\n      9 tar\n      8 gz\n      7 zip\n      5 vdi\n      4 iso\n      3 sql\n      2 mov\n      2 h5"
     },
@@ -65,7 +80,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find /home -type f -size +1G \\( -name '*.mp4' -o -name '*.mkv' -o -name '*.mov' -o -name '*.avi' \\) -printf '%s|%u|%p\\n' | sort -rn"]
+        "args": [
+          "-c",
+          "find /home -type f -size +1G \\( -name '*.mp4' -o -name '*.mkv' -o -name '*.mov' -o -name '*.avi' \\) -printf '%s|%u|%p\\n' | sort -rn"
+        ]
       },
       "observation": "21474836480|alice|/home/alice/videos/project_final_4k.mkv\n10737418240|alice|/home/alice/videos/conference_recording.mp4\n3221225472|alice|/home/alice/videos/presentation_master.mov\n1610612736|dave|/home/dave/media/family_videos.mp4\n1207959552|bob|/home/bob/Downloads/tutorial_series.mkv"
     },
@@ -76,7 +94,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find /home/*/Downloads -type f -size +500M -printf '%s|%u|%f|%TY-%Tm-%Td\\n' | sort -rn"]
+        "args": [
+          "-c",
+          "find /home/*/Downloads -type f -size +500M -printf '%s|%u|%f|%TY-%Tm-%Td\\n' | sort -rn"
+        ]
       },
       "observation": "4294967296|bob|game_installer.exe|2025-10-15\n1879048192|carol|software_bundle.zip|2025-10-28\n1207959552|bob|tutorial_series.mkv|2025-11-05\n1073741824|alice|linux_distro.iso|2025-11-12\n838860800|eve|presentation_templates.zip|2025-09-20\n629145600|frank|backup_archive.tar.gz|2025-08-30"
     },
@@ -87,7 +108,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find /home/*/Downloads -type f -size +500M -mtime +30 -printf '%s|%u|%f|%TY-%Tm-%Td\\n' | sort -rn"]
+        "args": [
+          "-c",
+          "find /home/*/Downloads -type f -size +500M -mtime +30 -printf '%s|%u|%f|%TY-%Tm-%Td\\n' | sort -rn"
+        ]
       },
       "observation": "4294967296|bob|game_installer.exe|2025-10-15\n838860800|eve|presentation_templates.zip|2025-09-20\n629145600|frank|backup_archive.tar.gz|2025-08-30"
     },
@@ -98,7 +122,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find /home -type f -size +1G -name '*backup*.tar.gz' -o -name '*backup*.zip' -printf '%s|%u|%p|%TY-%Tm-%Td\\n' | sort -rn"]
+        "args": [
+          "-c",
+          "find /home -type f -size +1G -name '*backup*.tar.gz' -o -name '*backup*.zip' -printf '%s|%u|%p|%TY-%Tm-%Td\\n' | sort -rn"
+        ]
       },
       "observation": "8589934592|alice|/home/alice/backups/laptop_backup_2025-10.tar.gz|2025-10-31\n2147483648|bob|/home/bob/backups/full_backup_nov.tar.gz|2025-11-15\n419430400|alice|/home/alice/backups/documents_2025.tar.gz|2025-11-01"
     },
@@ -109,7 +136,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find /home/*/Downloads -type f -size +500M -mtime +30 -printf '%s\\n' | awk '{sum+=$1} END {print \"Old downloads total GB: \"sum/1024/1024/1024}'"]
+        "args": [
+          "-c",
+          "find /home/*/Downloads -type f -size +500M -mtime +30 -printf '%s\\n' | awk '{sum+=$1} END {print \"Old downloads total GB: \"sum/1024/1024/1024}'"
+        ]
       },
       "observation": "Old downloads total GB: 5.12"
     }

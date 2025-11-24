@@ -10,7 +10,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sh /tmp && df -h /tmp | tail -1"]
+        "args": [
+          "-c",
+          "du -sh /tmp && df -h /tmp | tail -1"
+        ]
       },
       "observation": "2.8G\t/tmp\ntmpfs           4.0G  2.8G  1.2G  70% /tmp"
     },
@@ -21,7 +24,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find /tmp -type f -mtime +7 -user $(whoami) | head -20"]
+        "args": [
+          "-c",
+          "find /tmp -type f -mtime +7 -user $(whoami) | head -20"
+        ]
       },
       "observation": "/tmp/session_abc123.tmp\n/tmp/cache_def456.tmp\n/tmp/download_ghi789.part\n/tmp/temp_data_jkl012.csv"
     },
@@ -32,7 +38,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "count=$(find /tmp -type f -mtime +7 -user $(whoami) | wc -l); size=$(find /tmp -type f -mtime +7 -user $(whoami) -exec stat -c %s {} \\; | awk '{sum+=$1} END {print sum/1024/1024}'); echo \"Old temp files: $count files, ${size}MB\""]
+        "args": [
+          "-c",
+          "count=$(find /tmp -type f -mtime +7 -user $(whoami) | wc -l); size=$(find /tmp -type f -mtime +7 -user $(whoami) -exec stat -c %s {} \\; | awk '{sum+=$1} END {print sum/1024/1024}'); echo \"Old temp files: $count files, ${size}MB\""
+        ]
       },
       "observation": "Old temp files: 89 files, 1024MB"
     },
@@ -43,7 +52,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "mkdir -p ~/.local/share/Trash/files && timestamp=$(date +%Y%m%d_%H%M%S); find /tmp -type f -mtime +7 -user $(whoami) -size +10M -exec sh -c 'base=$(basename \"$1\"); mv \"$1\" ~/.local/share/Trash/files/\"${base}.$timestamp\"' _ {} \\; && echo \"Large files moved to trash\""]
+        "args": [
+          "-c",
+          "mkdir -p ~/.local/share/Trash/files && timestamp=$(date +%Y%m%d_%H%M%S); find /tmp -type f -mtime +7 -user $(whoami) -size +10M -exec sh -c 'base=$(basename \"$1\"); mv \"$1\" ~/.local/share/Trash/files/\"${base}.$timestamp\"' _ {} \\; && echo \"Large files moved to trash\""
+        ]
       },
       "observation": "Large files moved to trash"
     },
@@ -54,7 +66,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find ~/.local/share/Trash/files -type f -name '*.20*' -exec stat -c '%n|%s|%y' {} \\; | head -5"]
+        "args": [
+          "-c",
+          "find ~/.local/share/Trash/files -type f -name '*.20*' -exec stat -c '%n|%s|%y' {} \\; | head -5"
+        ]
       },
       "observation": "/home/user/.local/share/Trash/files/download_ghi789.part.20251118_143500|52428800|2025-11-10 08:30:00.000000000 +0000\n/home/user/.local/share/Trash/files/temp_data_jkl012.csv.20251118_143500|41943040|2025-11-09 14:20:00.000000000 +0000"
     },
@@ -65,7 +80,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "deleted=$(find /tmp -type f -mtime +7 -user $(whoami) -size -10M -delete -print | wc -l); echo \"Deleted $deleted small temp files\""]
+        "args": [
+          "-c",
+          "deleted=$(find /tmp -type f -mtime +7 -user $(whoami) -size -10M -delete -print | wc -l); echo \"Deleted $deleted small temp files\""
+        ]
       },
       "observation": "Deleted 87 small temp files"
     },
@@ -76,7 +94,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sh /tmp && df -h /tmp | tail -1"]
+        "args": [
+          "-c",
+          "du -sh /tmp && df -h /tmp | tail -1"
+        ]
       },
       "observation": "1.8G\t/tmp\ntmpfs           4.0G  1.8G  2.2G  45% /tmp"
     },
@@ -87,7 +108,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find ~/.local/share/Trash/files -name 'temp_data*.csv*' -type f"]
+        "args": [
+          "-c",
+          "find ~/.local/share/Trash/files -name 'temp_data*.csv*' -type f"
+        ]
       },
       "observation": "/home/user/.local/share/Trash/files/temp_data_jkl012.csv.20251118_143500"
     },
@@ -98,7 +122,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "trashed='/home/user/.local/share/Trash/files/temp_data_jkl012.csv.20251118_143500'; orig_name=$(basename \"$trashed\" | sed 's/\\.20[0-9]\\{6\\}_[0-9]\\{6\\}$//'); cp \"$trashed\" \"/tmp/$orig_name\" && echo \"Restored to: /tmp/$orig_name\""]
+        "args": [
+          "-c",
+          "trashed='/home/user/.local/share/Trash/files/temp_data_jkl012.csv.20251118_143500'; orig_name=$(basename \"$trashed\" | sed 's/\\.20[0-9]\\{6\\}_[0-9]\\{6\\}$//'); cp \"$trashed\" \"/tmp/$orig_name\" && echo \"Restored to: /tmp/$orig_name\""
+        ]
       },
       "observation": "Restored to: /tmp/temp_data_jkl012.csv"
     },
@@ -109,7 +136,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "stat -c 'File: %n\nSize: %s bytes\nRestored: %y' /tmp/temp_data_jkl012.csv"]
+        "args": [
+          "-c",
+          "stat -c 'File: %n\nSize: %s bytes\nRestored: %y' /tmp/temp_data_jkl012.csv"
+        ]
       },
       "observation": "File: /tmp/temp_data_jkl012.csv\nSize: 41943040 bytes\nRestored: 2025-11-18 14:35:45.000000000 +0000"
     }

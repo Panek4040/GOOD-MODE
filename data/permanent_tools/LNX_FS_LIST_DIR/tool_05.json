@@ -2,7 +2,10 @@
   "name": "list_by_size_descending",
   "description": "List files sorted by size in descending order with human-readable format",
   "pattern": "largest.*files|sort.*size|biggest.*files|size.*descending",
-  "parameters": ["path", "limit"],
+  "parameters": [
+    "path",
+    "limit"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["{{path}}", "-type", "f", "-printf", "%s|%p|%TY-%Tm-%Td\\n"]
+        "args": [
+          "{{path}}",
+          "-type",
+          "f",
+          "-printf",
+          "%s|%p|%TY-%Tm-%Td\\n"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +32,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +48,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn | head -n {{limit}}"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn | head -n {{limit}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +64,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -ah '{{path}}' | grep -v '/$$' | sort -rh | head -n {{limit}}"]
+        "args": [
+          "-c",
+          "du -ah '{{path}}' | grep -v '/$$' | sort -rh | head -n {{limit}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +80,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "ls -lhS '{{path}}' | grep '^-' | head -n {{limit}}"]
+        "args": [
+          "-c",
+          "ls -lhS '{{path}}' | grep '^-' | head -n {{limit}}"
+        ]
       },
       "expected_output": {
         "type": "string",

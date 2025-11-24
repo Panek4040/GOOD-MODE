@@ -1,0 +1,30 @@
+{
+  "name": "ffuf_fast_web_fuzzer",
+  "description": "Fast web fuzzer for directory, parameter, vhost discovery using ffuf",
+  "pattern": "ffuf.*fuzz|web.*fuzzer|parameter.*brute|ffuf.*scan",
+  "parameters": ["target", "wordlist", "fuzz_mode"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "ffuf", "args": ["-u", "{{target}}/FUZZ", "-w", "{{wordlist}}"]},
+      "expected_output": {"type": "string", "example": "[Status: 200, Size: 4523, Words: 234] :: /admin\n[Status: 200, Size: 1234, Words: 89] :: /api\n[Status: 301, Size: 0] :: /backup\n[Status: 403, Size: 287] :: /uploads"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "ffuf", "args": ["-u", "{{target}}/admin?FUZZ=test", "-w", "{{wordlist}}"]},
+      "expected_output": {"type": "string", "example": "Parameter fuzzing: found parameters - id, user, page, debug, action"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "ffuf", "args": ["-u", "{{target}}", "-H", "Host: FUZZ.example.com", "-w", "{{wordlist}}"]},
+      "expected_output": {"type": "string", "example": "Vhost discovery: admin.example.com (200), dev.example.com (200), staging.example.com (403)"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "ffuf", "args": ["-u", "{{target}}/FUZZ", "-w", "{{wordlist}}", "-mc", "200,301,302", "-fc", "404"]},
+      "expected_output": {"type": "string", "example": "Filtered results (excluding 404): 45 valid endpoints found"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "ffuf -u {{target}}/FUZZ -w {{wordlist}} -o ffuf.json -of json"]},
+      "expected_output": {"type": "string", "example": "Results saved to ffuf.json in JSON format for parsing"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

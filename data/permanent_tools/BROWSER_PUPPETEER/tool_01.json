@@ -1,0 +1,66 @@
+{
+  "name": "puppeteer_basic_operations",
+  "description": "Launch browser, navigate pages, and basic Puppeteer operations",
+  "pattern": "puppeteer.*launch|browser.*navigate|page.*goto",
+  "parameters": [
+    "url",
+    "headless"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const puppeteer = require('puppeteer'); (async () => { const browser = await puppeteer.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); console.log('Title:', await page.title()); console.log('URL:', page.url()); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Title: Example Domain\nURL: https://example.com/\n\nPage loaded successfully"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const puppeteer = require('puppeteer'); (async () => { const browser = await puppeteer.launch({headless: true}); const page = await browser.newPage(); await page.setViewport({width: 1920, height: 1080}); await page.goto('https://example.com', {waitUntil: 'networkidle2'}); console.log('Page loaded in headless mode'); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Page loaded in headless mode\n\nHeadless browser with network idle"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const puppeteer = require('puppeteer'); (async () => { const browser = await puppeteer.launch(); const page = await browser.newPage(); await page.goto('https://google.com'); await page.goBack(); await page.goForward(); await page.reload(); console.log('Navigation complete'); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Navigation complete\n\nBack, forward, reload executed"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

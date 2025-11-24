@@ -1,1 +1,98 @@
-{"name":"lnx_disk_fdisk_lvm_mount_t07","description":"LNX_DISK_FDISK_LVM_MOUNT tool 07","pattern":"tool","parameters":["p"],"sequence":[{"action":{"type":"system_command","tool":"shell","operation":"run","command":"ls","args":["-la"]},"expected_output":{"type":"string","example":"total 0"}}],"stats":{"uses":0,"successes":0,"failures":0,"success_rate":0.0},"created_by":"neural_mesh_v5.2_generator"}
+{
+  "name": "parted_advanced_partition_management",
+  "description": "Advanced partition management with parted - GPT/MBT tables, resize, align partitions",
+  "pattern": "parted.*partition|gpt.*table|resize.*partition|align.*partition",
+  "parameters": [
+    "device",
+    "operation"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "parted",
+        "args": [
+          "{{device}}",
+          "print"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Model: ATA Samsung SSD 970 (scsi)\nDisk /dev/sda: 256GB\nSector size (logical/physical): 512B/512B\nPartition Table: gpt\nDisk Flags:\n\nNumber  Start   End    Size   File system  Name  Flags\n 1      1049kB  538MB  537MB  fat32        EFI   boot, esp\n 2      538MB   256GB  256GB               LVM   lvm"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "parted {{device}} print free"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Free Space: 512kB (unallocated at start), 0B (fully allocated)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "parted {{device}} unit GB print | grep -E 'Model|Disk |Partition Table|Number'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Model: ATA Samsung SSD 970\nDisk /dev/sda: 256GB\nPartition Table: gpt\nNumber  Start   End     Size    File system  Name"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "parted {{device}} align-check optimal 1"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "1 aligned (partition is optimally aligned for performance)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "parted -l | grep -A 10 '{{device}}'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Disk /dev/sda: 256GB, GPT table with 2 partitions: EFI (537MB) + LVM (256GB)"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

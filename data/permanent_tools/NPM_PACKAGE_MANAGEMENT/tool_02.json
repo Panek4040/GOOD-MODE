@@ -1,0 +1,121 @@
+{
+  "name": "npm_security_audit",
+  "description": "Scanning and fixing security vulnerabilities in dependencies",
+  "sequences": [
+    {
+      "id": "seq_1",
+      "description": "Audit dependencies for security vulnerabilities",
+      "steps": [
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "audit"
+            ]
+          },
+          "expected_output": "found 3 vulnerabilities (1 moderate, 2 high) in 58 scanned packages\n  3 vulnerabilities require manual review",
+          "explanation": "Scans all dependencies for known security issues"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "audit",
+              "--json"
+            ]
+          },
+          "expected_output": "{\"auditReportVersion\":2,\"vulnerabilities\":{\"axios\":{\"severity\":\"high\",\"via\":[\"CVE-2023-1234\"]}}}",
+          "explanation": "Outputs detailed vulnerability report in JSON format"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "audit",
+              "fix"
+            ]
+          },
+          "expected_output": "fixed 2 of 3 vulnerabilities in 58 scanned packages\n  1 vulnerability requires manual intervention",
+          "explanation": "Automatically updates packages to fix vulnerabilities"
+        }
+      ]
+    },
+    {
+      "id": "seq_2",
+      "description": "Force fix vulnerabilities and review changes",
+      "steps": [
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "audit",
+              "fix",
+              "--force"
+            ]
+          },
+          "expected_output": "fixed 1 additional vulnerability\n\nBREAKING CHANGE: axios@0.x.x -> 1.0.0",
+          "explanation": "Force updates including breaking changes to fix vulnerabilities"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "audit",
+              "signatures"
+            ]
+          },
+          "expected_output": "audited 58 packages in 1s\n\n58 packages have verified registry signatures",
+          "explanation": "Verifies package integrity through registry signatures"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "audit",
+              "--audit-level=moderate"
+            ]
+          },
+          "expected_output": "found 0 moderate or higher vulnerabilities",
+          "explanation": "Only reports vulnerabilities at specified severity level or higher"
+        }
+      ]
+    },
+    {
+      "id": "seq_3",
+      "description": "Generate security reports and set audit policies",
+      "steps": [
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "audit",
+              "--parseable"
+            ]
+          },
+          "expected_output": "https://npmjs.com/advisories/1234\taxios\t>0.21.0 <0.21.2\thigh\tServer-Side Request Forgery",
+          "explanation": "Machine-readable output for CI/CD integration"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "shrinkwrap"
+            ]
+          },
+          "expected_output": "wrote npm-shrinkwrap.json",
+          "explanation": "Creates lockfile published with package for dependency locking"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "ci"
+            ]
+          },
+          "expected_output": "added 58 packages in 4s",
+          "explanation": "Clean install from lockfile for reproducible builds in CI"
+        }
+      ]
+    }
+  ]
+}

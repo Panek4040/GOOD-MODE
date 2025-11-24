@@ -1,1 +1,67 @@
-{"name":"top_htop_realtime_monitor","description":"Monitor system resources and processes in real-time with top/htop","pattern":"top|htop|monitor.*cpu|realtime.*processes","parameters":["sort_field","delay"],"sequence":[{"action":{"type":"system_command","tool":"shell","operation":"run","command":"top","args":["-b","-n","1"]},"expected_output":{"type":"string","example":"top - 15:23:45 up 2 days, 6:12, 3 users, load average: 1.23, 0.98, 0.76\nTasks: 247 total, 2 running, 245 sleeping\n%Cpu(s): 12.5 us, 3.2 sy, 0.0 ni, 82.3 id, 1.5 wa\nMiB Mem : 16024.5 total, 2847.3 free, 8923.1 used\n  PID USER   PR  NI  VIRT  RES  SHR S  %CPU  %MEM  TIME+  COMMAND\n 1234 mysql  20   0 2.8g 1.0g  32m S  15.2  12.3  45:23  mysqld"}},{"action":{"type":"system_command","tool":"shell","operation":"run","command":"bash","args":["-c","top -b -n 1 -o %CPU | head -20"]},"expected_output":{"type":"string","example":"  PID USER      PR  NI    VIRT    RES  %CPU  %MEM  COMMAND\n 1234 mysql     20   0  2.8g   1.0g  15.2  12.3  mysqld\n 5678 python    20   0  847m   521m   8.7   6.4  python3"}},{"action":{"type":"system_command","tool":"shell","operation":"run","command":"bash","args":["-c","ps -eo pid,user,cpu,mem,comm --sort=-cpu | head -15"]},"expected_output":{"type":"string","example":"  PID USER     %CPU %MEM COMMAND\n 1234 mysql    15.2 12.3 mysqld\n 5678 python    8.7  6.4 python3"}}],"stats":{"uses":0,"successes":0,"failures":0,"success_rate":0.0},"created_by":"neural_mesh_v5.2_generator"}
+{
+  "name": "top_htop_realtime_monitor",
+  "description": "Monitor system resources and processes in real-time with top/htop",
+  "pattern": "top|htop|monitor.*cpu|realtime.*processes",
+  "parameters": [
+    "sort_field",
+    "delay"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "top",
+        "args": [
+          "-b",
+          "-n",
+          "1"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "top - 15:23:45 up 2 days, 6:12, 3 users, load average: 1.23, 0.98, 0.76\nTasks: 247 total, 2 running, 245 sleeping\n%Cpu(s): 12.5 us, 3.2 sy, 0.0 ni, 82.3 id, 1.5 wa\nMiB Mem : 16024.5 total, 2847.3 free, 8923.1 used\n  PID USER   PR  NI  VIRT  RES  SHR S  %CPU  %MEM  TIME+  COMMAND\n 1234 mysql  20   0 2.8g 1.0g  32m S  15.2  12.3  45:23  mysqld"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "top -b -n 1 -o %CPU | head -20"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "  PID USER      PR  NI    VIRT    RES  %CPU  %MEM  COMMAND\n 1234 mysql     20   0  2.8g   1.0g  15.2  12.3  mysqld\n 5678 python    20   0  847m   521m   8.7   6.4  python3"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "ps -eo pid,user,cpu,mem,comm --sort=-cpu | head -15"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "  PID USER     %CPU %MEM COMMAND\n 1234 mysql    15.2 12.3 mysqld\n 5678 python    8.7  6.4 python3"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

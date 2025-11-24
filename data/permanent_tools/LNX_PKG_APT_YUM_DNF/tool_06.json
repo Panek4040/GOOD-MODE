@@ -1,1 +1,81 @@
-{"name":"apt_repository_management","description":"Add/remove apt repositories, manage PPAs, update sources.list","pattern":"add.*repository|ppa.*add|manage.*sources","parameters":["repo_url","operation"],"sequence":[{"action":{"type":"system_command","tool":"shell","operation":"run","command":"bash","args":["-c","cat /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null | grep -v '^#' | head -10"]},"expected_output":{"type":"string","example":"deb http://archive.ubuntu.com/ubuntu jammy main restricted\ndeb http://security.ubuntu.com/ubuntu jammy-security main"}},{"action":{"type":"system_command","tool":"shell","operation":"run","command":"bash","args":["-c","if [ '{{operation}}' = 'add' ]; then add-apt-repository -y '{{repo_url}}'; elif [ '{{operation}}' = 'remove' ]; then add-apt-repository -r '{{repo_url}}'; fi"]},"expected_output":{"type":"string","example":"Repository added successfully"}},{"action":{"type":"system_command","tool":"shell","operation":"run","command":"apt-get","args":["update"]},"expected_output":{"type":"string","example":"Hit:1 http://archive.ubuntu.com/ubuntu jammy InRelease\nGet:2 {{repo_url}} InRelease"}},{"action":{"type":"system_command","tool":"shell","operation":"run","command":"bash","args":["-c","apt-cache policy | grep -A1 '500\\|100'"]},"expected_output":{"type":"string","example":"500 http://archive.ubuntu.com/ubuntu jammy/main\n100 {{repo_url}}"}}],"stats":{"uses":0,"successes":0,"failures":0,"success_rate":0.0},"created_by":"neural_mesh_v5.2_generator"}
+{
+  "name": "apt_repository_management",
+  "description": "Add/remove apt repositories, manage PPAs, update sources.list",
+  "pattern": "add.*repository|ppa.*add|manage.*sources",
+  "parameters": [
+    "repo_url",
+    "operation"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat /etc/apt/sources.list /etc/apt/sources.list.d/* 2>/dev/null | grep -v '^#' | head -10"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "deb http://archive.ubuntu.com/ubuntu jammy main restricted\ndeb http://security.ubuntu.com/ubuntu jammy-security main"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "if [ '{{operation}}' = 'add' ]; then add-apt-repository -y '{{repo_url}}'; elif [ '{{operation}}' = 'remove' ]; then add-apt-repository -r '{{repo_url}}'; fi"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Repository added successfully"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "apt-get",
+        "args": [
+          "update"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Hit:1 http://archive.ubuntu.com/ubuntu jammy InRelease\nGet:2 {{repo_url}} InRelease"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "apt-cache policy | grep -A1 '500\\|100'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "500 http://archive.ubuntu.com/ubuntu jammy/main\n100 {{repo_url}}"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

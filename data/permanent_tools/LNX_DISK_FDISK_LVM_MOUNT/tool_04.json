@@ -1,1 +1,97 @@
-{"name":"lnx_disk_fdisk_lvm_mount_t04","description":"LNX_DISK_FDISK_LVM_MOUNT tool 04","pattern":"tool","parameters":["p"],"sequence":[{"action":{"type":"system_command","tool":"shell","operation":"run","command":"ls","args":["-la"]},"expected_output":{"type":"string","example":"total 0"}}],"stats":{"uses":0,"successes":0,"failures":0,"success_rate":0.0},"created_by":"neural_mesh_v5.2_generator"}
+{
+  "name": "df_du_disk_space_usage_analyzer",
+  "description": "Analyze disk space usage with df and du - check filesystem space, directory sizes",
+  "pattern": "disk.*space|df.*usage|du.*directory|filesystem.*full|space.*usage",
+  "parameters": [
+    "path",
+    "unit"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "df",
+        "args": [
+          "-h"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Filesystem                  Size  Used Avail Use% Mounted on\n/dev/mapper/vg--system-root  50G   28G   20G  59% /\n/dev/sda1                   511M  156M  355M  31% /boot\n/dev/mapper/vg--system-home 100G   67G   28G  71% /home\ntmpfs                       800M  1.2M  799M   1% /run"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "df",
+        "args": [
+          "-{{unit}}",
+          "{{path}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Filesystem                  1G-blocks  Used Available Use% Mounted on\n/dev/mapper/vg--system-home       100    67        28  71% /home"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "du -sh {{path}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "67G\t/home (total directory size)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "du -h {{path}} --max-depth=1 | sort -hr | head -10"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "67G\t/home\n45G\t/home/user1\n12G\t/home/user2\n8.5G\t/home/user3\n1.5G\t/home/backups"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "df -h | grep -vE 'tmpfs|loop' | awk 'NR==1 || $5+0 > 70 {print $0}'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Filesystem                  Size  Used Avail Use% Mounted on\n/dev/mapper/vg--system-home 100G   67G   28G  71% /home - WARNING: >70% full"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

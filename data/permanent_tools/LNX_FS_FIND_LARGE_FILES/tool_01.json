@@ -2,7 +2,10 @@
   "name": "find_files_above_size",
   "description": "Find all files larger than specified size threshold in MB",
   "pattern": "find.*large|files.*bigger.*than|size.*greater",
-  "parameters": ["path", "min_size_mb"],
+  "parameters": [
+    "path",
+    "min_size_mb"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["{{path}}", "-type", "f", "-size", "+{{min_size_mb}}M"]
+        "args": [
+          "{{path}}",
+          "-type",
+          "f",
+          "-size",
+          "+{{min_size_mb}}M"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +32,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%s|%p|%TY-%Tm-%Td\\n'"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%s|%p|%TY-%Tm-%Td\\n'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +48,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%s|%p|%TY-%Tm-%Td\\n' | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +64,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -exec ls -lh {} \\;"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -size +{{min_size_mb}}M -exec ls -lh {} \\;"
+        ]
       },
       "expected_output": {
         "type": "string",

@@ -1,1 +1,83 @@
-{"name":"kill_terminate_process_signal","description":"Terminate or signal processes using kill command with various signals","pattern":"kill.*process|terminate.*pid|stop.*process","parameters":["pid","signal"],"sequence":[{"action":{"type":"system_command","tool":"shell","operation":"run","command":"ps","args":["-p","{{pid}}","-o","pid,comm,state"]},"expected_output":{"type":"string","example":"  PID COMMAND          S\n{{pid}} python3          S"}},{"action":{"type":"system_command","tool":"shell","operation":"run","command":"kill","args":["-{{signal}}","{{pid}}"]},"expected_output":{"type":"string","example":""}},{"action":{"type":"system_command","tool":"shell","operation":"run","command":"sleep","args":["2"]},"expected_output":{"type":"string","example":""}},{"action":{"type":"system_command","tool":"shell","operation":"run","command":"bash","args":["-c","ps -p {{pid}} || echo 'Process {{pid}} terminated'"]},"expected_output":{"type":"string","example":"Process {{pid}} terminated"}}],"stats":{"uses":0,"successes":0,"failures":0,"success_rate":0.0},"created_by":"neural_mesh_v5.2_generator"}
+{
+  "name": "kill_terminate_process_signal",
+  "description": "Terminate or signal processes using kill command with various signals",
+  "pattern": "kill.*process|terminate.*pid|stop.*process",
+  "parameters": [
+    "pid",
+    "signal"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "ps",
+        "args": [
+          "-p",
+          "{{pid}}",
+          "-o",
+          "pid,comm,state"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "  PID COMMAND          S\n{{pid}} python3          S"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "kill",
+        "args": [
+          "-{{signal}}",
+          "{{pid}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "sleep",
+        "args": [
+          "2"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "ps -p {{pid}} || echo 'Process {{pid}} terminated'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Process {{pid}} terminated"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

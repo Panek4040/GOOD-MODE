@@ -2,7 +2,11 @@
   "name": "text_search_with_exclusions",
   "description": "Search for text while excluding certain directories or patterns",
   "pattern": "search.*exclude|ignore.*directories|skip.*folders",
-  "parameters": ["path", "pattern", "exclude_dir"],
+  "parameters": [
+    "path",
+    "pattern",
+    "exclude_dir"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "grep",
-        "args": ["-r", "-n", "--exclude-dir={{exclude_dir}}", "{{pattern}}", "{{path}}"]
+        "args": [
+          "-r",
+          "-n",
+          "--exclude-dir={{exclude_dir}}",
+          "{{pattern}}",
+          "{{path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +33,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -n --exclude-dir='{{exclude_dir}}' --exclude-dir='.*' '{{pattern}}' '{{path}}' | wc -l"]
+        "args": [
+          "-c",
+          "grep -r -n --exclude-dir='{{exclude_dir}}' --exclude-dir='.*' '{{pattern}}' '{{path}}' | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +49,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -l --exclude-dir='{{exclude_dir}}' --exclude='*.min.js' --exclude='*.log' '{{pattern}}' '{{path}}' | sort"]
+        "args": [
+          "-c",
+          "grep -r -l --exclude-dir='{{exclude_dir}}' --exclude='*.min.js' --exclude='*.log' '{{pattern}}' '{{path}}' | sort"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +65,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type d -name '{{exclude_dir}}' -prune -o -type f -exec grep -l '{{pattern}}' {} \\; 2>/dev/null | sort"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type d -name '{{exclude_dir}}' -prune -o -type f -exec grep -l '{{pattern}}' {} \\; 2>/dev/null | sort"
+        ]
       },
       "expected_output": {
         "type": "string",

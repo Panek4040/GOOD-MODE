@@ -1,0 +1,52 @@
+{
+  "episode_id": "PENT_WEB_NIKTO_DIRB_GOBUSTER_EP02",
+  "title": "Multi-Tool Web Directory Enumeration",
+  "description": "Comprehensive directory enumeration using dirb, dirsearch, wfuzz for maximum coverage",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Initial DIRB scan with recursive",
+      "tool": "dirb_web_content_scanner",
+      "parameters": {
+        "target": "http://app.local",
+        "wordlist": "/usr/share/dirb/wordlists/big.txt"
+      },
+      "expected_outcome": "DIRB found: 89 paths including /admin/login.php, /api/v1/, /backup/"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Dirsearch with extensions",
+      "tool": "dirsearch_advanced_directory_scanner",
+      "parameters": {
+        "target": "http://app.local",
+        "extensions": "php,html,txt,bak,zip"
+      },
+      "expected_outcome": "Dirsearch found: 123 resources, depth 3 recursion uncovered /admin/panel/config.bak"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Wfuzz parameter discovery",
+      "tool": "wfuzz_web_application_fuzzer",
+      "parameters": {
+        "target": "http://app.local/admin",
+        "wordlist": "/usr/share/wfuzz/wordlists/general/common.txt",
+        "fuzz_param": "id"
+      },
+      "expected_outcome": "Parameters: id, user, page, debug, action - debug parameter triggers verbose errors"
+    },
+    {
+      "step_number": 4,
+      "instruction": "FFUF vhost enumeration",
+      "tool": "ffuf_fast_web_fuzzer",
+      "parameters": {
+        "target": "http://app.local",
+        "wordlist": "/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt",
+        "fuzz_mode": "vhost"
+      },
+      "expected_outcome": "Vhosts: admin.app.local (200), dev.app.local (200), test.app.local (403)"
+    }
+  ],
+  "success_criteria": "Combined results: 234 unique paths, 12 vhosts, 15 parameters - comprehensive attack surface map",
+  "cleanup": "Imported all results into Burp Suite for manual testing"
+}

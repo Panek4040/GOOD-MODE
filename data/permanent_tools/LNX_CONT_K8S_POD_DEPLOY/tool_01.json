@@ -2,7 +2,10 @@
   "name": "kubectl_get_describe_pods_status",
   "description": "Get and describe Kubernetes pods with detailed status and events",
   "pattern": "kubectl.*get.*pods|describe.*pod|k8s.*pod.*status",
-  "parameters": ["namespace", "pod_name"],
+  "parameters": [
+    "namespace",
+    "pod_name"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["version", "--client", "--short"]
+        "args": [
+          "version",
+          "--client",
+          "--short"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,14 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["get", "pods", "-n", "{{namespace}}", "-o", "wide"]
+        "args": [
+          "get",
+          "pods",
+          "-n",
+          "{{namespace}}",
+          "-o",
+          "wide"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +50,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["describe", "pod", "{{pod_name}}", "-n", "{{namespace}}"]
+        "args": [
+          "describe",
+          "pod",
+          "{{pod_name}}",
+          "-n",
+          "{{namespace}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +69,15 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["get", "pod", "{{pod_name}}", "-n", "{{namespace}}", "-o", "jsonpath={.status.phase}"]
+        "args": [
+          "get",
+          "pod",
+          "{{pod_name}}",
+          "-n",
+          "{{namespace}}",
+          "-o",
+          "jsonpath={.status.phase}"
+        ]
       },
       "expected_output": {
         "type": "string",

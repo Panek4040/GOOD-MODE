@@ -2,7 +2,10 @@
   "name": "sync_dirs_permissions_preserve",
   "description": "Sync directories preserving permissions, ownership and timestamps",
   "pattern": "sync.*permissions|preserve.*sync|sync.*ownership",
-  "parameters": ["source_path", "dest_path"],
+  "parameters": [
+    "source_path",
+    "dest_path"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{source_path}}' -type f | head -3 | xargs stat -c '%n|%a|%U:%G|%y'"]
+        "args": [
+          "-c",
+          "find '{{source_path}}' -type f | head -3 | xargs stat -c '%n|%a|%U:%G|%y'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "rsync",
-        "args": ["-avp", "--dry-run", "{{source_path}}/", "{{dest_path}}/"]
+        "args": [
+          "-avp",
+          "--dry-run",
+          "{{source_path}}/",
+          "{{dest_path}}/"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +47,15 @@
         "tool": "shell",
         "operation": "run",
         "command": "rsync",
-        "args": ["-avp", "--times", "--perms", "--owner", "--group", "{{source_path}}/", "{{dest_path}}/"]
+        "args": [
+          "-avp",
+          "--times",
+          "--perms",
+          "--owner",
+          "--group",
+          "{{source_path}}/",
+          "{{dest_path}}/"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +68,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{dest_path}}' -type f | head -3 | xargs stat -c '%n|%a|%U:%G|%y'"]
+        "args": [
+          "-c",
+          "find '{{dest_path}}' -type f | head -3 | xargs stat -c '%n|%a|%U:%G|%y'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +84,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "echo 'Verifying permissions match...' && diff <(find '{{source_path}}' -type f -exec stat -c '%n|%a' {} \\; | sort) <(find '{{dest_path}}' -type f -exec stat -c '%n|%a' {} \\; | sed 's|{{dest_path}}|{{source_path}}|' | sort) && echo 'Permissions verified'"]
+        "args": [
+          "-c",
+          "echo 'Verifying permissions match...' && diff <(find '{{source_path}}' -type f -exec stat -c '%n|%a' {} \\; | sort) <(find '{{dest_path}}' -type f -exec stat -c '%n|%a' {} \\; | sed 's|{{dest_path}}|{{source_path}}|' | sort) && echo 'Permissions verified'"
+        ]
       },
       "expected_output": {
         "type": "string",

@@ -1,0 +1,66 @@
+{
+  "name": "puppeteer_screenshots_pdf",
+  "description": "Capture screenshots and generate PDFs of web pages",
+  "pattern": "puppeteer.*screenshot|page.*pdf|capture.*image",
+  "parameters": [
+    "output_path",
+    "format"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const puppeteer = require('puppeteer'); const fs = require('fs'); (async () => { const browser = await puppeteer.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); await page.screenshot({path: '/tmp/puppeteer_screenshot.png'}); const stats = fs.statSync('/tmp/puppeteer_screenshot.png'); console.log('Screenshot saved:', stats.size, 'bytes'); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Screenshot saved: 28431 bytes\n\nFull page screenshot captured"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const puppeteer = require('puppeteer'); (async () => { const browser = await puppeteer.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); await page.screenshot({path: '/tmp/fullpage.png', fullPage: true}); console.log('Full page screenshot saved'); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Full page screenshot saved\n\nEntire scrollable page captured"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const puppeteer = require('puppeteer'); const fs = require('fs'); (async () => { const browser = await puppeteer.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); await page.pdf({path: '/tmp/page.pdf', format: 'A4'}); const stats = fs.statSync('/tmp/page.pdf'); console.log('PDF generated:', stats.size, 'bytes'); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "PDF generated: 14287 bytes\n\nPage rendered as PDF document"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

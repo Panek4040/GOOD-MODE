@@ -1,0 +1,30 @@
+{
+  "name": "nmap_tcp_syn_port_scan",
+  "description": "Fast TCP SYN stealth scan using nmap - detect open ports, services, versions",
+  "pattern": "nmap.*scan|port.*scan|tcp.*scan|stealth.*scan",
+  "parameters": ["target", "ports", "scan_type"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sS", "-p", "{{ports}}", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "Starting Nmap 7.94\nNmap scan report for {{target}}\nPORT     STATE SERVICE\n22/tcp   open  ssh\n80/tcp   open  http\n443/tcp  open  https\n3306/tcp open  mysql"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sV", "-p", "{{ports}}", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "PORT     STATE SERVICE VERSION\n22/tcp   open  ssh     OpenSSH 8.9p1 Ubuntu\n80/tcp   open  http    Apache httpd 2.4.52\n443/tcp  open  ssl/http nginx 1.18.0"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sS", "-T4", "-p-", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "Scanned 65535 ports, found 8 open: 22, 80, 443, 3306, 5432, 6379, 8080, 9200"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "nmap -sS -p {{ports}} {{target}} -oG - | grep '/open/'"]},
+      "expected_output": {"type": "string", "example": "Host: {{target}} Ports: 22/open/tcp//ssh/, 80/open/tcp//http/, 443/open/tcp//https/"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sS", "-sC", "-p", "{{ports}}", "{{target}}"]},
+      "expected_output": {"type": "string", "example": "22/tcp open ssh\n| ssh-hostkey: RSA 3072 aa:bb:cc:dd\n80/tcp open http\n|_http-title: Welcome Page"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

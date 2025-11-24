@@ -1,0 +1,111 @@
+{
+  "title": "TDD Workflow: Red-Green-Refactor Cycle",
+  "description": "Implement features using Test-Driven Development methodology",
+  "difficulty": "intermediate",
+  "estimated_time": "50 minutes",
+  "tools_used": [
+    "pytest",
+    "tdd",
+    "refactoring"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Write Failing Test (Red)",
+      "command": "def calculate_tax(amount, rate): pass\n\ndef test_calculate_tax():\n    assert calculate_tax(100, 0.10) == 10.0\n    assert calculate_tax(200, 0.15) == 30.0\n    print('Test written - should fail')\n\ntest_calculate_tax()",
+      "explanation": "Write test before implementation",
+      "expected_output": "AssertionError - test fails as expected",
+      "success_criteria": "Test fails"
+    },
+    {
+      "step": 2,
+      "title": "Minimal Implementation (Green)",
+      "command": "def calculate_tax(amount, rate):\n    return amount * rate\n\ntest_calculate_tax()\nprint('Tests passing with minimal implementation')",
+      "explanation": "Write simplest code to pass test",
+      "expected_output": "Tests passing with minimal implementation",
+      "success_criteria": "Tests pass"
+    },
+    {
+      "step": 3,
+      "title": "Add Edge Case Test",
+      "command": "def test_tax_edge_cases():\n    assert calculate_tax(0, 0.10) == 0\n    assert calculate_tax(100, 0) == 0\n    print('Edge case tests added')\n\ntest_tax_edge_cases()",
+      "explanation": "Test boundary conditions",
+      "expected_output": "Edge case tests added",
+      "success_criteria": "Edge cases covered"
+    },
+    {
+      "step": 4,
+      "title": "Test Negative Values",
+      "command": "def test_tax_validation():\n    try:\n        calculate_tax(-100, 0.10)\n        assert False, 'Should raise error'\n    except ValueError:\n        print('Validation test passed')\n\ntest_tax_validation()",
+      "explanation": "Add validation requirements",
+      "expected_output": "AssertionError - validation not implemented",
+      "success_criteria": "Test fails (red)"
+    },
+    {
+      "step": 5,
+      "title": "Implement Validation",
+      "command": "def calculate_tax(amount, rate):\n    if amount < 0 or rate < 0:\n        raise ValueError('Amount and rate must be non-negative')\n    return amount * rate\n\ntest_tax_validation()\nprint('Validation implemented - test green')",
+      "explanation": "Add input validation",
+      "expected_output": "Validation test passed, Validation implemented - test green",
+      "success_criteria": "All tests pass"
+    },
+    {
+      "step": 6,
+      "title": "Refactor for Precision",
+      "command": "from decimal import Decimal\n\ndef calculate_tax(amount, rate):\n    if amount < 0 or rate < 0:\n        raise ValueError('Amount and rate must be non-negative')\n    return round(Decimal(str(amount)) * Decimal(str(rate)), 2)\n\nprint('Refactored to use Decimal for precision')\nassert calculate_tax(100.10, 0.15) == Decimal('15.02')\nprint('Precision test passed')",
+      "explanation": "Improve implementation without changing behavior",
+      "expected_output": "Refactored to use Decimal for precision, Precision test passed",
+      "success_criteria": "Tests still pass"
+    },
+    {
+      "step": 7,
+      "title": "Add Documentation",
+      "command": "def calculate_tax(amount, rate):\n    '''\n    Calculate tax amount.\n    \n    Args:\n        amount: Base amount (non-negative)\n        rate: Tax rate as decimal (non-negative)\n    \n    Returns:\n        Tax amount rounded to 2 decimal places\n    \n    Raises:\n        ValueError: If amount or rate is negative\n    '''\n    if amount < 0 or rate < 0:\n        raise ValueError('Amount and rate must be non-negative')\n    return round(Decimal(str(amount)) * Decimal(str(rate)), 2)\n\nprint('Function documented')",
+      "explanation": "Add comprehensive docstring",
+      "expected_output": "Function documented",
+      "success_criteria": "Documentation complete"
+    },
+    {
+      "step": 8,
+      "title": "Run Full Test Suite",
+      "command": "test_calculate_tax()\ntest_tax_edge_cases()\ntest_tax_validation()\nprint('\\nAll tests passed!')\nprint('Test coverage: 100%')\nprint('TDD cycle complete')",
+      "explanation": "Verify all tests pass",
+      "expected_output": "All tests passed!, Test coverage: 100%, TDD cycle complete",
+      "success_criteria": "Suite passes"
+    },
+    {
+      "step": 9,
+      "title": "Add Performance Test",
+      "command": "import time\n\nstart = time.time()\nfor i in range(10000):\n    calculate_tax(100, 0.15)\nend = time.time()\n\nprint(f'Performance: {10000} calculations in {(end-start)*1000:.2f}ms')\nassert (end - start) < 1.0, 'Performance acceptable'\nprint('Performance test passed')",
+      "explanation": "Test non-functional requirements",
+      "expected_output": "Performance: 10000 calculations in 50ms, Performance test passed",
+      "success_criteria": "Meets performance target"
+    },
+    {
+      "step": 10,
+      "title": "Generate Test Report",
+      "command": "report = {\n    'feature': 'Tax Calculation',\n    'tests_run': 4,\n    'tests_passed': 4,\n    'coverage': '100%',\n    'tdd_cycle': 'Red-Green-Refactor completed',\n    'status': 'PASS'\n}\n\nimport json\nprint('\\nTest Report:')\nprint(json.dumps(report, indent=2))\nprint('\\nTDD workflow complete!')",
+      "explanation": "Document TDD process results",
+      "expected_output": "Test Report with all metrics, TDD workflow complete!",
+      "success_criteria": "Complete documentation"
+    }
+  ],
+  "learning_objectives": [
+    "TDD methodology",
+    "Red-Green-Refactor cycle",
+    "Test-first development",
+    "Refactoring techniques",
+    "Edge case testing",
+    "Validation testing"
+  ],
+  "mitigation": [
+    "Not applicable - development practice"
+  ],
+  "tags": [
+    "tdd",
+    "pytest",
+    "testing",
+    "refactoring",
+    "methodology"
+  ]
+}

@@ -2,7 +2,11 @@
   "name": "kubectl_delete_resources_cleanup",
   "description": "Delete Kubernetes resources including deployments, services, and pods",
   "pattern": "delete.*deployment|kubectl.*delete|k8s.*remove|cleanup.*resources",
-  "parameters": ["resource_type", "resource_name", "namespace"],
+  "parameters": [
+    "resource_type",
+    "resource_name",
+    "namespace"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["get", "{{resource_type}}", "{{resource_name}}", "-n", "{{namespace}}"]
+        "args": [
+          "get",
+          "{{resource_type}}",
+          "{{resource_name}}",
+          "-n",
+          "{{namespace}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +33,15 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["get", "{{resource_type}}", "{{resource_name}}", "-n", "{{namespace}}", "-o", "yaml"]
+        "args": [
+          "get",
+          "{{resource_type}}",
+          "{{resource_name}}",
+          "-n",
+          "{{namespace}}",
+          "-o",
+          "yaml"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +54,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["delete", "{{resource_type}}", "{{resource_name}}", "-n", "{{namespace}}"]
+        "args": [
+          "delete",
+          "{{resource_type}}",
+          "{{resource_name}}",
+          "-n",
+          "{{namespace}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +73,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "kubectl",
-        "args": ["get", "{{resource_type}}", "-n", "{{namespace}}"]
+        "args": [
+          "get",
+          "{{resource_type}}",
+          "-n",
+          "{{namespace}}"
+        ]
       },
       "expected_output": {
         "type": "string",

@@ -2,7 +2,9 @@
   "name": "netstat_show_routing_statistics",
   "description": "Display network statistics, routing table, interface stats using legacy netstat command",
   "pattern": "netstat.*command|show.*routing|network.*statistics|interface.*stats",
-  "parameters": ["info_type"],
+  "parameters": [
+    "info_type"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +12,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "netstat",
-        "args": ["-i"]
+        "args": [
+          "-i"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +27,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "if [ '{{info_type}}' = 'routing' ]; then netstat -rn; elif [ '{{info_type}}' = 'listening' ]; then netstat -tlnp; elif [ '{{info_type}}' = 'stats' ]; then netstat -s; elif [ '{{info_type}}' = 'all' ]; then netstat -tunap; fi"]
+        "args": [
+          "-c",
+          "if [ '{{info_type}}' = 'routing' ]; then netstat -rn; elif [ '{{info_type}}' = 'listening' ]; then netstat -tlnp; elif [ '{{info_type}}' = 'stats' ]; then netstat -s; elif [ '{{info_type}}' = 'all' ]; then netstat -tunap; fi"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +43,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "netstat",
-        "args": ["-tlnp"]
+        "args": [
+          "-tlnp"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +58,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "netstat -s | grep -A 5 'Tcp:'"]
+        "args": [
+          "-c",
+          "netstat -s | grep -A 5 'Tcp:'"
+        ]
       },
       "expected_output": {
         "type": "string",

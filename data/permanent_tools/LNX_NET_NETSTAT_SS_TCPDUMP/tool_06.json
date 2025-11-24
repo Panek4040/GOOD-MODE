@@ -2,7 +2,10 @@
   "name": "nmap_scan_ports_services_hosts",
   "description": "Scan network hosts for open ports, running services, OS detection using nmap",
   "pattern": "nmap.*scan|port.*scan|service.*detection|network.*discovery",
-  "parameters": ["target", "scan_type"],
+  "parameters": [
+    "target",
+    "scan_type"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "ping -c 3 {{target}} | tail -2"]
+        "args": [
+          "-c",
+          "ping -c 3 {{target}} | tail -2"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "if [ '{{scan_type}}' = 'quick' ]; then nmap -F {{target}}; elif [ '{{scan_type}}' = 'full' ]; then nmap -p- {{target}}; elif [ '{{scan_type}}' = 'version' ]; then nmap -sV {{target}}; elif [ '{{scan_type}}' = 'os' ]; then nmap -O {{target}}; elif [ '{{scan_type}}' = 'stealth' ]; then nmap -sS {{target}}; fi"]
+        "args": [
+          "-c",
+          "if [ '{{scan_type}}' = 'quick' ]; then nmap -F {{target}}; elif [ '{{scan_type}}' = 'full' ]; then nmap -p- {{target}}; elif [ '{{scan_type}}' = 'version' ]; then nmap -sV {{target}}; elif [ '{{scan_type}}' = 'os' ]; then nmap -O {{target}}; elif [ '{{scan_type}}' = 'stealth' ]; then nmap -sS {{target}}; fi"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "nmap",
-        "args": ["-sV", "-p", "22,80,443", "{{target}}"]
+        "args": [
+          "-sV",
+          "-p",
+          "22,80,443",
+          "{{target}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +63,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "nmap -p 22,80,443,3306,5432,6379,8080 {{target}} | grep -E 'open|closed|filtered'"]
+        "args": [
+          "-c",
+          "nmap -p 22,80,443,3306,5432,6379,8080 {{target}} | grep -E 'open|closed|filtered'"
+        ]
       },
       "expected_output": {
         "type": "string",

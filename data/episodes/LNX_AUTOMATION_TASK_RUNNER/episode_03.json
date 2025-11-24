@@ -1,1 +1,53 @@
-{"topic_id":"LNX_AUTOMATION_TASK_RUNNER","title":"Monitor and troubleshoot automated tasks","goal":"Check logs and execution history of scheduled tasks","steps":[{"thought":"Check cron logs in syslog","action":{"type":"system_command","tool":"shell","operation":"run","command":"bash","args":["-c","grep CRON /var/log/syslog | tail -10"]},"observation":"Nov 18 03:00:01 server CRON[12345]: (root) CMD (/usr/local/bin/daily_backup.sh)"},{"thought":"Check systemd timer logs","action":{"type":"system_command","tool":"shell","operation":"run","command":"journalctl","args":["-u","weekly_report.service","-n","10","--no-pager"]},"observation":"Nov 13 00:00:01 server systemd[1]: Started Weekly Report Generator.\nNov 13 00:00:45 server systemd[1]: weekly_report.service: Succeeded."},{"thought":"Count success/failure rate","action":{"type":"system_command","tool":"shell","operation":"run","command":"bash","args":["-c","success=$(journalctl -u weekly_report.service --since '30 days ago' --no-pager | grep -c 'Succeeded'); failed=$(journalctl -u weekly_report.service --since '30 days ago' --no-pager | grep -c 'Failed'); echo \"Success=$success Failed=$failed\""]},"observation":"Success=4 Failed=0"}],"success_condition":"Verified daily backup runs at 3 AM, weekly report has 100% success rate (4/4 executions)"}
+{
+  "topic_id": "LNX_AUTOMATION_TASK_RUNNER",
+  "title": "Monitor and troubleshoot automated tasks",
+  "goal": "Check logs and execution history of scheduled tasks",
+  "steps": [
+    {
+      "thought": "Check cron logs in syslog",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "grep CRON /var/log/syslog | tail -10"
+        ]
+      },
+      "observation": "Nov 18 03:00:01 server CRON[12345]: (root) CMD (/usr/local/bin/daily_backup.sh)"
+    },
+    {
+      "thought": "Check systemd timer logs",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "journalctl",
+        "args": [
+          "-u",
+          "weekly_report.service",
+          "-n",
+          "10",
+          "--no-pager"
+        ]
+      },
+      "observation": "Nov 13 00:00:01 server systemd[1]: Started Weekly Report Generator.\nNov 13 00:00:45 server systemd[1]: weekly_report.service: Succeeded."
+    },
+    {
+      "thought": "Count success/failure rate",
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "success=$(journalctl -u weekly_report.service --since '30 days ago' --no-pager | grep -c 'Succeeded'); failed=$(journalctl -u weekly_report.service --since '30 days ago' --no-pager | grep -c 'Failed'); echo \"Success=$success Failed=$failed\""
+        ]
+      },
+      "observation": "Success=4 Failed=0"
+    }
+  ],
+  "success_condition": "Verified daily backup runs at 3 AM, weekly report has 100% success rate (4/4 executions)"
+}

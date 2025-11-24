@@ -2,7 +2,11 @@
   "name": "find_large_summary_stats",
   "description": "Generate statistics and summary for large files",
   "pattern": "statistics.*large|summary.*big.*files|aggregate.*size",
-  "parameters": ["path", "min_size_mb", "limit"],
+  "parameters": [
+    "path",
+    "min_size_mb",
+    "limit"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M | wc -l"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -size +{{min_size_mb}}M | wc -l"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%s\\n' | awk '{sum+=$1; if(NR==1){min=max=$1} if($1<min){min=$1} if($1>max){max=$1}} END {print \"Total: \"sum; print \"Count: \"NR; print \"Avg: \"sum/NR; print \"Min: \"min; print \"Max: \"max}'"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%s\\n' | awk '{sum+=$1; if(NR==1){min=max=$1} if($1<min){min=$1} if($1>max){max=$1}} END {print \"Total: \"sum; print \"Count: \"NR; print \"Avg: \"sum/NR; print \"Min: \"min; print \"Max: \"max}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%s|%p\\n' | sort -rn | head -n {{limit}}"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%s|%p\\n' | sort -rn | head -n {{limit}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%s\\n' | numfmt --to=iec | awk '{count[$1]++} END {for (size in count) print count[size]\" files of size ~\"size}' | sort -rn"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -size +{{min_size_mb}}M -printf '%s\\n' | numfmt --to=iec | awk '{count[$1]++} END {for (size in count) print count[size]\" files of size ~\"size}' | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",

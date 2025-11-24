@@ -10,7 +10,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "ls",
-        "args": ["-la", "/home"]
+        "args": [
+          "-la",
+          "/home"
+        ]
       },
       "observation": "total 20\ndrwxr-xr-x  5 root  root  4096 Nov 10 09:00 .\ndrwxr-xr-x 18 root  root  4096 Nov 15 10:00 ..\ndrwxr-xr-x  8 alice alice 4096 Nov 18 14:30 alice\ndrwxr-xr-x 12 bob   bob   4096 Nov 18 13:22 bob\ndrwxr-xr-x 10 carol carol 4096 Nov 17 16:45 carol"
     },
@@ -21,7 +24,15 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["/home", "-maxdepth", "2", "-name", ".*", "-type", "f"]
+        "args": [
+          "/home",
+          "-maxdepth",
+          "2",
+          "-name",
+          ".*",
+          "-type",
+          "f"
+        ]
       },
       "observation": "/home/alice/.bashrc\n/home/alice/.bash_history\n/home/alice/.vimrc\n/home/alice/.bash_profile\n/home/bob/.bashrc\n/home/bob/.bash_history\n/home/bob/.mysql_history\n/home/bob/.vimrc\n/home/carol/.bashrc\n/home/carol/.bash_history\n/home/carol/.psql_history\n/home/carol/.aws_credentials"
     },
@@ -32,7 +43,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "stat",
-        "args": ["-c", "%A|%U|%G|%n|%a", "/home/bob/.mysql_history", "/home/carol/.aws_credentials"]
+        "args": [
+          "-c",
+          "%A|%U|%G|%n|%a",
+          "/home/bob/.mysql_history",
+          "/home/carol/.aws_credentials"
+        ]
       },
       "observation": "-rw-r--r--|bob|bob|/home/bob/.mysql_history|644\n-rw-rw-r--|carol|carol|/home/carol/.aws_credentials|664"
     },
@@ -43,7 +59,20 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["/home", "-maxdepth", "2", "-type", "d", "-name", ".ssh", "-exec", "ls", "-la", "{}", ";"]
+        "args": [
+          "/home",
+          "-maxdepth",
+          "2",
+          "-type",
+          "d",
+          "-name",
+          ".ssh",
+          "-exec",
+          "ls",
+          "-la",
+          "{}",
+          ";"
+        ]
       },
       "observation": "/home/alice/.ssh:\ntotal 16\ndrwx------ 2 alice alice 4096 Nov 10 10:15 .\ndrwxr-xr-x 8 alice alice 4096 Nov 18 14:30 ..\n-rw------- 1 alice alice 2602 Nov 10 10:15 id_rsa\n-rw-r--r-- 1 alice alice  567 Nov 10 10:15 id_rsa.pub\n-rw-r--r-- 1 alice alice  888 Nov 15 09:22 known_hosts\n\n/home/bob/.ssh:\ntotal 20\ndrwxr-xr-x 2 bob bob 4096 Nov 08 14:20 .\ndrwxr-xr-x 12 bob bob 4096 Nov 18 13:22 ..\n-rw-r--r-- 1 bob bob 2602 Nov 08 14:20 id_rsa\n-rw-r--r-- 1 bob bob  567 Nov 08 14:20 id_rsa.pub\n-rw-r--r-- 1 bob bob 1024 Nov 12 11:30 authorized_keys\n\n/home/carol/.ssh:\ntotal 12\ndrwx------ 2 carol carol 4096 Nov 05 16:00 .\ndrwxr-xr-x 10 carol carol 4096 Nov 17 16:45 ..\n-rw------- 1 carol carol 2602 Nov 05 16:00 id_ed25519\n-rw-r--r-- 1 carol carol  102 Nov 05 16:00 id_ed25519.pub"
     },
@@ -54,7 +83,15 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["/home", "-path", "*/.ssh/*", "-type", "f", "-printf", "%M|%u|%g|%p|%a\\n"]
+        "args": [
+          "/home",
+          "-path",
+          "*/.ssh/*",
+          "-type",
+          "f",
+          "-printf",
+          "%M|%u|%g|%p|%a\\n"
+        ]
       },
       "observation": "-rw-------|alice|alice|/home/alice/.ssh/id_rsa|600\n-rw-r--r--|alice|alice|/home/alice/.ssh/id_rsa.pub|644\n-rw-r--r--|alice|alice|/home/alice/.ssh/known_hosts|644\n-rw-r--r--|bob|bob|/home/bob/.ssh/id_rsa|644\n-rw-r--r--|bob|bob|/home/bob/.ssh/id_rsa.pub|644\n-rw-r--r--|bob|bob|/home/bob/.ssh/authorized_keys|644\n-rw-------|carol|carol|/home/carol/.ssh/id_ed25519|600\n-rw-r--r--|carol|carol|/home/carol/.ssh/id_ed25519.pub|644"
     },
@@ -65,7 +102,28 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["/home", "-maxdepth", "3", "-type", "f", "\\(", "-name", "*_history", "-o", "-name", "*.pem", "-o", "-name", "*.key", "-o", "-name", "*credentials*", "\\)", "-printf", "%M|%u|%g|%p|%s\\n"]
+        "args": [
+          "/home",
+          "-maxdepth",
+          "3",
+          "-type",
+          "f",
+          "\\(",
+          "-name",
+          "*_history",
+          "-o",
+          "-name",
+          "*.pem",
+          "-o",
+          "-name",
+          "*.key",
+          "-o",
+          "-name",
+          "*credentials*",
+          "\\)",
+          "-printf",
+          "%M|%u|%g|%p|%s\\n"
+        ]
       },
       "observation": "-rw-r--r--|alice|alice|/home/alice/.bash_history|16384|644\n-rw-------|bob|bob|/home/bob/.bash_history|32768|600\n-rw-r--r--|bob|bob|/home/bob/.mysql_history|8192|644\n-rw-------|carol|carol|/home/carol/.bash_history|24576|600\n-rw-r--r--|carol|carol|/home/carol/.psql_history|4096|644\n-rw-rw-r--|carol|carol|/home/carol/.aws_credentials|512|664"
     },
@@ -76,7 +134,14 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["/home", "-type", "f", "-perm", "-002", "-ls"]
+        "args": [
+          "/home",
+          "-type",
+          "f",
+          "-perm",
+          "-002",
+          "-ls"
+        ]
       },
       "observation": "12345678      4 -rw-rw-rw-   1 bob      bob          2048 Nov 15 10:30 /home/bob/shared_config.txt\n12345679      8 -rwxrwxrwx   1 bob      bob          7234 Nov 12 14:22 /home/bob/public_script.sh"
     },
@@ -87,7 +152,17 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["/home", "-maxdepth", "2", "-type", "d", "-name", ".ssh", "-printf", "%M|%u|%g|%p|%a\\n"]
+        "args": [
+          "/home",
+          "-maxdepth",
+          "2",
+          "-type",
+          "d",
+          "-name",
+          ".ssh",
+          "-printf",
+          "%M|%u|%g|%p|%a\\n"
+        ]
       },
       "observation": "drwx------|alice|alice|/home/alice/.ssh|700\ndrwxr-xr-x|bob|bob|/home/bob/.ssh|755\ndrwx------|carol|carol|/home/carol/.ssh|700"
     },
@@ -98,7 +173,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "du",
-        "args": ["-ah", "/home/*/.ssh", "/home/*/.aws*", "/home/*/*_history"]
+        "args": [
+          "-ah",
+          "/home/*/.ssh",
+          "/home/*/.aws*",
+          "/home/*/*_history"
+        ]
       },
       "observation": "4.0K\t/home/alice/.ssh/id_rsa\n4.0K\t/home/alice/.ssh/id_rsa.pub\n4.0K\t/home/alice/.ssh/known_hosts\n12K\t/home/alice/.ssh\n4.0K\t/home/bob/.ssh/id_rsa\n4.0K\t/home/bob/.ssh/id_rsa.pub\n4.0K\t/home/bob/.ssh/authorized_keys\n12K\t/home/bob/.ssh\n4.0K\t/home/carol/.ssh/id_ed25519\n4.0K\t/home/carol/.ssh/id_ed25519.pub\n8.0K\t/home/carol/.ssh\n4.0K\t/home/carol/.aws_credentials\n16K\t/home/alice/.bash_history\n32K\t/home/bob/.bash_history\n8.0K\t/home/bob/.mysql_history\n24K\t/home/carol/.bash_history\n4.0K\t/home/carol/.psql_history"
     }

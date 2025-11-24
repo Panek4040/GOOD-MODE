@@ -5,42 +5,115 @@
   "steps": [
     {
       "thought": "Check existing cron jobs",
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "crontab", "args": ["-l"]},
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "crontab",
+        "args": [
+          "-l"
+        ]
+      },
       "observation": "0 2 * * * /usr/local/bin/old_backup.sh\n30 */6 * * * /usr/local/bin/cleanup.sh"
     },
     {
       "thought": "Add new daily backup cron job",
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "crontab -l > /tmp/crontab.tmp && echo '0 3 * * * /usr/local/bin/daily_backup.sh' >> /tmp/crontab.tmp && crontab /tmp/crontab.tmp"]},
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "crontab -l > /tmp/crontab.tmp && echo '0 3 * * * /usr/local/bin/daily_backup.sh' >> /tmp/crontab.tmp && crontab /tmp/crontab.tmp"
+        ]
+      },
       "observation": ""
     },
     {
       "thought": "Verify cron job added",
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "crontab", "args": ["-l"]},
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "crontab",
+        "args": [
+          "-l"
+        ]
+      },
       "observation": "0 2 * * * /usr/local/bin/old_backup.sh\n30 */6 * * * /usr/local/bin/cleanup.sh\n0 3 * * * /usr/local/bin/daily_backup.sh"
     },
     {
       "thought": "Create systemd service for weekly report",
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > /etc/systemd/system/weekly_report.service <<'EOF'\n[Unit]\nDescription=Weekly Report Generator\n\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/generate_report.sh\nEOF"]},
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > /etc/systemd/system/weekly_report.service <<'EOF'\n[Unit]\nDescription=Weekly Report Generator\n\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/generate_report.sh\nEOF"
+        ]
+      },
       "observation": ""
     },
     {
       "thought": "Create systemd timer for weekly execution",
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "cat > /etc/systemd/system/weekly_report.timer <<'EOF'\n[Unit]\nDescription=Weekly Report Timer\n\n[Timer]\nOnCalendar=Sun 00:00:00\nPersistent=true\n\n[Install]\nWantedBy=timers.target\nEOF"]},
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > /etc/systemd/system/weekly_report.timer <<'EOF'\n[Unit]\nDescription=Weekly Report Timer\n\n[Timer]\nOnCalendar=Sun 00:00:00\nPersistent=true\n\n[Install]\nWantedBy=timers.target\nEOF"
+        ]
+      },
       "observation": ""
     },
     {
       "thought": "Enable and start the timer",
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "systemctl daemon-reload && systemctl enable weekly_report.timer && systemctl start weekly_report.timer"]},
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "systemctl daemon-reload && systemctl enable weekly_report.timer && systemctl start weekly_report.timer"
+        ]
+      },
       "observation": "Created symlink /etc/systemd/system/timers.target.wants/weekly_report.timer → /etc/systemd/system/weekly_report.timer."
     },
     {
       "thought": "Verify timer is active",
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "systemctl", "args": ["list-timers", "--no-pager", "|", "grep", "weekly_report"]},
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": [
+          "list-timers",
+          "--no-pager",
+          "|",
+          "grep",
+          "weekly_report"
+        ]
+      },
       "observation": "Sun 2025-11-24 00:00:00 UTC  5 days left       n/a                          n/a          weekly_report.timer         weekly_report.service"
     },
     {
       "thought": "List all scheduled tasks",
-      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo '=== Cron ===' && crontab -l | wc -l && echo '=== Timers ===' && systemctl list-timers --no-pager --no-legend | wc -l"]},
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "echo '=== Cron ===' && crontab -l | wc -l && echo '=== Timers ===' && systemctl list-timers --no-pager --no-legend | wc -l"
+        ]
+      },
       "observation": "=== Cron ===\n3\n=== Timers ===\n8"
     }
   ],

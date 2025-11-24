@@ -1,0 +1,66 @@
+{
+  "name": "puppeteer_authentication_cookies",
+  "description": "Handle authentication, manage cookies, and session state",
+  "pattern": "puppeteer.*auth|cookie.*management|session.*handle",
+  "parameters": [
+    "cookie_data",
+    "auth_credentials"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const puppeteer = require('puppeteer'); (async () => { const browser = await puppeteer.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); await page.setCookie({name: 'session_id', value: 'abc123xyz', domain: 'example.com'}); const cookies = await page.cookies(); console.log('Cookies:', cookies.length); cookies.forEach(c => console.log(`  ${c.name}: ${c.value}`)); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Cookies: 1\n  session_id: abc123xyz\n\nCookie set and retrieved"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const puppeteer = require('puppeteer'); (async () => { const browser = await puppeteer.launch(); const page = await browser.newPage(); await page.authenticate({username: 'admin', password: 'secret'}); await page.goto('https://httpbin.org/basic-auth/admin/secret'); const content = await page.evaluate(() => document.body.innerText); console.log('Auth successful:', content.includes('authenticated')); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Auth successful: true\n\nHTTP Basic Authentication handled"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "node",
+        "args": [
+          "-e",
+          "const puppeteer = require('puppeteer'); const fs = require('fs'); (async () => { const browser = await puppeteer.launch(); const page = await browser.newPage(); await page.goto('https://example.com'); await page.setCookie({name: 'token', value: 'eyJhbGc...'}); const cookies = await page.cookies(); fs.writeFileSync('/tmp/cookies.json', JSON.stringify(cookies)); console.log('Cookies exported:', cookies.length); await browser.close(); })();"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Cookies exported: 1\n\nSession cookies saved to file"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

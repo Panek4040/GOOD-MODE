@@ -1,1 +1,99 @@
-{"name":"lnx_svc_systemd_service_tool_05","description":"Tool 05 for LNX_SVC_SYSTEMD_SERVICE","pattern":"lnx_svc_systemd_service","parameters":["param"],"sequence":[{"action":{"type":"system_command","tool":"shell","operation":"run","command":"echo","args":["ok"]},"expected_output":{"type":"string","example":"ok"}}],"stats":{"uses":0,"successes":0,"failures":0,"success_rate":0.0},"created_by":"neural_mesh_v5.2_generator"}
+{
+  "name": "systemd_create_custom_service_unit",
+  "description": "Create custom systemd service unit file, configure ExecStart, enable and start service",
+  "pattern": "create.*service|new.*systemd.*unit|custom.*service.*file",
+  "parameters": [
+    "service_name",
+    "exec_command",
+    "description"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > /etc/systemd/system/{{service_name}}.service << 'EOF'\n[Unit]\nDescription={{description}}\nAfter=network.target\n\n[Service]\nType=simple\nExecStart={{exec_command}}\nRestart=on-failure\nRestartSec=10\n\n[Install]\nWantedBy=multi-user.target\nEOF"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cat",
+        "args": [
+          "/etc/systemd/system/{{service_name}}.service"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[Unit]\nDescription={{description}}\nAfter=network.target\n\n[Service]\nType=simple\nExecStart={{exec_command}}\nRestart=on-failure"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": [
+          "daemon-reload"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": ""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": [
+          "enable",
+          "--now",
+          "{{service_name}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Created symlink /etc/systemd/system/multi-user.target.wants/{{service_name}}.service → /etc/systemd/system/{{service_name}}.service"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": [
+          "status",
+          "{{service_name}}",
+          "--no-pager"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "● {{service_name}}.service - {{description}}\n   Loaded: loaded (/etc/systemd/system/{{service_name}}.service; enabled)\n   Active: active (running) since Mon 2024-11-18"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

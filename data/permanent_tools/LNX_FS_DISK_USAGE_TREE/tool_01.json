@@ -2,7 +2,10 @@
   "name": "disk_usage_summary",
   "description": "Generate disk usage summary for directory with human-readable sizes",
   "pattern": "disk.*usage|space.*used|du.*summary",
-  "parameters": ["path", "depth"],
+  "parameters": [
+    "path",
+    "depth"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "du",
-        "args": ["-h", "--max-depth={{depth}}", "{{path}}"]
+        "args": [
+          "-h",
+          "--max-depth={{depth}}",
+          "{{path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -h --max-depth={{depth}} '{{path}}' | sort -rh"]
+        "args": [
+          "-c",
+          "du -h --max-depth={{depth}} '{{path}}' | sort -rh"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sh '{{path}}'/*"]
+        "args": [
+          "-c",
+          "du -sh '{{path}}'/*"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -b --max-depth={{depth}} '{{path}}' | sort -rn | numfmt --to=iec"]
+        "args": [
+          "-c",
+          "du -b --max-depth={{depth}} '{{path}}' | sort -rn | numfmt --to=iec"
+        ]
       },
       "expected_output": {
         "type": "string",

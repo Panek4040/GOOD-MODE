@@ -1,0 +1,113 @@
+{
+  "title": "Advanced Pretexting and Business Email Compromise (BEC)",
+  "description": "Sophisticated BEC attack targeting CFO using extensive OSINT, pretexting, and relationship building to execute fraudulent wire transfer. Demonstrates advanced social engineering tactics.",
+  "difficulty": "advanced",
+  "scenario": "Red team assessment for manufacturing company to test financial controls and employee awareness. Goal: impersonate CEO and convince CFO to authorize wire transfer using social engineering only (no technical exploitation). Full authorization with company leadership.",
+  "steps": [
+    {
+      "step_number": 1,
+      "tool": "osint_pretexting_recon",
+      "action": "Comprehensive OSINT on CEO and CFO",
+      "parameters": {
+        "targets": [
+          "CEO",
+          "CFO"
+        ]
+      },
+      "expected_result": "Detailed profiles: CEO (travel schedule, communication style, interests), CFO (Harvard MBA, responds to alumni outreach, golf enthusiast, typical working hours 7AM-6PM)",
+      "explanation": "Deep target knowledge enables convincing impersonation"
+    },
+    {
+      "step_number": 2,
+      "tool": "osint_pretexting_recon",
+      "action": "Map organizational hierarchy and procedures",
+      "parameters": {
+        "company": "ManufacturingCorp"
+      },
+      "expected_result": "Identified wire transfer approval process, typical amounts, vendor relationships, CFO's approval authority ($500K without board approval)",
+      "explanation": "Understanding procedures helps craft believable pretext"
+    },
+    {
+      "step_number": 3,
+      "tool": "email_spoofing_smtp",
+      "action": "Establish rapport with CFO via Harvard alumni angle",
+      "parameters": {
+        "pretext": "Harvard MBA alumni networking"
+      },
+      "expected_result": "Week 1: Initial LinkedIn connection (accepted), Week 2: Coffee meeting invitation (accepted), Week 3: Established friendly relationship",
+      "explanation": "Trust-building phase critical for advanced BEC"
+    },
+    {
+      "step_number": 4,
+      "tool": "email_spoofing_smtp",
+      "action": "Monitor CEO's actual travel schedule",
+      "parameters": {},
+      "expected_result": "CEO traveling to Asia next week (confirmed via social media posts, out-of-office auto-reply, public speaking schedule)",
+      "explanation": "CEO being unavailable makes pretext more believable"
+    },
+    {
+      "step_number": 5,
+      "tool": "email_spoofing_smtp",
+      "action": "Send urgent wire transfer request from spoofed CEO email",
+      "parameters": {
+        "from": "ceo@manufacturingcorp.com",
+        "to": "cfo@manufacturingcorp.com",
+        "subject": "URGENT: Confidential Acquisition"
+      },
+      "expected_result": "Email sent during CEO's Asia trip: 'Confidential acquisition opportunity. Legal requires immediate $450K wire transfer. Details in attached NDA. Call my international number if questions: +XX-XXX-XXX-XXXX (attacker's number)'",
+      "explanation": "Timing, urgency, confidentiality, and CEO unavailability create pressure"
+    },
+    {
+      "step_number": 6,
+      "tool": "vishing_voice_phishing",
+      "action": "Answer CFO's verification call as 'CEO'",
+      "parameters": {
+        "voice_mod": "CEO voice clone",
+        "script": "Confidential acquisition talking points"
+      },
+      "expected_result": "CFO called to verify, attacker answered using voice cloning technology, provided believable acquisition story, reinforced urgency, CFO verbally confirmed wire transfer approval",
+      "explanation": "Voice verification adds critical legitimacy layer"
+    },
+    {
+      "step_number": 7,
+      "tool": "email_spoofing_smtp",
+      "action": "Provide wire instructions and monitor compliance",
+      "parameters": {},
+      "expected_result": "Sent wire instructions to test account (monitored but not actual theft), CFO initiated wire transfer ($450K to test account), transaction flagged by bank but CFO confirmed as legitimate, wire completed within 4 hours",
+      "explanation": "Successful BEC demonstrates complete control process bypass"
+    },
+    {
+      "step_number": 8,
+      "tool": "set_social_engineering_toolkit",
+      "action": "Halt transfer and document engagement",
+      "parameters": {},
+      "expected_result": "Transfer intercepted before completion, CFO debriefed (shocked at deception), comprehensive report generated documenting attack timeline, psychological techniques, control failures",
+      "explanation": "Responsible disclosure and thorough documentation"
+    }
+  ],
+  "outcome": "Successful BEC demonstration - CFO authorized $450K wire transfer based purely on social engineering. Attack succeeded due to: extensive OSINT enabling realistic pretext, relationship building establishing trust, perfect timing (CEO unavailable), voice cloning adding verification layer, exploiting human psychology (urgency, authority, confidentiality). Zero technical controls prevented attack. Implemented remediation: mandatory dual approval for wires >$100K, verbal verification using pre-established code words, wire transfer callback to known numbers only, executive impersonation awareness training, email authentication (DMARC reject), regular BEC simulations. Subsequent tests showed 100% detection rate.",
+  "learning_objectives": [
+    "Conduct advanced OSINT for pretexting",
+    "Build target relationships over time",
+    "Execute sophisticated BEC attacks",
+    "Use voice cloning for verification bypass",
+    "Exploit human psychology and authority",
+    "Demonstrate financial control weaknesses",
+    "Provide comprehensive BEC defenses"
+  ],
+  "metadata": {
+    "created_by": "neural_mesh_v5.2_generator",
+    "category": "pentesting",
+    "subcategory": "business_email_compromise",
+    "tools_used": [
+      "osint_pretexting_recon",
+      "email_spoofing_smtp",
+      "vishing_voice_phishing",
+      "set_social_engineering_toolkit"
+    ],
+    "estimated_time": "3-4 weeks",
+    "authorization_required": true,
+    "severity": "critical",
+    "risk_level": "extreme"
+  }
+}

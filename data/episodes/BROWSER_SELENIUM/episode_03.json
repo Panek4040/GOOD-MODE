@@ -1,0 +1,116 @@
+{
+  "title": "Multi-Window Authentication Flow and Session Management",
+  "description": "Handle multiple browser windows, tabs, iframes, and complex authentication",
+  "difficulty": "expert",
+  "estimated_time": "75 minutes",
+  "tools_used": [
+    "selenium",
+    "cookies",
+    "javascript_executor"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Initialize with Custom Profile",
+      "command": "from selenium.webdriver.chrome.options import Options; options = Options(); options.add_argument('--disable-blink-features=AutomationControlled'); options.add_experimental_option('excludeSwitches', ['enable-automation']); driver = webdriver.Chrome(options=options)",
+      "explanation": "Start browser with stealth settings",
+      "expected_output": "Browser appears as normal user",
+      "success_criteria": "Automation detection bypassed"
+    },
+    {
+      "step": 2,
+      "title": "Handle Basic Authentication",
+      "command": "driver.get('https://admin:admin@the-internet.herokuapp.com/basic_auth'); success_msg = driver.find_element(By.TAG_NAME, 'p').text; print(f'Auth result: {success_msg}')",
+      "explanation": "Pass credentials in URL for HTTP Basic Auth",
+      "expected_output": "Auth result: Congratulations! You must have the proper credentials.",
+      "success_criteria": "Authentication successful"
+    },
+    {
+      "step": 3,
+      "title": "Open New Tab",
+      "command": "driver.execute_script('window.open(\"https://example.com\", \"_blank\");'); print(f'Window handles: {len(driver.window_handles)}')",
+      "explanation": "Open additional browser tab via JavaScript",
+      "expected_output": "Window handles: 2",
+      "success_criteria": "New tab opened"
+    },
+    {
+      "step": 4,
+      "title": "Switch Between Windows",
+      "command": "original_window = driver.current_window_handle; driver.switch_to.window(driver.window_handles[1]); print(f'Switched to: {driver.title}'); driver.switch_to.window(original_window); print(f'Back to: {driver.title}')",
+      "explanation": "Navigate between multiple browser tabs",
+      "expected_output": "Switched to: Example Domain, Back to: The Internet",
+      "success_criteria": "Window switching works"
+    },
+    {
+      "step": 5,
+      "title": "Handle Popup Window",
+      "command": "driver.get('https://the-internet.herokuapp.com/windows'); driver.find_element(By.LINK_TEXT, 'Click Here').click(); driver.switch_to.window(driver.window_handles[-1]); popup_text = driver.find_element(By.TAG_NAME, 'h3').text; print(f'Popup: {popup_text}'); driver.close(); driver.switch_to.window(driver.window_handles[0])",
+      "explanation": "Interact with popup window and close it",
+      "expected_output": "Popup: New Window",
+      "success_criteria": "Popup handled and closed"
+    },
+    {
+      "step": 6,
+      "title": "Access Nested iFrame",
+      "command": "driver.get('https://the-internet.herokuapp.com/nested_frames'); driver.switch_to.frame('frame-top'); driver.switch_to.frame('frame-left'); content = driver.find_element(By.TAG_NAME, 'body').text; print(f'Nested frame: {content}'); driver.switch_to.default_content()",
+      "explanation": "Navigate nested iframe structure",
+      "expected_output": "Nested frame: LEFT",
+      "success_criteria": "Nested frames accessed"
+    },
+    {
+      "step": 7,
+      "title": "Session Cookie Manipulation",
+      "command": "driver.get('https://the-internet.herokuapp.com'); driver.add_cookie({'name': 'session_id', 'value': 'abc123xyz', 'domain': '.herokuapp.com'}); cookies = driver.get_cookies(); print(f'Total cookies: {len(cookies)}'); for c in cookies: print(f'  {c[\"name\"]}: {c[\"value\"]}')",
+      "explanation": "Add and retrieve session cookies",
+      "expected_output": "Total cookies: 1, session_id: abc123xyz",
+      "success_criteria": "Cookies managed"
+    },
+    {
+      "step": 8,
+      "title": "Execute Complex JavaScript",
+      "command": "driver.get('https://example.com'); local_storage = driver.execute_script('localStorage.setItem(\"token\", \"eyJhbGc...\"); return localStorage.getItem(\"token\");'); print(f'LocalStorage token: {local_storage[:20]}...'); session_storage = driver.execute_script('sessionStorage.setItem(\"user\", \"admin\"); return sessionStorage.getItem(\"user\");'); print(f'SessionStorage user: {session_storage}')",
+      "explanation": "Manipulate browser storage via JavaScript",
+      "expected_output": "LocalStorage token: eyJhbGc..., SessionStorage user: admin",
+      "success_criteria": "Storage accessed"
+    },
+    {
+      "step": 9,
+      "title": "Screenshot Each Window",
+      "command": "import time; for i, handle in enumerate(driver.window_handles): driver.switch_to.window(handle); driver.save_screenshot(f'/tmp/window_{i}.png'); print(f'Screenshot saved: window_{i}.png')",
+      "explanation": "Capture screenshots of all open windows",
+      "expected_output": "Screenshot saved: window_0.png, window_1.png",
+      "success_criteria": "All windows captured"
+    },
+    {
+      "step": 10,
+      "title": "Session Export and Cleanup",
+      "command": "import pickle; cookies = driver.get_cookies(); with open('/tmp/session_cookies.pkl', 'wb') as f: pickle.dump(cookies, f); print(f'Exported {len(cookies)} cookies'); [driver.switch_to.window(h) for h in driver.window_handles[1:]]; [driver.close() for _ in driver.window_handles[1:]]; driver.switch_to.window(driver.window_handles[0]); driver.quit(); print('All windows closed')",
+      "explanation": "Save session and close all browser windows",
+      "expected_output": "Exported cookies, All windows closed",
+      "success_criteria": "Session persisted"
+    }
+  ],
+  "learning_objectives": [
+    "Window handling",
+    "Tab management",
+    "Iframe navigation",
+    "Cookie manipulation",
+    "JavaScript execution",
+    "Storage APIs",
+    "Session persistence"
+  ],
+  "mitigation": [
+    "Session timeout",
+    "CSRF tokens",
+    "SameSite cookies",
+    "Content Security Policy"
+  ],
+  "tags": [
+    "selenium",
+    "multi-window",
+    "authentication",
+    "cookies",
+    "javascript",
+    "iframes"
+  ]
+}

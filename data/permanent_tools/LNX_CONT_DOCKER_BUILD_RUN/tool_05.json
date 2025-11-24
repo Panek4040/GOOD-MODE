@@ -2,7 +2,10 @@
   "name": "docker_inspect_logs_container_diagnostics",
   "description": "Inspect container configuration and retrieve logs for debugging and monitoring",
   "pattern": "docker.*logs|inspect.*container|container.*diagnostics|debug.*docker",
-  "parameters": ["container_name", "log_lines"],
+  "parameters": [
+    "container_name",
+    "log_lines"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,14 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["ps", "-a", "--filter", "name={{container_name}}", "--format", "{{.ID}} {{.Status}}"]
+        "args": [
+          "ps",
+          "-a",
+          "--filter",
+          "name={{container_name}}",
+          "--format",
+          "{{.ID}} {{.Status}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +33,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["logs", "--tail", "{{log_lines}}", "--timestamps", "{{container_name}}"]
+        "args": [
+          "logs",
+          "--tail",
+          "{{log_lines}}",
+          "--timestamps",
+          "{{container_name}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +52,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["inspect", "{{container_name}}", "--format", "{{json .State}}"]
+        "args": [
+          "inspect",
+          "{{container_name}}",
+          "--format",
+          "{{json .State}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +70,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["stats", "{{container_name}}", "--no-stream", "--format", "table {{.Name}}\\t{{.CPUPerc}}\\t{{.MemUsage}}\\t{{.NetIO}}"]
+        "args": [
+          "stats",
+          "{{container_name}}",
+          "--no-stream",
+          "--format",
+          "table {{.Name}}\\t{{.CPUPerc}}\\t{{.MemUsage}}\\t{{.NetIO}}"
+        ]
       },
       "expected_output": {
         "type": "string",

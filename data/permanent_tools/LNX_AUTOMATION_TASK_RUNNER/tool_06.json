@@ -2,7 +2,9 @@
   "name": "check_task_logs",
   "description": "Check execution logs and history of scheduled tasks",
   "pattern": "check.*logs|task.*history|cron.*output",
-  "parameters": ["service_name"],
+  "parameters": [
+    "service_name"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +12,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep CRON /var/log/syslog | grep {{service_name}} | tail -10"]
+        "args": [
+          "-c",
+          "grep CRON /var/log/syslog | grep {{service_name}} | tail -10"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +28,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "journalctl",
-        "args": ["-u", "{{service_name}}.service", "--no-pager", "-n", "20"]
+        "args": [
+          "-u",
+          "{{service_name}}.service",
+          "--no-pager",
+          "-n",
+          "20"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +47,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "journalctl -u {{service_name}}.service --since '24 hours ago' --no-pager | grep -E '(Started|Succeeded|Failed)' | tail -10"]
+        "args": [
+          "-c",
+          "journalctl -u {{service_name}}.service --since '24 hours ago' --no-pager | grep -E '(Started|Succeeded|Failed)' | tail -10"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +63,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "systemctl",
-        "args": ["list-timers", "{{service_name}}.timer", "--no-pager"]
+        "args": [
+          "list-timers",
+          "{{service_name}}.timer",
+          "--no-pager"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +80,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "success=$(journalctl -u {{service_name}}.service --since '7 days ago' --no-pager | grep -c 'Succeeded'); failed=$(journalctl -u {{service_name}}.service --since '7 days ago' --no-pager | grep -c 'Failed'); echo \"Last 7 days: Success=$success, Failed=$failed\""]
+        "args": [
+          "-c",
+          "success=$(journalctl -u {{service_name}}.service --since '7 days ago' --no-pager | grep -c 'Succeeded'); failed=$(journalctl -u {{service_name}}.service --since '7 days ago' --no-pager | grep -c 'Failed'); echo \"Last 7 days: Success=$success, Failed=$failed\""
+        ]
       },
       "expected_output": {
         "type": "string",

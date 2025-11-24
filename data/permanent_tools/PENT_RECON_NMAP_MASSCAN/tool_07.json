@@ -1,0 +1,30 @@
+{
+  "name": "nmap_output_formats_reporting",
+  "description": "Generate scan reports in various formats - XML, grepable, normal for analysis",
+  "pattern": "nmap.*output|scan.*report|export.*results|nmap.*format",
+  "parameters": ["target", "output_file"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sS", "-p", "80,443", "{{target}}", "-oN", "{{output_file}}.txt"]},
+      "expected_output": {"type": "string", "example": "Normal output saved to {{output_file}}.txt - human-readable format"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sS", "-p", "80,443", "{{target}}", "-oX", "{{output_file}}.xml"]},
+      "expected_output": {"type": "string", "example": "XML output saved to {{output_file}}.xml for parsing and import"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sS", "-p", "80,443", "{{target}}", "-oG", "{{output_file}}.gnmap"]},
+      "expected_output": {"type": "string", "example": "Grepable output saved - easy to parse with grep/awk:\nHost: {{target}} Ports: 80/open/tcp//http/, 443/open/tcp//https/"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "nmap", "args": ["-sS", "-p", "80,443", "{{target}}", "-oA", "{{output_file}}"]},
+      "expected_output": {"type": "string", "example": "All formats saved: {{output_file}}.nmap, {{output_file}}.xml, {{output_file}}.gnmap"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "nmap -sS -p 80,443 {{target}} -oG - | grep '/open/'"]},
+      "expected_output": {"type": "string", "example": "Host: {{target}} Ports: 80/open/tcp//http/, 443/open/tcp//https/ - inline grepable output"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

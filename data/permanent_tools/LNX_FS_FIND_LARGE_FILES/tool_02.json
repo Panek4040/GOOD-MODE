@@ -2,7 +2,10 @@
   "name": "find_top_n_largest",
   "description": "Find and list top N largest files with detailed information",
   "pattern": "top.*largest|biggest.*files|largest.*n.*files",
-  "parameters": ["path", "limit"],
+  "parameters": [
+    "path",
+    "limit"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -printf '%s|%p\\n' | sort -rn | head -n {{limit}}"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -printf '%s|%p\\n' | sort -rn | head -n {{limit}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -printf '%s|%p|%TY-%Tm-%Td %TH:%TM\\n' | sort -rn | head -n {{limit}}"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -printf '%s|%p|%TY-%Tm-%Td %TH:%TM\\n' | sort -rn | head -n {{limit}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -printf '%s %p\\n' | sort -rn | head -n {{limit}} | awk '{print $1\"|\"$2}'"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -printf '%s %p\\n' | sort -rn | head -n {{limit}} | awk '{print $1\"|\"$2}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +61,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -exec du -b {} + | sort -rn | head -n {{limit}}"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -exec du -b {} + | sort -rn | head -n {{limit}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +77,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -printf '%s %p\\n' | sort -rn | head -n {{limit}} | numfmt --to=iec --field=1 --padding=7"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -printf '%s %p\\n' | sort -rn | head -n {{limit}} | numfmt --to=iec --field=1 --padding=7"
+        ]
       },
       "expected_output": {
         "type": "string",

@@ -2,7 +2,9 @@
   "name": "safe_delete_secure_shred",
   "description": "Securely delete files using shred to overwrite data",
   "pattern": "secure.*delete|shred.*file|permanent.*erase",
-  "parameters": ["file_path"],
+  "parameters": [
+    "file_path"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +12,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "if [ -f '{{file_path}}' ]; then stat -c 'File: %n\nSize: %s bytes\nInode: %i\nLinks: %h' '{{file_path}}'; else echo 'File not found'; fi"]
+        "args": [
+          "-c",
+          "if [ -f '{{file_path}}' ]; then stat -c 'File: %n\nSize: %s bytes\nInode: %i\nLinks: %h' '{{file_path}}'; else echo 'File not found'; fi"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +28,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "md5sum '{{file_path}}' | awk '{print \"Original MD5: \" $1}'"]
+        "args": [
+          "-c",
+          "md5sum '{{file_path}}' | awk '{print \"Original MD5: \" $1}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +44,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "shred",
-        "args": ["-v", "-n", "3", "{{file_path}}"]
+        "args": [
+          "-v",
+          "-n",
+          "3",
+          "{{file_path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "if [ -f '{{file_path}}' ]; then md5sum '{{file_path}}' | awk '{print \"Shredded MD5: \" $1}'; else echo 'File removed'; fi"]
+        "args": [
+          "-c",
+          "if [ -f '{{file_path}}' ]; then md5sum '{{file_path}}' | awk '{print \"Shredded MD5: \" $1}'; else echo 'File removed'; fi"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +78,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "shred",
-        "args": ["-v", "-u", "-z", "{{file_path}}"]
+        "args": [
+          "-v",
+          "-u",
+          "-z",
+          "{{file_path}}"
+        ]
       },
       "expected_output": {
         "type": "string",

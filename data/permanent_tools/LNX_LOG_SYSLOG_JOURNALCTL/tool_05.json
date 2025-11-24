@@ -2,7 +2,10 @@
   "name": "tail_grep_realtime_log_monitoring",
   "description": "Monitor logs in real-time with tail -f and grep filtering for patterns",
   "pattern": "tail.*logs|monitor.*realtime|grep.*logs|follow.*logs",
-  "parameters": ["log_file", "grep_pattern"],
+  "parameters": [
+    "log_file",
+    "grep_pattern"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "test",
-        "args": ["-f", "{{log_file}}"]
+        "args": [
+          "-f",
+          "{{log_file}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "tail",
-        "args": ["-n", "50", "{{log_file}}"]
+        "args": [
+          "-n",
+          "50",
+          "{{log_file}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +46,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -E '{{grep_pattern}}' {{log_file}} | tail -20"]
+        "args": [
+          "-c",
+          "grep -E '{{grep_pattern}}' {{log_file}} | tail -20"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "tail -n 100 {{log_file}} | grep -c '{{grep_pattern}}'"]
+        "args": [
+          "-c",
+          "tail -n 100 {{log_file}} | grep -c '{{grep_pattern}}'"
+        ]
       },
       "expected_output": {
         "type": "string",

@@ -1,0 +1,112 @@
+{
+  "title": "Resolving Merge Conflicts in Team Environment",
+  "description": "Handle and resolve git merge conflicts effectively",
+  "difficulty": "advanced",
+  "estimated_time": "55 minutes",
+  "tools_used": [
+    "git",
+    "merge",
+    "conflict_resolution"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Setup Scenario",
+      "command": "git init conflict-demo && cd conflict-demo && echo 'Version 1' > file.txt && git add file.txt && git commit -m 'Initial version'",
+      "explanation": "Create test repository with base file",
+      "expected_output": "Initialized empty Git repository",
+      "success_criteria": "Repo ready"
+    },
+    {
+      "step": 2,
+      "title": "Create Branch A",
+      "command": "git checkout -b branch-a && echo 'Version 1\\nAdded by Branch A' > file.txt && git commit -am 'Branch A changes'",
+      "explanation": "First developer makes changes",
+      "expected_output": "Switched to a new branch 'branch-a'",
+      "success_criteria": "Branch A committed"
+    },
+    {
+      "step": 3,
+      "title": "Create Branch B",
+      "command": "git checkout main && git checkout -b branch-b && echo 'Version 1\\nAdded by Branch B' > file.txt && git commit -am 'Branch B changes'",
+      "explanation": "Second developer makes conflicting changes",
+      "expected_output": "Switched to a new branch 'branch-b'",
+      "success_criteria": "Branch B committed"
+    },
+    {
+      "step": 4,
+      "title": "Attempt Merge",
+      "command": "git checkout main && git merge branch-a && git merge branch-b 2>&1 || echo 'CONFLICT detected'",
+      "explanation": "Try merging both branches into main",
+      "expected_output": "Auto-merging file.txt\\nCONFLICT (content): Merge conflict in file.txt",
+      "success_criteria": "Conflict identified"
+    },
+    {
+      "step": 5,
+      "title": "Check Conflict Status",
+      "command": "git status && cat file.txt",
+      "explanation": "View conflicted files and markers",
+      "expected_output": "both modified: file.txt\\n<<<<<<< HEAD\\n=======\\n>>>>>>> branch-b",
+      "success_criteria": "Conflicts visible"
+    },
+    {
+      "step": 6,
+      "title": "View Conflict Diff",
+      "command": "git diff --name-only --diff-filter=U && git diff file.txt",
+      "explanation": "See detailed conflict information",
+      "expected_output": "file.txt\\n@@@ -1,1 -1,2 +1,6 @@@",
+      "success_criteria": "Diff shown"
+    },
+    {
+      "step": 7,
+      "title": "Resolve Conflict",
+      "command": "echo 'Version 1\\nAdded by Branch A\\nAdded by Branch B\\nMerged together' > file.txt && cat file.txt",
+      "explanation": "Manually edit file to resolve conflict",
+      "expected_output": "Version 1\\nAdded by Branch A\\nAdded by Branch B",
+      "success_criteria": "Conflict resolved"
+    },
+    {
+      "step": 8,
+      "title": "Mark as Resolved",
+      "command": "git add file.txt && git status",
+      "explanation": "Stage resolved file",
+      "expected_output": "All conflicts fixed: run 'git commit'",
+      "success_criteria": "File staged"
+    },
+    {
+      "step": 9,
+      "title": "Complete Merge",
+      "command": "git commit -m 'Merge branch-b into main, resolved conflicts' && git log --oneline --graph --all",
+      "explanation": "Finalize merge with commit",
+      "expected_output": "*   Merge branch-b into main\\n|\\\\  \\n| * Branch B changes\\n* | Branch A changes",
+      "success_criteria": "Merge committed"
+    },
+    {
+      "step": 10,
+      "title": "Verify Resolution",
+      "command": "git show HEAD && git diff main~2 main --stat",
+      "explanation": "Confirm merge and changes",
+      "expected_output": "file.txt | 3 +++\\n1 file changed, 3 insertions(+)",
+      "success_criteria": "Merge verified"
+    }
+  ],
+  "learning_objectives": [
+    "Merge conflicts",
+    "Conflict resolution",
+    "Git markers",
+    "Three-way merge",
+    "Conflict prevention strategies"
+  ],
+  "mitigation": [
+    "Frequent pulls",
+    "Small commits",
+    "Communication",
+    "Feature flags"
+  ],
+  "tags": [
+    "git",
+    "merge_conflicts",
+    "conflict_resolution",
+    "team_workflow"
+  ]
+}

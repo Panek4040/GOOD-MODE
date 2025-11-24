@@ -1,0 +1,132 @@
+{
+  "name": "npm_workspaces",
+  "description": "Managing monorepos with npm workspaces",
+  "sequences": [
+    {
+      "id": "seq_1",
+      "description": "Initialize npm workspace for monorepo",
+      "steps": [
+        {
+          "action": {
+            "command": "bash",
+            "args": [
+              "-c",
+              "mkdir -p packages/app packages/lib && cat > package.json << 'EOF'\n{\n  \"name\": \"my-monorepo\",\n  \"workspaces\": [\"packages/*\"]\n}\nEOF"
+            ]
+          },
+          "expected_output": "Created workspace structure",
+          "explanation": "Sets up monorepo with workspaces configuration"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "init",
+              "-w",
+              "packages/app",
+              "-y"
+            ]
+          },
+          "expected_output": "Wrote to /packages/app/package.json",
+          "explanation": "Initializes package within workspace"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "install"
+            ]
+          },
+          "expected_output": "added 0 packages in 1s\n\n2 workspaces",
+          "explanation": "Installs dependencies for all workspaces"
+        }
+      ]
+    },
+    {
+      "id": "seq_2",
+      "description": "Manage dependencies across workspaces",
+      "steps": [
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "install",
+              "lodash",
+              "-w",
+              "packages/app"
+            ]
+          },
+          "expected_output": "added 1 package to workspace packages/app",
+          "explanation": "Installs dependency in specific workspace"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "install",
+              "eslint",
+              "-ws"
+            ]
+          },
+          "expected_output": "added 1 package to 2 workspaces",
+          "explanation": "Installs dependency in all workspaces"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "list",
+              "-ws"
+            ]
+          },
+          "expected_output": "packages/app@1.0.0\n└── lodash@4.17.21\n\npackages/lib@1.0.0\n└── (empty)",
+          "explanation": "Lists dependencies for all workspaces"
+        }
+      ]
+    },
+    {
+      "id": "seq_3",
+      "description": "Run scripts across workspaces",
+      "steps": [
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "run",
+              "test",
+              "-w",
+              "packages/app"
+            ]
+          },
+          "expected_output": "> packages/app@1.0.0 test\n> jest\n\nTests passed",
+          "explanation": "Runs script in specific workspace"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "run",
+              "build",
+              "--workspaces"
+            ]
+          },
+          "expected_output": "> packages/app@1.0.0 build\n> webpack\n\n> packages/lib@1.0.0 build\n> tsc",
+          "explanation": "Runs build script in all workspaces"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "run",
+              "test",
+              "--workspace=packages/app",
+              "--workspace=packages/lib"
+            ]
+          },
+          "expected_output": "Running tests in selected workspaces\n✓ packages/app: 12 passed\n✓ packages/lib: 8 passed",
+          "explanation": "Runs script in multiple specified workspaces"
+        }
+      ]
+    }
+  ]
+}

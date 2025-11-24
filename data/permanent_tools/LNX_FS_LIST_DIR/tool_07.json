@@ -2,7 +2,9 @@
   "name": "list_by_type_extension",
   "description": "List files grouped by type and extension with counts",
   "pattern": "group.*type|extension.*list|file.*types|categorize.*files",
-  "parameters": ["path"],
+  "parameters": [
+    "path"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +12,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["{{path}}", "-type", "f", "-name", "*.*"]
+        "args": [
+          "{{path}}",
+          "-type",
+          "f",
+          "-name",
+          "*.*"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +31,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -name '*.*' | sed 's/.*\\.//' | sort | uniq -c"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -name '*.*' | sed 's/.*\\.//' | sort | uniq -c"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +47,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{path}}' -type f -printf '%f\\n' | grep -o '\\.[^.]*$$' | sort | uniq -c | sort -rn"]
+        "args": [
+          "-c",
+          "find '{{path}}' -type f -printf '%f\\n' | grep -o '\\.[^.]*$$' | sort | uniq -c | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +63,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "file '{{path}}'/* | awk -F: '{print $$2}' | sort | uniq -c"]
+        "args": [
+          "-c",
+          "file '{{path}}'/* | awk -F: '{print $$2}' | sort | uniq -c"
+        ]
       },
       "expected_output": {
         "type": "string",

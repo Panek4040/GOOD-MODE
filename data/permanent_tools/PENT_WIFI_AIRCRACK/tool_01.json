@@ -1,0 +1,30 @@
+{
+  "name": "airmon_ng_monitor_mode",
+  "description": "Enable and manage monitor mode on wireless interfaces using airmon-ng",
+  "pattern": "airmon.*monitor|monitor.*mode|wireless.*monitor|airmon.*start",
+  "parameters": ["interface"],
+  "sequence": [
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "airmon-ng", "args": []},
+      "expected_output": {"type": "string", "example": "PHY\tInterface\tDriver\t\tChipset\nphy0\twlan0\t\trtl8812au\tRealtek RTL8812AU\nphy1\twlan1\t\tath9k_htc\tQualcomm Atheros AR9271"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "airmon-ng", "args": ["start", "{{interface}}"]},
+      "expected_output": {"type": "string", "example": "PHY\tInterface\tDriver\t\tChipset\nphy0\twlan0\t\trtl8812au\tRealtek RTL8812AU\n\t\t(mac80211 monitor mode vif enabled for [phy0]wlan0 on [phy0]wlan0mon)\n\t\t(mac80211 station mode vif disabled for [phy0]wlan0)\nmonitor mode enabled on wlan0mon"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "bash", "args": ["-c", "iwconfig {{interface}}mon"]},
+      "expected_output": {"type": "string", "example": "wlan0mon  IEEE 802.11  Mode:Monitor  Frequency:2.412 GHz  Tx-Power=20 dBm\n          Retry short limit:7   RTS thr:off   Fragment thr:off\n          Power Management:off"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "airmon-ng", "args": ["check", "kill"]},
+      "expected_output": {"type": "string", "example": "Killing these processes:\n  PID Name\n  1234 NetworkManager\n  5678 wpa_supplicant\n  9012 dhclient\nProcesses killed to prevent interference"}
+    },
+    {
+      "action": {"type": "system_command", "tool": "shell", "operation": "run", "command": "airmon-ng", "args": ["stop", "{{interface}}mon"]},
+      "expected_output": {"type": "string", "example": "PHY\tInterface\tDriver\t\tChipset\nphy0\twlan0mon\trtl8812au\tRealtek RTL8812AU\n\t\t(mac80211 station mode vif enabled on [phy0]wlan0)\n\t\t(mac80211 monitor mode vif disabled for [phy0]wlan0mon)\nmonitor mode disabled"}}
+    }
+  ],
+  "stats": {"uses": 0, "successes": 0, "failures": 0, "success_rate": 0.0},
+  "created_by": "neural_mesh_v5.2_generator"
+}

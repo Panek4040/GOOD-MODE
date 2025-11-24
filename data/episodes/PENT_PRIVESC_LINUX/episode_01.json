@@ -1,0 +1,89 @@
+{
+  "title": "Corporate Server Privilege Escalation via SUID and Sudo Misconfig",
+  "description": "Post-exploitation privilege escalation on compromised Ubuntu server. Initial access gained as low-privilege user through SSH brute force. Objective: escalate to root using SUID binaries and sudo misconfiguration.",
+  "difficulty": "intermediate",
+  "scenario": "Penetration test of corporate web server. Initial foothold obtained as 'webuser' account with limited privileges. Client requested full privilege escalation demonstration to understand impact of misconfigurations. Goal: achieve root access and demonstrate persistence mechanisms.",
+  "steps": [
+    {
+      "step_number": 1,
+      "tool": "suid_binary_exploitation",
+      "action": "Enumerate SUID binaries on the system",
+      "parameters": {
+        "search_path": "/"
+      },
+      "expected_result": "Found 8 SUID binaries including custom /usr/local/bin/backup binary with unusual permissions",
+      "explanation": "SUID binaries run with owner's privileges - if misconfigured, can lead to privilege escalation"
+    },
+    {
+      "step_number": 2,
+      "tool": "suid_binary_exploitation",
+      "action": "Analyze backup binary for vulnerabilities using strings command",
+      "parameters": {},
+      "expected_result": "Binary uses relative path 'tar' instead of absolute '/bin/tar' - vulnerable to PATH hijacking",
+      "explanation": "Relative paths in SUID binaries allow attackers to inject malicious executables via PATH manipulation"
+    },
+    {
+      "step_number": 3,
+      "tool": "suid_binary_exploitation",
+      "action": "Create malicious tar binary and exploit via PATH hijacking",
+      "parameters": {},
+      "expected_result": "Created fake 'tar' in /tmp, modified PATH, executed backup binary - spawned root shell",
+      "explanation": "SUID binary executed our malicious tar with root privileges, granting root access"
+    },
+    {
+      "step_number": 4,
+      "tool": "sudo_misconfiguration_abuse",
+      "action": "Check sudo permissions for current user",
+      "parameters": {},
+      "expected_result": "User can run vim, find, and systemctl as root without password via sudo",
+      "explanation": "Overly permissive sudo configuration allows specific commands to run as root"
+    },
+    {
+      "step_number": 5,
+      "tool": "sudo_misconfiguration_abuse",
+      "action": "Exploit sudo vim to spawn root shell",
+      "parameters": {},
+      "expected_result": "Executed 'sudo vim -c :!sh' - obtained root shell, accessed /root directory and /etc/shadow",
+      "explanation": "Vim allows shell command execution - when run with sudo, commands execute as root"
+    },
+    {
+      "step_number": 6,
+      "tool": "cron_job_manipulation",
+      "action": "Search for writable cron jobs running as root",
+      "parameters": {},
+      "expected_result": "Found world-writable /usr/local/bin/cleanup.sh running as root every 5 minutes",
+      "explanation": "Writable scripts executed by cron as root provide persistent privilege escalation"
+    },
+    {
+      "step_number": 7,
+      "tool": "cron_job_manipulation",
+      "action": "Inject reverse shell payload into writable cron script",
+      "parameters": {},
+      "expected_result": "Modified cleanup.sh with reverse shell, received root connection after 5 minutes",
+      "explanation": "Persistent backdoor established - automatic root access every 5 minutes"
+    }
+  ],
+  "outcome": "Successfully escalated from low-privilege 'webuser' to root using multiple vectors. Demonstrated three critical vulnerabilities: SUID binary PATH hijacking, sudo misconfiguration allowing vim execution, and writable cron job for persistence. Established persistent root backdoor via cron. Recommendations: Use absolute paths in SUID binaries, restrict sudo permissions to specific command arguments (sudo vim /etc/config NOT sudo vim), set proper file permissions on cron scripts (644, not 777), implement SELinux/AppArmor mandatory access controls, audit all SUID binaries regularly, enable auditd logging for privilege escalation detection.",
+  "learning_objectives": [
+    "Enumerate and analyze SUID binaries for vulnerabilities",
+    "Exploit relative paths via PATH environment manipulation",
+    "Identify and abuse sudo misconfigurations",
+    "Use legitimate tools (vim, find) for privilege escalation",
+    "Identify writable cron jobs for persistence",
+    "Establish persistent backdoors via scheduled tasks",
+    "Provide comprehensive hardening recommendations"
+  ],
+  "metadata": {
+    "created_by": "neural_mesh_v5.2_generator",
+    "category": "pentesting",
+    "subcategory": "privilege_escalation",
+    "tools_used": [
+      "suid_binary_exploitation",
+      "sudo_misconfiguration_abuse",
+      "cron_job_manipulation"
+    ],
+    "estimated_time": "30-45 minutes",
+    "authorization_required": true,
+    "severity": "critical"
+  }
+}

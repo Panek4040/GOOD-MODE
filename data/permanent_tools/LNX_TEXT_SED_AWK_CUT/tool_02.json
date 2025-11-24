@@ -1,1 +1,99 @@
-{"name":"lnx_text_sed_awk_cut_t02","description":"LNX_TEXT_SED_AWK_CUT tool 02","pattern":"tool","parameters":["p"],"sequence":[{"action":{"type":"system_command","tool":"shell","operation":"run","command":"ls","args":["-la"]},"expected_output":{"type":"string","example":"total 0"}}],"stats":{"uses":0,"successes":0,"failures":0,"success_rate":0.0},"created_by":"neural_mesh_v5.2_generator"}
+{
+  "name": "awk_pattern_scan_field_processing",
+  "description": "Pattern scanning and processing language - extract fields, calculate, filter with awk",
+  "pattern": "awk.*field|column.*extract|awk.*pattern|field.*processing",
+  "parameters": [
+    "field_number",
+    "pattern",
+    "file"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "awk '{print ${{field_number}}}' {{file}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Column {{field_number}} extracted from each line"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "awk '/{{pattern}}/ {print $0}' {{file}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Lines matching '{{pattern}}' printed in full"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "awk '{sum+=${{field_number}}} END {print sum}' {{file}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Sum of column {{field_number}}: 12345 (calculated from numeric values)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "awk 'NR==1 || /{{pattern}}/' {{file}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Header (line 1) plus lines matching '{{pattern}}'"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "awk '{print ${{field_number}}, $2, $3}' {{file}} | column -t"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Columns {{field_number}}, 2, 3 formatted in aligned table"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

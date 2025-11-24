@@ -1,0 +1,70 @@
+{
+  "name": "github_actions",
+  "description": "Trigger and monitor GitHub Actions workflows",
+  "pattern": "gh.*workflow.*run|gh.*run.*view|gh.*actions",
+  "parameters": [
+    "workflow_name"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "gh",
+        "args": [
+          "workflow",
+          "list"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "CI          active  123456\nDeploy      active  123457\nTest Suite  active  123458"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "gh",
+        "args": [
+          "run",
+          "list",
+          "--limit",
+          "5",
+          "--workflow",
+          "CI"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "✓  main  CI  Latest commit  1h ago"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "gh",
+        "args": [
+          "run",
+          "view",
+          "--log"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "build   Install dependencies\nbuild   Run tests\nbuild   ✓ Tests passed"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

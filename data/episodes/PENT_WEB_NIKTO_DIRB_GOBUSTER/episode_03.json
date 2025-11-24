@@ -1,0 +1,61 @@
+{
+  "episode_id": "PENT_WEB_NIKTO_DIRB_GOBUSTER_EP03",
+  "title": "WordPress Site Security Assessment",
+  "description": "Full WordPress security assessment - plugins, themes, configuration issues",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Identify WordPress and version",
+      "tool": "whatweb_technology_fingerprinting",
+      "parameters": {
+        "target": "https://wpsite.com"
+      },
+      "expected_outcome": "WordPress 5.8.3 (outdated, CVEs available), PHP 7.4, MySQL backend"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Nikto scan for WP vulnerabilities",
+      "tool": "nikto_web_server_vulnerability_scanner",
+      "parameters": {
+        "target": "wpsite.com",
+        "port": "443"
+      },
+      "expected_outcome": "Found: /wp-admin/, /wp-content/, /xmlrpc.php enabled, directory listing in /wp-content/uploads/"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Enumerate WP plugins",
+      "tool": "dirsearch_advanced_directory_scanner",
+      "parameters": {
+        "target": "https://wpsite.com/wp-content/plugins/",
+        "extensions": "php"
+      },
+      "expected_outcome": "Plugins: Yoast SEO 19.2, WooCommerce 6.5.1, Contact Form 7 5.5.6, Wordfence 7.5.8"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Find backup files",
+      "tool": "gobuster_directory_vhost_dns_bruteforce",
+      "parameters": {
+        "target": "https://wpsite.com",
+        "wordlist": "/usr/share/wordlists/backups.txt",
+        "mode": "dir"
+      },
+      "expected_outcome": "Backups found: /wp-config.php.bak, /backup.sql, /wp-backup.zip"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Bruteforce wp-admin endpoints",
+      "tool": "ffuf_fast_web_fuzzer",
+      "parameters": {
+        "target": "https://wpsite.com/wp-admin/",
+        "wordlist": "/usr/share/seclists/Discovery/Web-Content/wordpress.txt",
+        "fuzz_mode": "dir"
+      },
+      "expected_outcome": "Admin pages: /wp-admin/install.php (still accessible), /wp-admin/admin-ajax.php"
+    }
+  ],
+  "success_criteria": "WordPress site mapped: version 5.8.3 (vulns), 12 plugins, exposed backups, accessible install.php - critical findings",
+  "cleanup": "Recommended: update WordPress, remove backups, disable xmlrpc.php, fix directory listing"
+}

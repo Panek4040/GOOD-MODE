@@ -2,7 +2,11 @@
   "name": "tcpdump_capture_filter_packets",
   "description": "Capture and analyze network packets with filters for host, port, protocol using tcpdump",
   "pattern": "capture.*packets|tcpdump.*analysis|sniff.*traffic|packet.*capture",
-  "parameters": ["interface", "filter", "count"],
+  "parameters": [
+    "interface",
+    "filter",
+    "count"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "ip link show | grep -E '^[0-9]+:' | awk -F': ' '{print $2}'"]
+        "args": [
+          "-c",
+          "ip link show | grep -E '^[0-9]+:' | awk -F': ' '{print $2}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "tcpdump",
-        "args": ["-D"]
+        "args": [
+          "-D"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,16 @@
         "tool": "shell",
         "operation": "run",
         "command": "timeout",
-        "args": ["10", "tcpdump", "-i", "{{interface}}", "-c", "{{count}}", "{{filter}}", "-n"]
+        "args": [
+          "10",
+          "tcpdump",
+          "-i",
+          "{{interface}}",
+          "-c",
+          "{{count}}",
+          "{{filter}}",
+          "-n"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +67,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "timeout 5 tcpdump -i {{interface}} -c 10 '{{filter}}' -w /tmp/capture.pcap 2>&1 && ls -lh /tmp/capture.pcap"]
+        "args": [
+          "-c",
+          "timeout 5 tcpdump -i {{interface}} -c 10 '{{filter}}' -w /tmp/capture.pcap 2>&1 && ls -lh /tmp/capture.pcap"
+        ]
       },
       "expected_output": {
         "type": "string",

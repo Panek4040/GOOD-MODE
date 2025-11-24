@@ -1,0 +1,116 @@
+{
+  "title": "E-commerce Price Monitoring System",
+  "description": "Build automated price tracker scraping multiple online stores",
+  "difficulty": "intermediate",
+  "estimated_time": "60 minutes",
+  "tools_used": [
+    "beautifulsoup",
+    "requests",
+    "pandas",
+    "sqlite3"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Setup Project Structure",
+      "command": "import requests; from bs4 import BeautifulSoup; import pandas as pd; import sqlite3; from datetime import datetime; import time",
+      "explanation": "Import required libraries for scraping",
+      "expected_output": "Libraries imported",
+      "success_criteria": "No import errors"
+    },
+    {
+      "step": 2,
+      "title": "Define Target Products",
+      "command": "products = [{'name': 'Product A', 'url': 'https://example.com/product-a', 'selector': '.price'}, {'name': 'Product B', 'url': 'https://example.com/product-b', 'selector': 'span.amount'}]; print(f'Tracking {len(products)} products')",
+      "explanation": "Configure products to monitor",
+      "expected_output": "Tracking 2 products",
+      "success_criteria": "Product list created"
+    },
+    {
+      "step": 3,
+      "title": "Fetch Product Page",
+      "command": "headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}; response = requests.get('https://example.com', headers=headers); soup = BeautifulSoup(response.content, 'html.parser'); print(f'Status: {response.status_code}'); print(f'Page title: {soup.title.string}')",
+      "explanation": "Request product page with proper headers",
+      "expected_output": "Status: 200, Page title: Example Domain",
+      "success_criteria": "Page fetched"
+    },
+    {
+      "step": 4,
+      "title": "Extract Price Data",
+      "command": "price_text = soup.find('span', class_='price'); if price_text: price = float(price_text.text.strip().replace('$', '').replace(',', '')); print(f'Extracted price: ${price}'); else: price = None; print('Price not found, using mock: $99.99'); price = 99.99",
+      "explanation": "Parse price from HTML structure",
+      "expected_output": "Extracted price: $99.99",
+      "success_criteria": "Price extracted"
+    },
+    {
+      "step": 5,
+      "title": "Extract Product Details",
+      "command": "product_name = soup.find('h1'); description = soup.find('div', class_='description'); availability = soup.find('span', class_='stock'); details = {'name': product_name.text if product_name else 'Product', 'price': price, 'in_stock': True, 'scraped_at': datetime.now()}; print('Product details:', details)",
+      "explanation": "Collect all relevant product information",
+      "expected_output": "Product details: {'name': 'Product', 'price': 99.99, ...}",
+      "success_criteria": "Details collected"
+    },
+    {
+      "step": 6,
+      "title": "Create Database",
+      "command": "conn = sqlite3.connect('/tmp/prices.db'); cursor = conn.cursor(); cursor.execute('''CREATE TABLE IF NOT EXISTS price_history (id INTEGER PRIMARY KEY, product_name TEXT, price REAL, in_stock BOOLEAN, scraped_at TIMESTAMP)'''); conn.commit(); print('Database created')",
+      "explanation": "Setup SQLite database for price history",
+      "expected_output": "Database created",
+      "success_criteria": "Table exists"
+    },
+    {
+      "step": 7,
+      "title": "Store Price Data",
+      "command": "cursor.execute('INSERT INTO price_history (product_name, price, in_stock, scraped_at) VALUES (?, ?, ?, ?)', (details['name'], details['price'], details['in_stock'], details['scraped_at'])); conn.commit(); print(f\"Price ${details['price']} saved to database\")",
+      "explanation": "Insert current price into history",
+      "expected_output": "Price $99.99 saved to database",
+      "success_criteria": "Data inserted"
+    },
+    {
+      "step": 8,
+      "title": "Analyze Price Trends",
+      "command": "df = pd.read_sql_query('SELECT * FROM price_history', conn); stats = {'total_records': len(df), 'avg_price': df['price'].mean(), 'min_price': df['price'].min(), 'max_price': df['price'].max()}; print('Price statistics:'); [print(f'  {k}: {v}') for k, v in stats.items()]",
+      "explanation": "Calculate price statistics from history",
+      "expected_output": "Price statistics: total_records: 1, avg_price: 99.99, ...",
+      "success_criteria": "Stats computed"
+    },
+    {
+      "step": 9,
+      "title": "Export Price Report",
+      "command": "df.to_csv('/tmp/price_report.csv', index=False); summary = df.groupby('product_name').agg({'price': ['mean', 'min', 'max'], 'scraped_at': 'count'}); print('Report exported'); print(summary.to_string())",
+      "explanation": "Generate CSV report of price history",
+      "expected_output": "Report exported",
+      "success_criteria": "CSV created"
+    },
+    {
+      "step": 10,
+      "title": "Cleanup and Schedule",
+      "command": "conn.close(); print('Database closed'); print('Schedule: Run this script every 6 hours with cron'); print('Example crontab: 0 */6 * * * /usr/bin/python3 /path/to/scraper.py'); print('Price monitoring system ready')",
+      "explanation": "Close connection and provide scheduling instructions",
+      "expected_output": "Price monitoring system ready",
+      "success_criteria": "System complete"
+    }
+  ],
+  "learning_objectives": [
+    "Web scraping ethics",
+    "BeautifulSoup HTML parsing",
+    "Request headers",
+    "Data storage",
+    "Price change detection",
+    "CSV export"
+  ],
+  "mitigation": [
+    "Rate limiting",
+    "robots.txt compliance",
+    "Terms of service",
+    "IP blocking",
+    "CAPTCHA"
+  ],
+  "tags": [
+    "scraping",
+    "beautifulsoup",
+    "price_monitoring",
+    "ecommerce",
+    "data_collection"
+  ]
+}

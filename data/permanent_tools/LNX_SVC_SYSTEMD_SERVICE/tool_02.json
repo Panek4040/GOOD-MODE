@@ -1,1 +1,82 @@
-{"name":"lnx_svc_systemd_service_tool_02","description":"Tool 02 for LNX_SVC_SYSTEMD_SERVICE","pattern":"lnx_svc_systemd_service","parameters":["param"],"sequence":[{"action":{"type":"system_command","tool":"shell","operation":"run","command":"echo","args":["ok"]},"expected_output":{"type":"string","example":"ok"}}],"stats":{"uses":0,"successes":0,"failures":0,"success_rate":0.0},"created_by":"neural_mesh_v5.2_generator"}
+{
+  "name": "systemctl_enable_disable_autostart",
+  "description": "Enable or disable services to start automatically at boot time",
+  "pattern": "enable.*service|disable.*autostart|boot.*service",
+  "parameters": [
+    "service_name",
+    "enable_action"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": [
+          "is-enabled",
+          "{{service_name}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "disabled"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "if [ '{{enable_action}}' = 'enable' ]; then systemctl enable {{service_name}}; else systemctl disable {{service_name}}; fi"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Created symlink /etc/systemd/system/multi-user.target.wants/{{service_name}}.service → /lib/systemd/system/{{service_name}}.service"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "systemctl",
+        "args": [
+          "is-enabled",
+          "{{service_name}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "enabled"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "systemctl list-unit-files | grep {{service_name}}"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "{{service_name}}.service                    enabled         enabled"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

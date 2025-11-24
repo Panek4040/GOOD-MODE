@@ -2,7 +2,13 @@
   "name": "docker_run_container_with_ports_volumes",
   "description": "Run Docker container with port mapping, volume mounts, and name assignment",
   "pattern": "run.*docker.*container|start.*container.*ports|docker.*run.*volume",
-  "parameters": ["image_name", "container_name", "host_port", "container_port", "volume_mount"],
+  "parameters": [
+    "image_name",
+    "container_name",
+    "host_port",
+    "container_port",
+    "volume_mount"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +16,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["images", "{{image_name}}", "--format", "{{.Repository}}:{{.Tag}}"]
+        "args": [
+          "images",
+          "{{image_name}}",
+          "--format",
+          "{{.Repository}}:{{.Tag}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +34,17 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["run", "-d", "--name", "{{container_name}}", "-p", "{{host_port}}:{{container_port}}", "-v", "{{volume_mount}}", "{{image_name}}"]
+        "args": [
+          "run",
+          "-d",
+          "--name",
+          "{{container_name}}",
+          "-p",
+          "{{host_port}}:{{container_port}}",
+          "-v",
+          "{{volume_mount}}",
+          "{{image_name}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +57,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["ps", "--filter", "name={{container_name}}", "--format", "table {{.ID}}\\t{{.Names}}\\t{{.Status}}\\t{{.Ports}}"]
+        "args": [
+          "ps",
+          "--filter",
+          "name={{container_name}}",
+          "--format",
+          "table {{.ID}}\\t{{.Names}}\\t{{.Status}}\\t{{.Ports}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +76,12 @@
         "tool": "shell",
         "operation": "run",
         "command": "docker",
-        "args": ["inspect", "{{container_name}}", "--format", "{{json .Mounts}}"]
+        "args": [
+          "inspect",
+          "{{container_name}}",
+          "--format",
+          "{{json .Mounts}}"
+        ]
       },
       "expected_output": {
         "type": "string",

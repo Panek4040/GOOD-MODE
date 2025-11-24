@@ -1,1 +1,59 @@
-{"episode_id":"LNX_PKG_APT_YUM_DNF_EP02","title":"Clean Up Unused Packages and Dependencies","description":"Remove old packages, clean cache, autoremove unused dependencies","difficulty":"beginner","steps":[{"step_number":1,"instruction":"Search for Apache packages to remove","tool":"apt_search_show_package_info","parameters":{"search_term":"apache2"},"expected_outcome":"Found apache2 installed but now using nginx"},{"step_number":2,"instruction":"Remove apache2 package but keep config","tool":"apt_remove_purge_cleanup","parameters":{"package_name":"apache2","remove_type":"remove"},"expected_outcome":"Apache removed, config files kept in case needed"},{"step_number":3,"instruction":"Purge apache2 completely including configs","tool":"apt_remove_purge_cleanup","parameters":{"package_name":"apache2","remove_type":"purge"},"expected_outcome":"Apache and all configs completely removed"},{"step_number":4,"instruction":"Remove unused dependencies automatically","tool":"apt_remove_purge_cleanup","parameters":{"package_name":"","remove_type":"autoremove"},"expected_outcome":"8 unused packages removed, 234MB freed"},{"step_number":5,"instruction":"Clean apt cache to free disk space","tool":"apt_remove_purge_cleanup","parameters":{"package_name":"","remove_type":"clean"},"expected_outcome":"Package cache cleaned, 1.2GB disk space freed"}],"success_criteria":"Old packages removed, dependencies cleaned, disk space recovered","cleanup":"None"}
+{
+  "episode_id": "LNX_PKG_APT_YUM_DNF_EP02",
+  "title": "Clean Up Unused Packages and Dependencies",
+  "description": "Remove old packages, clean cache, autoremove unused dependencies",
+  "difficulty": "beginner",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Search for Apache packages to remove",
+      "tool": "apt_search_show_package_info",
+      "parameters": {
+        "search_term": "apache2"
+      },
+      "expected_outcome": "Found apache2 installed but now using nginx"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Remove apache2 package but keep config",
+      "tool": "apt_remove_purge_cleanup",
+      "parameters": {
+        "package_name": "apache2",
+        "remove_type": "remove"
+      },
+      "expected_outcome": "Apache removed, config files kept in case needed"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Purge apache2 completely including configs",
+      "tool": "apt_remove_purge_cleanup",
+      "parameters": {
+        "package_name": "apache2",
+        "remove_type": "purge"
+      },
+      "expected_outcome": "Apache and all configs completely removed"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Remove unused dependencies automatically",
+      "tool": "apt_remove_purge_cleanup",
+      "parameters": {
+        "package_name": "",
+        "remove_type": "autoremove"
+      },
+      "expected_outcome": "8 unused packages removed, 234MB freed"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Clean apt cache to free disk space",
+      "tool": "apt_remove_purge_cleanup",
+      "parameters": {
+        "package_name": "",
+        "remove_type": "clean"
+      },
+      "expected_outcome": "Package cache cleaned, 1.2GB disk space freed"
+    }
+  ],
+  "success_criteria": "Old packages removed, dependencies cleaned, disk space recovered",
+  "cleanup": "None"
+}

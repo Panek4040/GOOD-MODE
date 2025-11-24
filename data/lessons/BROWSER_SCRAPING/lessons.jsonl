@@ -1,0 +1,35 @@
+{"user": "Parse HTML with BeautifulSoup", "assistant": "from bs4 import BeautifulSoup; soup = BeautifulSoup(html_content, 'html.parser')"}
+{"user": "Find first element by tag", "assistant": "soup.find('h1')"}
+{"user": "Find all elements by tag", "assistant": "soup.find_all('a')"}
+{"user": "Find element by class", "assistant": "soup.find('div', class_='container')"}
+{"user": "Find element by ID", "assistant": "soup.find(id='main-content')"}
+{"user": "Extract element text", "assistant": "element.get_text()"}
+{"user": "Get element attribute value", "assistant": "element.get('href')"}
+{"user": "Select with CSS selector", "assistant": "soup.select('.class-name')"}
+{"user": "Select first with CSS selector", "assistant": "soup.select_one('#element-id')"}
+{"user": "Make HTTP request with requests", "assistant": "import requests; response = requests.get('https://example.com')"}
+{"user": "Add custom headers to request", "assistant": "requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})"}
+{"user": "Parse JSON response", "assistant": "response.json()"}
+{"user": "Save content to file", "assistant": "with open('output.html', 'w') as f: f.write(response.text)"}
+{"user": "Extract all links from page", "assistant": "links = [a.get('href') for a in soup.find_all('a')]"}
+{"user": "Find element by XPath with lxml", "assistant": "from lxml import html; tree = html.fromstring(content); tree.xpath('//div[@class=\"item\"]')"}
+{"user": "Create Scrapy spider", "assistant": "import scrapy; class MySpider(scrapy.Spider): name = 'myspider'; start_urls = ['https://example.com']"}
+{"user": "Extract data in Scrapy", "assistant": "def parse(self, response): yield {'title': response.css('h1::text').get()}"}
+{"user": "Follow links in Scrapy", "assistant": "for link in response.css('a::attr(href)'): yield response.follow(link, self.parse)"}
+{"user": "Handle pagination in scraping", "assistant": "next_page = soup.find('a', class_='next'); if next_page: requests.get(next_page['href'])"}
+{"user": "Add delay between requests", "assistant": "import time; time.sleep(2)"}
+{"user": "Use session for cookies", "assistant": "session = requests.Session(); session.get(url)"}
+{"user": "Set request timeout", "assistant": "requests.get(url, timeout=10)"}
+{"user": "Handle request exceptions", "assistant": "try: response = requests.get(url); except requests.exceptions.RequestException as e: print(e)"}
+{"user": "Parse table data", "assistant": "table = soup.find('table'); rows = table.find_all('tr')"}
+{"user": "Extract table to DataFrame", "assistant": "import pandas as pd; df = pd.read_html(html_content)[0]"}
+{"user": "Scroll page with Selenium", "assistant": "driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')"}
+{"user": "Wait for element in Selenium scraping", "assistant": "from selenium.webdriver.support.ui import WebDriverWait; WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, 'content')))"}
+{"user": "Get page source after JavaScript execution", "assistant": "page_source = driver.page_source; soup = BeautifulSoup(page_source, 'html.parser')"}
+{"user": "Export data to CSV", "assistant": "import pandas as pd; df.to_csv('output.csv', index=False)"}
+{"user": "Export data to JSON", "assistant": "import json; with open('data.json', 'w') as f: json.dump(data, f, indent=2)"}
+{"user": "Clean scraped text", "assistant": "text.strip().replace('\\n', ' ').replace('\\r', '')"}
+{"user": "Extract numbers from string", "assistant": "import re; numbers = re.findall(r'\\d+\\.?\\d*', text)"}
+{"user": "Parse relative URLs to absolute", "assistant": "from urllib.parse import urljoin; absolute_url = urljoin(base_url, relative_url)"}
+{"user": "Respect robots.txt", "assistant": "from urllib.robotparser import RobotFileParser; rp = RobotFileParser(); rp.set_url('https://example.com/robots.txt'); rp.read(); rp.can_fetch('*', url)"}
+{"user": "Set Scrapy download delay", "assistant": "custom_settings = {'DOWNLOAD_DELAY': 2}"}

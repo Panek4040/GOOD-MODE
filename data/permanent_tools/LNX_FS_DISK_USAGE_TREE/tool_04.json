@@ -2,7 +2,9 @@
   "name": "disk_usage_percentage",
   "description": "Show disk usage with percentage of parent directory",
   "pattern": "percentage.*usage|percent.*disk|usage.*ratio",
-  "parameters": ["path"],
+  "parameters": [
+    "path"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +12,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "total=$(du -sb '{{path}}' | awk '{print $1}'); du -sb '{{path}}'/* | awk -v t=$total '{pct=$1*100/t; printf \"%d|%.2f%%|%s\\n\", $1, pct, $2}' | sort -rn"]
+        "args": [
+          "-c",
+          "total=$(du -sb '{{path}}' | awk '{print $1}'); du -sb '{{path}}'/* | awk -v t=$total '{pct=$1*100/t; printf \"%d|%.2f%%|%s\\n\", $1, pct, $2}' | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +28,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -b '{{path}}'/* | awk '{sum+=$1; size[$2]=$1} END {for(d in size) printf \"%d|%.2f%%|%s\\n\", size[d], size[d]*100/sum, d}' | sort -rn"]
+        "args": [
+          "-c",
+          "du -b '{{path}}'/* | awk '{sum+=$1; size[$2]=$1} END {for(d in size) printf \"%d|%.2f%%|%s\\n\", size[d], size[d]*100/sum, d}' | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +44,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -b '{{path}}'/* | sort -rn | awk 'NR==1{total=$1} {pct=$1*100/total; printf \"%-50s %10s (%5.2f%%)\\n\", $2, $1, pct}'"]
+        "args": [
+          "-c",
+          "du -b '{{path}}'/* | sort -rn | awk 'NR==1{total=$1} {pct=$1*100/total; printf \"%-50s %10s (%5.2f%%)\\n\", $2, $1, pct}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +60,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sb '{{path}}'/* | awk '{sum+=$1; arr[NR]=$0} END {for(i=1;i<=NR;i++) {split(arr[i],a); printf \"%s|%.1f%%|%s\\n\", a[1], a[1]*100/sum, a[2]}}' | sort -rn"]
+        "args": [
+          "-c",
+          "du -sb '{{path}}'/* | awk '{sum+=$1; arr[NR]=$0} END {for(i=1;i<=NR;i++) {split(arr[i],a); printf \"%s|%.1f%%|%s\\n\", a[1], a[1]*100/sum, a[2]}}' | sort -rn"
+        ]
       },
       "expected_output": {
         "type": "string",

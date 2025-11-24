@@ -1,0 +1,65 @@
+{
+  "name": "api_reverse_engineering",
+  "description": "Intercept and extract data from internal APIs",
+  "pattern": "api.*intercept|network.*monitor|reverse.*api",
+  "parameters": [
+    "target_url"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "import requests; response = requests.get('https://jsonplaceholder.typicode.com/posts/1'); data = response.json(); print('API Response:'); print(f'  ID: {data[\"id\"]}'); print(f'  Title: {data[\"title\"]}'); print(f'  Body length: {len(data[\"body\"])} chars')"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "API Response:\n  ID: 1\n  Title: sunt aut facere...\n  Body length: 100+ chars\n\nDirect API access"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "import requests; headers = {'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json'}; response = requests.get('https://jsonplaceholder.typicode.com/users', headers=headers); users = response.json(); print(f'Users: {len(users)}'); [print(f'  {u[\"name\"]} - {u[\"email\"]}') for u in users[:3]]"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Users: 10\n  Leanne Graham - Sincere@april.biz\n  Ervin Howell - Shanna@melissa.tv\n  Clementine Bauch - Nathan@yesenia.net\n\nAPI data with custom headers"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "python3",
+        "args": [
+          "-c",
+          "import requests; import json; session = requests.Session(); session.headers.update({'User-Agent': 'Mozilla/5.0'}); response = session.get('https://jsonplaceholder.typicode.com/posts?userId=1'); posts = response.json(); print(f'User posts: {len(posts)}'); print(f'First post: {posts[0][\"title\"][:40]}...')"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "User posts: 10\nFirst post: sunt aut facere repellat provident...\n\nAPI with query parameters"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

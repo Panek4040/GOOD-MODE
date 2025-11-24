@@ -2,7 +2,10 @@
   "name": "safe_delete_with_size_check",
   "description": "Delete files after verifying size and getting confirmation info",
   "pattern": "delete.*check.*size|verify.*before.*delete|safe.*remove",
-  "parameters": ["file_path", "max_size_mb"],
+  "parameters": [
+    "file_path",
+    "max_size_mb"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "size_bytes=$(stat -c %s '{{file_path}}' 2>/dev/null || echo 0); size_mb=$((size_bytes / 1024 / 1024)); echo \"File size: ${size_mb}MB\""]
+        "args": [
+          "-c",
+          "size_bytes=$(stat -c %s '{{file_path}}' 2>/dev/null || echo 0); size_mb=$((size_bytes / 1024 / 1024)); echo \"File size: ${size_mb}MB\""
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +29,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "size_bytes=$(stat -c %s '{{file_path}}'); size_mb=$((size_bytes / 1024 / 1024)); if [ $size_mb -gt {{max_size_mb}} ]; then echo \"File too large: ${size_mb}MB > {{max_size_mb}}MB\"; else echo \"Size OK: ${size_mb}MB <= {{max_size_mb}}MB\"; fi"]
+        "args": [
+          "-c",
+          "size_bytes=$(stat -c %s '{{file_path}}'); size_mb=$((size_bytes / 1024 / 1024)); if [ $size_mb -gt {{max_size_mb}} ]; then echo \"File too large: ${size_mb}MB > {{max_size_mb}}MB\"; else echo \"Size OK: ${size_mb}MB <= {{max_size_mb}}MB\"; fi"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +45,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "stat",
-        "args": ["-c", "Path: %n\nSize: %s bytes\nModified: %y\nPermissions: %a\nOwner: %U:%G", "{{file_path}}"]
+        "args": [
+          "-c",
+          "Path: %n\nSize: %s bytes\nModified: %y\nPermissions: %a\nOwner: %U:%G",
+          "{{file_path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +62,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "file_type=$(file -b '{{file_path}}'); echo \"File type: $file_type\""]
+        "args": [
+          "-c",
+          "file_type=$(file -b '{{file_path}}'); echo \"File type: $file_type\""
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +78,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "rm",
-        "args": ["-v", "{{file_path}}"]
+        "args": [
+          "-v",
+          "{{file_path}}"
+        ]
       },
       "expected_output": {
         "type": "string",

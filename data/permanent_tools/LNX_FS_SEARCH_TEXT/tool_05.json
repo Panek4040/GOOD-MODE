@@ -2,7 +2,10 @@
   "name": "text_search_binary_and_fixed",
   "description": "Search in binary files and use fixed string matching",
   "pattern": "search.*binary|fixed.*string|literal.*search",
-  "parameters": ["path", "pattern"],
+  "parameters": [
+    "path",
+    "pattern"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +13,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "grep",
-        "args": ["-r", "-a", "-n", "{{pattern}}", "{{path}}"]
+        "args": [
+          "-r",
+          "-a",
+          "-n",
+          "{{pattern}}",
+          "{{path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +32,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "grep",
-        "args": ["-r", "-F", "-n", "{{pattern}}", "{{path}}"]
+        "args": [
+          "-r",
+          "-F",
+          "-n",
+          "{{pattern}}",
+          "{{path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +51,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "grep -r -I -l '{{pattern}}' '{{path}}' | sort"]
+        "args": [
+          "-c",
+          "grep -r -I -l '{{pattern}}' '{{path}}' | sort"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +67,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "strings '{{path}}' | grep '{{pattern}}'"]
+        "args": [
+          "-c",
+          "strings '{{path}}' | grep '{{pattern}}'"
+        ]
       },
       "expected_output": {
         "type": "string",

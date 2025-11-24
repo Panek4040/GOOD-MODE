@@ -2,7 +2,11 @@
   "name": "sync_dirs_with_exclude",
   "description": "Sync directories excluding specific patterns",
   "pattern": "sync.*exclude|rsync.*ignore|sync.*skip",
-  "parameters": ["source_path", "dest_path", "exclude_pattern"],
+  "parameters": [
+    "source_path",
+    "dest_path",
+    "exclude_pattern"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +14,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find '{{source_path}}' -name '{{exclude_pattern}}' | head -10"]
+        "args": [
+          "-c",
+          "find '{{source_path}}' -name '{{exclude_pattern}}' | head -10"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +30,14 @@
         "tool": "shell",
         "operation": "run",
         "command": "rsync",
-        "args": ["-av", "--exclude={{exclude_pattern}}", "--dry-run", "--stats", "{{source_path}}/", "{{dest_path}}/"]
+        "args": [
+          "-av",
+          "--exclude={{exclude_pattern}}",
+          "--dry-run",
+          "--stats",
+          "{{source_path}}/",
+          "{{dest_path}}/"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +50,14 @@
         "tool": "shell",
         "operation": "run",
         "command": "rsync",
-        "args": ["-av", "--exclude={{exclude_pattern}}", "--exclude=.git", "--exclude=*.log", "{{source_path}}/", "{{dest_path}}/"]
+        "args": [
+          "-av",
+          "--exclude={{exclude_pattern}}",
+          "--exclude=.git",
+          "--exclude=*.log",
+          "{{source_path}}/",
+          "{{dest_path}}/"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +70,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "du -sh '{{source_path}}' '{{dest_path}}'"]
+        "args": [
+          "-c",
+          "du -sh '{{source_path}}' '{{dest_path}}'"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -62,7 +86,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "test -d '{{dest_path}}/node_modules' && echo 'Excluded dir exists in dest' || echo 'Excluded dir not copied'"]
+        "args": [
+          "-c",
+          "test -d '{{dest_path}}/node_modules' && echo 'Excluded dir exists in dest' || echo 'Excluded dir not copied'"
+        ]
       },
       "expected_output": {
         "type": "string",

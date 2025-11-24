@@ -10,7 +10,9 @@
         "tool": "shell",
         "operation": "run",
         "command": "df",
-        "args": ["-h"]
+        "args": [
+          "-h"
+        ]
       },
       "observation": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/sda1       500G  475G   25G  96% /\n/dev/sdb1       1.0T  850G  150G  86% /var\n/dev/sdc1       2.0T  1.8T  200G  91% /home"
     },
@@ -21,7 +23,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find / -type f -size +500M 2>/dev/null | wc -l"]
+        "args": [
+          "-c",
+          "find / -type f -size +500M 2>/dev/null | wc -l"
+        ]
       },
       "observation": "127"
     },
@@ -32,7 +37,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find / -type f -printf '%s|%p\\n' 2>/dev/null | sort -rn | head -n 15"]
+        "args": [
+          "-c",
+          "find / -type f -printf '%s|%p\\n' 2>/dev/null | sort -rn | head -n 15"
+        ]
       },
       "observation": "10737418240|/var/lib/mysql/ibdata1\n5368709120|/var/log/syslog.old\n3221225472|/home/backup/server_full_2025-09-15.tar.gz\n2147483648|/var/cache/apt/archives/old_packages.tar\n1073741824|/home/jenkins/workspace/build_artifacts.tar.gz\n858993459|/var/lib/postgresql/base/data.db\n536870912|/opt/app/logs/application.log.1\n419430400|/home/deploy/releases/v2.3.tar.gz\n314572800|/var/backups/mysql/dump_2025-10-01.sql\n268435456|/tmp/upload_cache_large.bin\n209715200|/var/log/apache2/access.log.3\n157286400|/opt/videos/demo_presentation.mp4\n134217728|/home/user/downloads/ubuntu-22.04.iso\n104857600|/var/spool/mail/root\n94371840|/var/lib/docker/overlay2/layer.tar"
     },
@@ -43,7 +51,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find / -type f -size +500M -mtime +60 2>/dev/null"]
+        "args": [
+          "-c",
+          "find / -type f -size +500M -mtime +60 2>/dev/null"
+        ]
       },
       "observation": "/var/log/syslog.old\n/home/backup/server_full_2025-09-15.tar.gz\n/var/cache/apt/archives/old_packages.tar\n/home/jenkins/workspace/build_artifacts.tar.gz\n/opt/app/logs/application.log.1\n/home/deploy/releases/v2.3.tar.gz\n/var/backups/mysql/dump_2025-10-01.sql"
     },
@@ -54,7 +65,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find / -type f -size +500M -mtime +60 -printf '%s|%p|%TY-%Tm-%Td\\n' 2>/dev/null | sort -rn"]
+        "args": [
+          "-c",
+          "find / -type f -size +500M -mtime +60 -printf '%s|%p|%TY-%Tm-%Td\\n' 2>/dev/null | sort -rn"
+        ]
       },
       "observation": "5368709120|/var/log/syslog.old|2025-09-10\n3221225472|/home/backup/server_full_2025-09-15.tar.gz|2025-09-15\n2147483648|/var/cache/apt/archives/old_packages.tar|2025-08-25\n1073741824|/home/jenkins/workspace/build_artifacts.tar.gz|2025-09-20\n536870912|/opt/app/logs/application.log.1|2025-09-05\n419430400|/home/deploy/releases/v2.3.tar.gz|2025-09-12\n314572800|/var/backups/mysql/dump_2025-10-01.sql|2025-10-01"
     },
@@ -65,7 +79,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find / -type f -size +500M -mtime +60 -exec stat -c '%s|%U|%G|%n' {} \\; 2>/dev/null | sort -rn"]
+        "args": [
+          "-c",
+          "find / -type f -size +500M -mtime +60 -exec stat -c '%s|%U|%G|%n' {} \\; 2>/dev/null | sort -rn"
+        ]
       },
       "observation": "5368709120|root|adm|/var/log/syslog.old\n3221225472|backup|backup|/home/backup/server_full_2025-09-15.tar.gz\n2147483648|root|root|/var/cache/apt/archives/old_packages.tar\n1073741824|jenkins|jenkins|/home/jenkins/workspace/build_artifacts.tar.gz\n536870912|app|app|/opt/app/logs/application.log.1\n419430400|deploy|deploy|/home/deploy/releases/v2.3.tar.gz\n314572800|mysql|mysql|/var/backups/mysql/dump_2025-10-01.sql"
     },
@@ -76,7 +93,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find / -type f -size +500M -mtime +60 -printf '%s\\n' 2>/dev/null | awk '{sum+=$1} END {print \"Total bytes: \"sum; print \"Total GB: \"sum/1024/1024/1024}'"]
+        "args": [
+          "-c",
+          "find / -type f -size +500M -mtime +60 -printf '%s\\n' 2>/dev/null | awk '{sum+=$1} END {print \"Total bytes: \"sum; print \"Total GB: \"sum/1024/1024/1024}'"
+        ]
       },
       "observation": "Total bytes: 13082083328\nTotal GB: 12.1836"
     },
@@ -87,7 +107,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find / -type f -size +500M -mtime +60 -printf '%h\\n' 2>/dev/null | sort | uniq -c | sort -rn"]
+        "args": [
+          "-c",
+          "find / -type f -size +500M -mtime +60 -printf '%h\\n' 2>/dev/null | sort | uniq -c | sort -rn"
+        ]
       },
       "observation": "      1 /var/log\n      1 /var/cache/apt/archives\n      1 /var/backups/mysql\n      1 /opt/app/logs\n      1 /home/jenkins/workspace\n      1 /home/deploy/releases\n      1 /home/backup"
     },
@@ -98,7 +121,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "bash",
-        "args": ["-c", "find / -type f -size +500M -mtime +60 \\( -name '*.tar.gz' -o -name '*.tar' -o -name '*.zip' \\) 2>/dev/null | head -10"]
+        "args": [
+          "-c",
+          "find / -type f -size +500M -mtime +60 \\( -name '*.tar.gz' -o -name '*.tar' -o -name '*.zip' \\) 2>/dev/null | head -10"
+        ]
       },
       "observation": "/home/backup/server_full_2025-09-15.tar.gz\n/var/cache/apt/archives/old_packages.tar\n/home/jenkins/workspace/build_artifacts.tar.gz\n/home/deploy/releases/v2.3.tar.gz"
     }

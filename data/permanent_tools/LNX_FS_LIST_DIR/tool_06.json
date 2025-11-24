@@ -2,7 +2,9 @@
   "name": "list_with_permissions_owner",
   "description": "List files with detailed permissions, owner, group and ACLs",
   "pattern": "permissions|owner.*files|acl|chmod.*info",
-  "parameters": ["path"],
+  "parameters": [
+    "path"
+  ],
   "sequence": [
     {
       "action": {
@@ -10,7 +12,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "ls",
-        "args": ["-la", "{{path}}"]
+        "args": [
+          "-la",
+          "{{path}}"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -23,7 +28,13 @@
         "tool": "shell",
         "operation": "run",
         "command": "find",
-        "args": ["{{path}}", "-maxdepth", "1", "-printf", "%M|%u|%g|%p|%s\\n"]
+        "args": [
+          "{{path}}",
+          "-maxdepth",
+          "1",
+          "-printf",
+          "%M|%u|%g|%p|%s\\n"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -36,7 +47,11 @@
         "tool": "shell",
         "operation": "run",
         "command": "stat",
-        "args": ["-c", "%A|%U|%G|%n|%s|%a", "{{path}}/*"]
+        "args": [
+          "-c",
+          "%A|%U|%G|%n|%s|%a",
+          "{{path}}/*"
+        ]
       },
       "expected_output": {
         "type": "string",
@@ -49,7 +64,10 @@
         "tool": "shell",
         "operation": "run",
         "command": "getfacl",
-        "args": ["-p", "{{path}}/*"]
+        "args": [
+          "-p",
+          "{{path}}/*"
+        ]
       },
       "expected_output": {
         "type": "string",

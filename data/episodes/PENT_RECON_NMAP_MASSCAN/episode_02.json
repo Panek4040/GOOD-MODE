@@ -1,0 +1,92 @@
+{
+  "episode_id": "PENT_RECON_NMAP_MASSCAN_EP02",
+  "title": "Large Enterprise Network Scan - 10.0.0.0/16",
+  "description": "Fast reconnaissance of Class B network (65k IPs) for security assessment",
+  "difficulty": "advanced",
+  "steps": [
+    {
+      "step_number": 1,
+      "instruction": "Perform ultra-fast initial scan with masscan",
+      "tool": "masscan_ultra_fast_port_scanner",
+      "parameters": {
+        "target": "10.0.0.0/16",
+        "ports": "80,443,22,3389",
+        "rate": "10000"
+      },
+      "expected_outcome": "Scanned 65,536 IPs in 12 minutes at 10,000 pps, found 2,345 open ports on 523 hosts"
+    },
+    {
+      "step_number": 2,
+      "instruction": "Extract live host IPs from masscan results",
+      "tool": "nmap_network_range_scanning",
+      "parameters": {
+        "network": "10.0.0.0/16",
+        "ports": ""
+      },
+      "expected_outcome": "523 live hosts identified for targeted scanning"
+    },
+    {
+      "step_number": 3,
+      "instruction": "Detailed nmap scan on web servers discovered by masscan",
+      "tool": "nmap_tcp_syn_port_scan",
+      "parameters": {
+        "target": "10.0.0.0/16",
+        "ports": "80,443,8080,8443",
+        "scan_type": "SYN"
+      },
+      "expected_outcome": "234 web servers: 189 HTTP, 145 HTTPS, 67 alt-HTTP (8080), 23 alt-HTTPS (8443)"
+    },
+    {
+      "step_number": 4,
+      "instruction": "Identify web application technologies with NSE",
+      "tool": "nmap_nse_script_scanning",
+      "parameters": {
+        "target": "10.0.0.0/16",
+        "script_name": "http-enum"
+      },
+      "expected_outcome": "Found: 45 admin panels, 23 backup directories, 12 phpMyAdmin, 8 Tomcat managers"
+    },
+    {
+      "step_number": 5,
+      "instruction": "Scan for Windows hosts via RDP and SMB",
+      "tool": "nmap_tcp_syn_port_scan",
+      "parameters": {
+        "target": "10.0.0.0/16",
+        "ports": "135,139,445,3389",
+        "scan_type": "SYN"
+      },
+      "expected_outcome": "156 Windows hosts: 134 with SMB (445), 89 with RDP (3389)"
+    },
+    {
+      "step_number": 6,
+      "instruction": "OS fingerprinting on sample of discovered hosts",
+      "tool": "nmap_os_detection_fingerprint",
+      "parameters": {
+        "target": "10.0.1.50"
+      },
+      "expected_outcome": "Sample results: 45% Windows Server 2019, 30% Ubuntu/Debian, 15% CentOS, 10% network devices"
+    },
+    {
+      "step_number": 7,
+      "instruction": "Scan UDP services across network",
+      "tool": "nmap_udp_service_discovery",
+      "parameters": {
+        "target": "10.0.0.0/16",
+        "ports": "53,161,162"
+      },
+      "expected_outcome": "UDP: 23 DNS servers, 67 SNMP-enabled devices (many with default community strings)"
+    },
+    {
+      "step_number": 8,
+      "instruction": "Generate comprehensive XML report for parsing",
+      "tool": "nmap_output_formats_reporting",
+      "parameters": {
+        "target": "10.0.0.0/16",
+        "output_file": "enterprise_network_scan"
+      },
+      "expected_outcome": "XML report generated for import into vulnerability management platform"
+    }
+  ],
+  "success_criteria": "Scanned 65,536 IPs, identified 523 live hosts, cataloged 2,345 services, found 67 SNMP devices with weak security",
+  "cleanup": "Imported results to Nessus for vulnerability correlation, prioritized SNMP and exposed admin panels for remediation"
+}

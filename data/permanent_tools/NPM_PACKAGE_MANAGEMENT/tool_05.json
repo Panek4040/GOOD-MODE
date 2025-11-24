@@ -1,0 +1,122 @@
+{
+  "name": "npm_package_metadata",
+  "description": "Viewing and managing package metadata and information",
+  "sequences": [
+    {
+      "id": "seq_1",
+      "description": "View package information and dependencies",
+      "steps": [
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "view",
+              "express"
+            ]
+          },
+          "expected_output": "express@4.18.2 | MIT | deps: 30 | versions: 278\nFast, unopinionated, minimalist web framework\nhttps://expressjs.com/",
+          "explanation": "Shows package metadata from npm registry"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "view",
+              "express",
+              "dependencies"
+            ]
+          },
+          "expected_output": "{\n  body-parser: '1.20.1',\n  cookie: '0.5.0',\n  debug: '2.6.9'\n}",
+          "explanation": "Lists all dependencies of express package"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "search",
+              "http server"
+            ]
+          },
+          "expected_output": "express | Fast web framework | =username | 2024-01-10\nhttp-server | Simple HTTP server | =another | 2023-12-05",
+          "explanation": "Searches npm registry for packages matching keywords"
+        }
+      ]
+    },
+    {
+      "id": "seq_2",
+      "description": "Analyze package dependencies and structure",
+      "steps": [
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "list"
+            ]
+          },
+          "expected_output": "my-project@1.0.0\n├─┬ express@4.18.2\n│ ├── body-parser@1.20.1\n│ └── cookie@0.5.0\n└── lodash@4.17.21",
+          "explanation": "Shows complete dependency tree"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "explain",
+              "debug"
+            ]
+          },
+          "expected_output": "debug@2.6.9\nnode_modules/debug\n  debug@\"2.6.9\" from express@4.18.2",
+          "explanation": "Explains why a package is installed"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "fund"
+            ]
+          },
+          "expected_output": "my-project@1.0.0\n├── https://github.com/sponsors/express (express)\n└─┬ https://opencollective.com/lodash (lodash)",
+          "explanation": "Shows funding information for dependencies"
+        }
+      ]
+    },
+    {
+      "id": "seq_3",
+      "description": "Check package deprecation and alternatives",
+      "steps": [
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "view",
+              "request",
+              "deprecated"
+            ]
+          },
+          "expected_output": "true\nDeprecated: request has been deprecated, see https://github.com/request/request/issues/3142",
+          "explanation": "Checks if package is deprecated"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "doctor"
+            ]
+          },
+          "expected_output": "Check                               Value\nnpm ping                            ok\nnpm -v                              v9.8.1\nnode -v                             v18.17.0\nnpm config get registry             https://registry.npmjs.org/\nwhich git                           /usr/bin/git",
+          "explanation": "Diagnoses npm environment issues"
+        },
+        {
+          "action": {
+            "command": "npm",
+            "args": [
+              "repo",
+              "express"
+            ]
+          },
+          "expected_output": "Opening https://github.com/expressjs/express in browser",
+          "explanation": "Opens package repository in default browser"
+        }
+      ]
+    }
+  ]
+}

